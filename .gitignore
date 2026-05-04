@@ -13,3 +13,32 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# --- Build Artifacts ---
+build/
+bin/
+out/
+.gradle/
+Captures/
+
+# --- Local Configuration (User specific) ---
+local.properties
+.idea/workspace.xml
+.idea/libraries/
+.idea/caches/
+.idea/shelf/
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+*.iml
+
+# --- Sensitive Files (Secrets) ---
+*.jks
+*.keystore
+# google-services.json (Often ignored if it contains secrets, otherwise keep)
+
+# --- OS Generated ---
+.DS_Store
+Thumbs.db
+
+# --- Log Files ---
+*.log
