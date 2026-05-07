@@ -12,6 +12,78 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StudyMateAndroidApp">
         <activity
+            android:name=".feature.flashcard.Flashcard"
+            android:exported="false"
+            android:label="@string/title_activity_flashcard"
+            android:theme="@style/Theme.StudyMateAndroidApp" />
+        <activity
+            android:name=".feature.reflection.Reflection"
+            android:exported="false"
+            android:label="@string/title_activity_reflection"
+            android:theme="@style/Theme.StudyMateAndroidApp" />
+        <activity
+            android:name=".feature.statistics.Statistics"
+            android:exported="false"
+            android:label="@string/title_activity_statistics"
+            android:theme="@style/Theme.StudyMateAndroidApp" />
+        <activity
+            android:name=".feature.achievements.Achievements"
+            android:exported="false"
+            android:label="@string/title_activity_achievements"
+            android:theme="@style/Theme.StudyMateAndroidApp" />
+        <activity
+            android:name=".feature.settings.Settings"
+            android:exported="false"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/Theme.StudyMateAndroidApp" />
+        <activity
+            android:name=".feature.timer.MainActivity"
+            android:exported="false"
+            android:label="@string/title_activity_main"
+            android:theme="@style/Theme.StudyMateAndroidApp" />
+        <activity
+            android:name=".task.Task"
+            android:exported="false"
+            android:label="@string/title_activity_task"
+            android:theme="@style/Theme.StudyMateAndroidApp" />
+        <activity
+            android:name=".feature.exam.Exams"
+            android:exported="false"
+            android:label="@string/title_activity_exams"
+            android:theme="@style/Theme.StudyMateAndroidApp" />
+        <activity
+            android:name=".feature.calendar.Calendar"
+            android:exported="false"
+            android:label="@string/title_activity_calendar"
+            android:theme="@style/Theme.StudyMateAndroidApp" />
+        <activity
+            android:name=".feature.dashboard.viewmodel.DashboardViewmodel"
+            android:exported="false"
+            android:label="@string/title_activity_dashboard_viewmodel"
+            android:theme="@style/Theme.StudyMateAndroidApp" />
+        <activity
+            android:name=".feature.dashboard.ui.Dashboard"
+            android:exported="true"
+            android:label="@string/title_activity_dashboard"
+            android:theme="@style/Theme.StudyMateAndroidApp">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".feature.dashboard.Dashboard"
+            android:exported="true"
+            android:label="@string/title_activity_dashboard"
+            android:theme="@style/Theme.StudyMateAndroidApp">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".SettingActivity"
             android:exported="false"
             android:label="@string/title_activity_setting"
