@@ -1,9 +1,9 @@
 package com.example.studymateandroidapp.feature.motivation.data
 
 import androidx.room.*
-import com.studyplanner.core.model.Achievement
-import com.studyplanner.core.model.AchievementType
-import com.studyplanner.core.model.DailyReflection
+import com.example.studymateandroidapp.core.model.Achievement
+import com.example.studymateandroidapp.core.model.AchievementType
+import com.example.studymateandroidapp.core.model.DailyReflection
 import kotlinx.coroutines.flow.Flow
 
 @Dao

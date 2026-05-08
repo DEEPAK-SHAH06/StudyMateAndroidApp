@@ -1,10 +1,10 @@
 package com.example.studymateandroidapp.core.database
 
 import androidx.room.TypeConverter
-import com.studyplanner.core.model.AchievementType
-import com.studyplanner.core.model.GoalStatus
-import com.studyplanner.core.model.Priority
-import com.studyplanner.core.model.TaskStatus
+import com.example.studymateandroidapp.core.model.AchievementType
+import com.example.studymateandroidapp.core.model.GoalStatus
+import com.example.studymateandroidapp.core.model.Priority
+import com.example.studymateandroidapp.core.model.TaskStatus
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -20,7 +20,6 @@ import java.time.ZoneId
 class Converters {
 
     // ── LocalDate ↔ Long (epoch day) ──────────────────────
-
     @TypeConverter
     fun fromLocalDate(date: LocalDate?): Long? = date?.toEpochDay()
 
@@ -28,8 +27,8 @@ class Converters {
     fun toLocalDate(epochDay: Long?): LocalDate? =
         epochDay?.let { LocalDate.ofEpochDay(it) }
 
-    // ── LocalDateTime ↔ Long (epoch second) ───────────────
 
+    // ── LocalDateTime ↔ Long (epoch second) ───────────────
     @TypeConverter
     fun fromLocalDateTime(dt: LocalDateTime?): Long? =
         dt?.atZone(ZoneId.systemDefault())?.toEpochSecond()
@@ -40,8 +39,8 @@ class Converters {
             LocalDateTime.ofInstant(Instant.ofEpochSecond(it), ZoneId.systemDefault())
         }
 
-    // ── Enum ↔ String ─────────────────────────────────────
 
+    // ── Enum ↔ String ─────────────────────────────────────
     @TypeConverter fun fromPriority(value: Priority): String = value.name
     @TypeConverter fun toPriority(value: String): Priority = Priority.valueOf(value)
 
@@ -54,8 +53,8 @@ class Converters {
     @TypeConverter fun fromAchievementType(value: AchievementType): String = value.name
     @TypeConverter fun toAchievementType(value: String): AchievementType = AchievementType.valueOf(value)
 
-    // ── LocalTime ↔ Long (nano-of-day) ───────────────────
 
+    // ── LocalTime ↔ Long (nano-of-day) ───────────────────
     @TypeConverter
     fun fromLocalTime(time: java.time.LocalTime?): Long? = time?.toNanoOfDay()
 
@@ -63,14 +62,15 @@ class Converters {
     fun toLocalTime(nano: Long?): java.time.LocalTime? =
         nano?.let { java.time.LocalTime.ofNanoOfDay(it) }
 
+
     // ── ReminderType ↔ String ─────────────────────────────
+//    @TypeConverter
+//    fun fromReminderType(type: com.studyplanner.core.model.ReminderType): String = type.name
+//
+//    @TypeConverter
+//    fun toReminderType(value: String): com.studyplanner.core.model.ReminderType =
+//        com.studyplanner.core.model.ReminderType.valueOf(value)
 
-    @TypeConverter
-    fun fromReminderType(type: com.studyplanner.core.model.ReminderType): String = type.name
-
-    @TypeConverter
-    fun toReminderType(value: String): com.studyplanner.core.model.ReminderType =
-        com.studyplanner.core.model.ReminderType.valueOf(value)
 
     // ── List<String> ↔ String (comma-separated) ───────────
     @TypeConverter

@@ -8,9 +8,8 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.studyplanner.core.database.StudyPlannerDatabase
-import com.studyplanner.core.model.ReminderType
-import com.studyplanner.core.model.TaskStatus
+import com.example.studymateandroidapp.core.database.StudyPlannerDatabase
+import com.example.studymateandroidapp.model.ReminderType
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.concurrent.TimeUnit
@@ -42,39 +41,39 @@ class NotificationWorker(
             // 1. Daily Habit Reminder
             val habitSetting = reminderDao.getSettingByType(ReminderType.DAILY_HABIT)
             if (habitSetting?.isEnabled == true) {
-                val sessionDao = database.sessionDao()
+//                val sessionDao = database.sessionDao()
                 val today = LocalDate.now()
-                val todayMinutes = sessionDao.getStudyMinutesForDay(
-                    today.atStartOfDay(),
+//                val todayMinutes = sessionDao.getStudyMinutesForDay(
+//                    today.atStartOfDay(),
                     today.atTime(LocalTime.MAX)
-                ).first()
-                val notification = NotificationHelper.buildDailyReminder(applicationContext, todayMinutes).build()
-                manager.notify(NotificationHelper.DAILY_REMINDER_ID, notification)
+//                ).first()
+//                val notification = NotificationHelper.buildDailyReminder(applicationContext, todayMinutes).build()
+//                manager.notify(NotificationHelper.DAILY_REMINDER_ID, notification)
             }
 
             // 2. Missed Task Reminder
             val missedTaskSetting = reminderDao.getSettingByType(ReminderType.MISSED_TASK)
             if (missedTaskSetting?.isEnabled == true) {
-                val taskDao = database.taskDao()
-                val incompleteTasksToday = taskDao.getIncompleteTasksDueOn(LocalDate.now()).first()
-                if (incompleteTasksToday.isNotEmpty()) {
-                    val notification = NotificationHelper.buildMissedTaskAlert(applicationContext, incompleteTasksToday.size).build()
-                    manager.notify(NotificationHelper.MISSED_TASK_ID, notification)
-                }
+//                val taskDao = database.taskDao()
+//                val incompleteTasksToday = taskDao.getIncompleteTasksDueOn(LocalDate.now()).first()
+//                if (incompleteTasksToday.isNotEmpty()) {
+//                    val notification = NotificationHelper.buildMissedTaskAlert(applicationContext, incompleteTasksToday.size).build()
+//                    manager.notify(NotificationHelper.MISSED_TASK_ID, notification)
+//                }
             }
 
             // 3. Daily Goal Reminder
             val goalSetting = reminderDao.getSettingByType(ReminderType.DAILY_GOAL)
             if (goalSetting?.isEnabled == true) {
-                val goalDao = database.goalDao()
-                val activeGoals = goalDao.getAllGoals().first()
+//                val goalDao = database.goalDao()
+//                val activeGoals = goalDao.getAllGoals().first()
                 // Simple logic: if any goal due today or daily habit goal not met
                 // For now, let's just check if there are goals with currentValue < targetValue
-                val unmetGoals = activeGoals.filter { it.deadline == LocalDate.now() && it.currentValue < it.targetValue }
-                if (unmetGoals.isNotEmpty()) {
-                    val notification = NotificationHelper.buildDailyGoalAlert(applicationContext, unmetGoals.first().targetValue - unmetGoals.first().currentValue).build()
-                    manager.notify(NotificationHelper.DAILY_GOAL_ID, notification)
-                }
+//                val unmetGoals = activeGoals.filter { it.deadline == LocalDate.now() && it.currentValue < it.targetValue }
+//                if (unmetGoals.isNotEmpty()) {
+//                    val notification = NotificationHelper.buildDailyGoalAlert(applicationContext, unmetGoals.first().targetValue - unmetGoals.first().currentValue).build()
+//                    manager.notify(NotificationHelper.DAILY_GOAL_ID, notification)
+//                }
             }
 
             Result.success()

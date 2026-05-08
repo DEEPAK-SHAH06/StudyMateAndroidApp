@@ -27,13 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.studyplanner.core.model.Task
-import com.studyplanner.feature.dashboard.viewmodel.DashboardViewModel
-import com.studyplanner.feature.dashboard.viewmodel.DashboardViewModel.GoalSummary
-import com.studyplanner.feature.motivation.ui.CelebrationOverlay
-import com.studyplanner.feature.motivation.ui.DailyQuoteCard
-import com.studyplanner.feature.motivation.ui.ReflectionReminderCard
-import com.studyplanner.feature.motivation.ui.StreakBadge
+import com.example.studymateandroidapp.core.model.Task
+import com.example.studymateandroidapp.feature.dashboard.viewmodel.DashboardViewModel
+import com.example.studymateandroidapp.feature.motivation.ui.CelebrationOverlay
+import com.example.studymateandroidapp.feature.dashboard.viewmodel.DashboardViewModel.GoalSummary
+import com.example.studymateandroidapp.feature.motivation.ui.DailyQuoteCard
 
 @Composable
 fun DashboardScreen(

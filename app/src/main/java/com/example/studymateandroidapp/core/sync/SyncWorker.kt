@@ -3,12 +3,17 @@ package com.example.studymateandroidapp.core.sync
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.studymateandroidapp.core.database.StudyPlannerDatabase
+import com.example.studymateandroidapp.core.model.Achievement
+import com.example.studymateandroidapp.core.model.DailyReflection
+import com.example.studymateandroidapp.core.model.Goal
+import com.example.studymateandroidapp.core.model.StudySession
+import com.example.studymateandroidapp.core.model.Task
+import com.example.studymateandroidapp.core.preferences.PreferenceManager
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.studyplanner.core.database.StudyPlannerDatabase
 import com.studyplanner.core.model.*
-import com.studyplanner.core.preferences.PreferenceManager
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -37,9 +42,12 @@ class SyncWorker(
             syncEntity(
                 userId = userId,
                 collectionName = "tasks",
-                getLocalItems = { db.taskDao().getAllTasksList() },
-                insertLocal = { db.taskDao().insert(it) },
-                updateLocal = { db.taskDao().update(it) },
+//                getLocalItems = { db.taskDao().getAllTasksList() },
+//                insertLocal = { db.taskDao().insert(it) },
+//                updateLocal = { db.taskDao().update(it) },
+                getLocalItems = { TODO() },
+                insertLocal = { TODO() },
+                updateLocal = { TODO() },
                 getId = { it.id },
                 getServerId = { it.serverId },
                 getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
@@ -48,14 +56,15 @@ class SyncWorker(
                 clazz = Task::class.java
             )
 
-
-
             syncEntity(
                 userId = userId,
                 collectionName = "goals",
-                getLocalItems = { db.goalDao().getAllGoalsList() },
-                insertLocal = { db.goalDao().insert(it) },
-                updateLocal = { db.goalDao().update(it) },
+//                getLocalItems = { db.goalDao().getAllGoalsList() },
+//                insertLocal = { db.goalDao().insert(it) },
+//                updateLocal = { db.goalDao().update(it) },
+                getLocalItems = { TODO() },
+                insertLocal = { TODO() },
+                updateLocal = { TODO() },
                 getId = { it.id },
                 getServerId = { it.serverId },
                 getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
@@ -67,9 +76,12 @@ class SyncWorker(
             syncEntity(
                 userId = userId,
                 collectionName = "sessions",
-                getLocalItems = { db.sessionDao().getAllSessionsList() },
-                insertLocal = { db.sessionDao().insert(it) },
-                updateLocal = { db.sessionDao().update(it) },
+//                getLocalItems = { db.sessionDao().getAllSessionsList() },
+//                insertLocal = { db.sessionDao().insert(it) },
+//                updateLocal = { db.sessionDao().update(it) },
+                getLocalItems = { TODO() },
+                insertLocal = { TODO() },
+                updateLocal = { TODO() },
                 getId = { it.id },
                 getServerId = { it.serverId },
                 getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
@@ -78,14 +90,15 @@ class SyncWorker(
                 clazz = StudySession::class.java
             )
 
-
-
             syncEntity(
                 userId = userId,
                 collectionName = "reflections",
-                getLocalItems = { db.motivationDao().getAllReflectionsList() },
-                insertLocal = { db.motivationDao().insertReflection(it) },
-                updateLocal = { db.motivationDao().updateReflection(it) },
+//                getLocalItems = { db.motivationDao().getAllReflectionsList() },
+//                insertLocal = { db.motivationDao().insertReflection(it) },
+//                updateLocal = { db.motivationDao().updateReflection(it) },
+                getLocalItems = { TODO() },
+                insertLocal = { TODO() },
+                updateLocal = { TODO() },
                 getId = { it.id },
                 getServerId = { it.serverId },
                 getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
@@ -97,9 +110,12 @@ class SyncWorker(
             syncEntity(
                 userId = userId,
                 collectionName = "achievements",
-                getLocalItems = { db.motivationDao().getAllAchievementsList() },
-                insertLocal = { db.motivationDao().insertAchievement(it) },
-                updateLocal = { db.motivationDao().insertAchievement(it) }, // MotivationDao has no update for achievements, re-insert or ignore
+//                getLocalItems = { db.motivationDao().getAllAchievementsList() },
+//                insertLocal = { db.motivationDao().insertAchievement(it) },
+//                updateLocal = { db.motivationDao().insertAchievement(it) }, // MotivationDao has no update for achievements, re-insert or ignore
+                getLocalItems = { TODO() },
+                insertLocal = { TODO() },
+                updateLocal = { TODO() },
                 getId = { it.id },
                 getServerId = { it.serverId },
                 getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },

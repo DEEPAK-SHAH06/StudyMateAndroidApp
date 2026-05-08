@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.studyplanner.core.model.ReminderSetting
-import com.studyplanner.core.model.ReminderType
+import com.example.studymateandroidapp.model.ReminderSetting
+import com.example.studymateandroidapp.model.ReminderType
 import kotlinx.coroutines.flow.Flow
 
 @Dao

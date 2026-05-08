@@ -23,9 +23,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.studyplanner.core.model.Achievement
-import com.studyplanner.core.model.AchievementType
-import com.studyplanner.feature.motivation.viewmodel.MotivationViewModel
+import com.example.studymateandroidapp.core.model.Achievement
+import com.example.studymateandroidapp.core.model.AchievementType
+import com.example.studymateandroidapp.feature.motivation.viewmodel.MotivationViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -35,7 +35,7 @@ fun AchievementsScreen(
     viewModel: MotivationViewModel,
     onNavigateBack: () -> Unit
 ) {
-    val achievements by viewModel.allAchievements.collectAsStateWithLifecycle()
+//    val achievements by viewModel.allAchievements.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -80,7 +80,8 @@ fun AchievementsScreen(
                         Text("🏆", fontSize = 48.sp)
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "${achievements.size} Unlocked",
+                            "",
+//                            "${achievements.size} Unlocked",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -95,7 +96,7 @@ fun AchievementsScreen(
             }
 
             // All achievement types
-            val unlockedTypes = achievements.map { it.type }.toSet()
+//            val unlockedTypes = achievements.map { it.type }.toSet()
             val allTypes = AchievementType.entries
 
             item {
@@ -115,11 +116,13 @@ fun AchievementsScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     row.forEach { type ->
-                        val unlockedAchievement = achievements.find { it.type == type }
+//                        val unlockedAchievement = achievements.find { it.type == type }
                         AchievementBadge(
                             type = type,
-                            achievement = unlockedAchievement,
-                            isUnlocked = type in unlockedTypes,
+//                            achievement = unlockedAchievement,
+//                            isUnlocked = type in unlockedTypes,
+                            achievement = null,
+                            isUnlocked = false,
                             modifier = Modifier.weight(1f)
                         )
                     }
