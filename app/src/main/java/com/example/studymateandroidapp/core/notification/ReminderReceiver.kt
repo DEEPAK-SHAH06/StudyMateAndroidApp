@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.getSystemService
+import com.example.studymateandroidapp.core.database.StudyPlannerDatabase
+import com.example.studymateandroidapp.model.ReminderType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,13 +50,13 @@ class ReminderReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
 
         // Focus Mode check
-        val database = com.studyplanner.core.database.StudyPlannerDatabase.getInstance(context)
+        val database = StudyPlannerDatabase.getInstance(context)
         val reminderDao = database.reminderDao()
         
         // Use a coroutine to check focus mode
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val focusSetting = reminderDao.getSettingByType(com.studyplanner.core.model.ReminderType.FOCUS_MODE)
+                val focusSetting = reminderDao.getSettingByType(ReminderType.FOCUS_MODE)
                 if (focusSetting?.isEnabled == true) return@launch
 
                 withContext(Dispatchers.Main) {

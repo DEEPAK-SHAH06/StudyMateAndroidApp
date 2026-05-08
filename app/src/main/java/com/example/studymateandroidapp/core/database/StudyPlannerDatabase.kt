@@ -5,24 +5,17 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.studymateandroidapp.core.model.Achievement
+import com.example.studymateandroidapp.core.model.DailyReflection
+import com.example.studymateandroidapp.core.model.Exam
+import com.example.studymateandroidapp.core.model.Flashcard
+import com.example.studymateandroidapp.core.model.Goal
+import com.example.studymateandroidapp.core.model.Note
+import com.example.studymateandroidapp.core.model.StudySession
+import com.example.studymateandroidapp.core.model.Task
+import com.example.studymateandroidapp.model.ReminderSetting
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import java.io.File
-import com.studyplanner.core.model.Achievement
-import com.studyplanner.core.model.DailyReflection
-import com.studyplanner.core.model.Exam
-import com.studyplanner.core.model.Goal
-import com.studyplanner.core.model.ReminderSetting
-import com.studyplanner.core.model.StudySession
-import com.studyplanner.core.model.Task
-import com.studyplanner.core.model.Note
-import com.studyplanner.core.model.Flashcard
-import com.studyplanner.feature.exams.data.ExamDao
-import com.studyplanner.feature.goals.data.GoalDao
-import com.studyplanner.feature.sessions.data.SessionDao
-import com.studyplanner.feature.tasks.data.TaskDao
-import com.studyplanner.feature.notes.data.NoteDao
-import com.studyplanner.feature.flashcards.data.FlashcardDao
-import com.studyplanner.feature.motivation.data.MotivationDao
 
 /**
  * Central Room database for the Study Planner app.
@@ -34,7 +27,7 @@ import com.studyplanner.feature.motivation.data.MotivationDao
  */
 @Database(
     entities = [
-        Exam::class, Task::class, Goal::class, StudySession::class, Note::class, 
+        Exam::class, Task::class, Goal::class, StudySession::class, Note::class,
         Flashcard::class, ReminderSetting::class, Achievement::class, DailyReflection::class
     ],
     version = 10,
@@ -43,14 +36,14 @@ import com.studyplanner.feature.motivation.data.MotivationDao
 @TypeConverters(Converters::class)
 abstract class StudyPlannerDatabase : RoomDatabase() {
 
-    abstract fun taskDao(): TaskDao
-    abstract fun sessionDao(): SessionDao
-    abstract fun examDao(): ExamDao
-    abstract fun goalDao(): GoalDao
+//    abstract fun taskDao(): TaskDao
+//    abstract fun sessionDao(): SessionDao
+//    abstract fun examDao(): ExamDao
+//    abstract fun goalDao(): GoalDao
     abstract fun reminderDao(): ReminderDao
-    abstract fun noteDao(): NoteDao
-    abstract fun flashcardDao(): FlashcardDao
-    abstract fun motivationDao(): MotivationDao
+//    abstract fun noteDao(): NoteDao
+//    abstract fun flashcardDao(): FlashcardDao
+//    abstract fun motivationDao(): MotivationDao
 
     companion object {
         private const val DATABASE_NAME = "study_planner.db"
@@ -79,7 +72,7 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                     try {
                         val prefs = context.getSharedPreferences("study_planner_secure_prefs", Context.MODE_PRIVATE)
                         val currentVersion = prefs.getInt("database_version", 0)
-                        
+
                         // Force manual destructive migration for version 10 if not already done
                         if (currentVersion < 10) {
                             val dbFile = context.getDatabasePath(DATABASE_NAME)

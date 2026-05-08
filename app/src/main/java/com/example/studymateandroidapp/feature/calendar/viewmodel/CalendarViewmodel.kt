@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.core.model.Exam
 import com.example.studymateandroidapp.core.model.Task
-import com.example.studymateandroidapp.feature.exams.data.ExamRepository
-import com.example.studymateandroidapp.feature.tasks.data.TaskRepository
+//import com.example.studymateandroidapp.feature.exam.data.ExamRepository
+//import com.example.studymateandroidapp.feature.task.data.TaskRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,8 +23,8 @@ import java.time.YearMonth
  * groups tasks/exams by date for markers and agenda.
  */
 class CalendarViewModel(
-    private val taskRepository: TaskRepository,
-    private val examRepository: ExamRepository
+//    private val taskRepository: TaskRepository,
+//    private val examRepository: ExamRepository
 ) : ViewModel() {
 
     data class CalendarUiState(
@@ -53,17 +53,17 @@ class CalendarViewModel(
 
     private fun observeEvents() {
         viewModelScope.launch {
-            combine(
-                taskRepository.getAllTasks(),
-                examRepository.getAllExams()
-            ) { tasks, exams ->
-                val allEvents = tasks.map { CalendarEvent.TaskEvent(it) } +
-                        exams.map { CalendarEvent.ExamEvent(it) }
-
-                allEvents.groupBy { it.date }
-            }.collect { eventsMap ->
-                _uiState.update { it.copy(eventsByDate = eventsMap, isLoading = false) }
-            }
+//            combine(
+//                taskRepository.getAllTasks(),
+//                examRepository.getAllExams()
+//            ) { task, exams ->
+//                val allEvents = tasks.map { CalendarEvent.TaskEvent(it) } +
+//                        exams.map { CalendarEvent.ExamEvent(it) }
+//
+//                allEvents.groupBy { it.date }
+//            }.collect { eventsMap ->
+//                _uiState.update { it.copy(eventsByDate = eventsMap, isLoading = false) }
+//            }
         }
     }
 

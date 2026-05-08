@@ -7,7 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.studyplanner.MainActivity
+import com.example.studymateandroidapp.MainActivity
 
 /**
  * Centralized notification helper.

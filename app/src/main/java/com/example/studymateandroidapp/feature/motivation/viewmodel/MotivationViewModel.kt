@@ -2,10 +2,10 @@ package com.example.studymateandroidapp.feature.motivation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.studyplanner.core.model.Achievement
-import com.studyplanner.core.model.DailyReflection
-import com.studyplanner.core.model.MotivationalQuotes
-import com.studyplanner.feature.motivation.data.MotivationRepository
+import com.example.studymateandroidapp.core.model.Achievement
+import com.example.studymateandroidapp.core.model.DailyReflection
+import com.example.studymateandroidapp.core.model.MotivationalQuotes
+import com.example.studymateandroidapp.feature.motivation.data.MotivationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
