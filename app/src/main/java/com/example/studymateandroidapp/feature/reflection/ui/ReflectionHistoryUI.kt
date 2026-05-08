@@ -5,7 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedCard
@@ -22,8 +25,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -105,21 +110,27 @@ fun ReflectionHistoryBody() {
             Spacer(modifier = Modifier.height(20.dp))
 
             ReflectionHistoryCard(
-                date = "April 30, 2026",
-                mood = "💪",
-                reflection = "Finished Kotlin UI screens and finally understood Compose layouts."
+                "Thursday",
+                "April 30, 2026",
+                "💪",
+                "Kotlin",
+                "Finished Kotlin UI screens and finally understood Compose layouts."
             )
 
             ReflectionHistoryCard(
-                date = "April 29, 2026",
-                mood = "😴",
-                reflection = "Struggled with statistics screen but managed to complete most of it."
+                "Wednesday",
+                "April 29, 2026",
+                "😴",
+                "Jetpack Compose",
+                "Struggled with statistics screen but managed to complete most of it."
             )
 
             ReflectionHistoryCard(
-                date = "April 28, 2026",
-                mood = "😊",
-                reflection = "Completed Figma high fidelity design with the group."
+                "Tuesday",
+                "April 28, 2026",
+                "😊",
+                "High FIdelity",
+                "Completed Figma high fidelity design with the group."
             )
         }
     }
@@ -127,9 +138,11 @@ fun ReflectionHistoryBody() {
 
 @Composable
 fun ReflectionHistoryCard(
+    day : String,
     date: String,
     mood: String,
-    reflection: String
+    subject : String,
+    highlight : String
 ) {
     OutlinedCard(
         modifier = Modifier.fillMaxWidth()
@@ -143,22 +156,54 @@ fun ReflectionHistoryCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(date,
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
+                Column() {
+                    Text(day,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black
+                    )
+
+                    Text(date,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.W500,
+                        color = Color.Gray
+                    )
+                }
 
                 Text(mood,
                     fontSize = 24.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            Text(reflection,
-                fontSize = 15.sp,
-                lineHeight = 22.sp
-            )
+            Text(subject,
+                fontSize = 15.sp)
+
+            Spacer(modifier = Modifier.height(5.dp))
+
+            Box(
+                modifier = Modifier.border(
+                        1.dp,
+                        Color.LightGray.copy(0.5f),
+                        RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.LightGray.copy(0.2f))
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("⭐")
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Text(highlight,
+                        fontSize = 12.sp
+                    )
+                }
+            }
         }
     }
 }
