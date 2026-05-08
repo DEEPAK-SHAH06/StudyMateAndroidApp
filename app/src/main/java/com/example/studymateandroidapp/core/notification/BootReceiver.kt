@@ -3,9 +3,7 @@ package com.example.studymateandroidapp.core.notification
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.studyplanner.core.database.StudyPlannerDatabase
-import com.studyplanner.feature.exams.data.ExamRepository
-import com.studyplanner.feature.tasks.data.TaskRepository
+import com.example.studymateandroidapp.core.database.StudyPlannerDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -58,8 +56,8 @@ class BootReceiver : BroadcastReceiver() {
         val repository = NotificationRepository(
             context = context,
             reminderDao = database.reminderDao(),
-            taskDao = database.taskDao(),
-            examDao = database.examDao(),
+//            taskDao = TODO(),
+//            examDao = TODO(),
             scheduler = scheduler
         )
 

@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">StudyMateAndroidApp</string>
+    <string name="title_activity_app_nav_host">StudtMate</string>
     <string name="title_activity_setting">SettingActivity</string>
     <string name="title_activity_dashboard">Dashboard</string>
     <string name="title_activity_dashboard_viewmodel">DashboardViewmodel</string>
@@ -12,4 +13,5 @@
     <string name="title_activity_statistics">Statistics</string>
     <string name="title_activity_reflection">Reflection</string>
     <string name="title_activity_flashcard">Flashcard</string>
+    <string name="title_activity_statistics_ui">StatisticsUI</string>
 </resources>

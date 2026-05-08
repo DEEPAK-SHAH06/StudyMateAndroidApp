@@ -23,8 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.studyplanner.core.model.DailyReflection
-import com.studyplanner.feature.motivation.viewmodel.MotivationViewModel
+import com.example.studymateandroidapp.core.model.DailyReflection
+import com.example.studymateandroidapp.feature.motivation.viewmodel.MotivationViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -35,7 +35,7 @@ fun DailyReflectionScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val reflections by viewModel.recentReflections.collectAsStateWithLifecycle()
+//    val reflections by viewModel.recentReflections.collectAsStateWithLifecycle()
 
     val moods = listOf("😊", "😐", "😴", "🔥", "💪", "😤", "🥹", "😎")
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -88,7 +88,7 @@ fun DailyReflectionScreen(
                         onSave = viewModel::saveReflection
                     )
                 } else {
-                    ReflectionHistoryTab(reflections = reflections)
+//                    ReflectionHistoryTab(reflections = reflections)
                 }
             }
         }

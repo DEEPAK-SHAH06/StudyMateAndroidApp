@@ -1,22 +1,22 @@
 package com.example.studymateandroidapp.feature.motivation.data
 
-import com.studyplanner.core.model.Achievement
-import com.studyplanner.core.model.AchievementType
-import com.studyplanner.core.model.DailyReflection
-import com.studyplanner.feature.tasks.data.TaskDao
-import com.studyplanner.feature.goals.data.GoalDao
-import com.studyplanner.feature.notes.data.NoteDao
-import com.studyplanner.feature.flashcards.data.FlashcardDao
+import com.example.studymateandroidapp.core.model.Achievement
+import com.example.studymateandroidapp.core.model.AchievementType
+import com.example.studymateandroidapp.core.model.DailyReflection
+//import com.studyplanner.feature.tasks.data.TaskDao
+//import com.studyplanner.feature.goals.data.GoalDao
+//import com.studyplanner.feature.notes.data.NoteDao
+//import com.studyplanner.feature.flashcards.data.FlashcardDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate
 
 class MotivationRepository(
     private val motivationDao: MotivationDao,
-    private val taskDao: TaskDao,
-    private val goalDao: GoalDao,
-    private val noteDao: NoteDao,
-    private val flashcardDao: FlashcardDao
+//    private val taskDao: TaskDao,
+//    private val goalDao: GoalDao,
+//    private val noteDao: NoteDao,
+//    private val flashcardDao: FlashcardDao
 ) {
     // ── Reflections ───────────────────────────────────────
 
@@ -52,40 +52,40 @@ class MotivationRepository(
         val newAchievements = mutableListOf<Achievement>()
 
         // Task achievements
-        val completedTasks = taskDao.getCompletedCount().firstOrNull() ?: 0
-        if (completedTasks >= 1) {
-            tryUnlock(AchievementType.FIRST_TASK, "First Task!", "Completed your first task")?.let { newAchievements.add(it) }
-        }
-        if (completedTasks >= 10) {
-            tryUnlock(AchievementType.TEN_TASKS, "Task Master", "Completed 10 tasks")?.let { newAchievements.add(it) }
-        }
-        if (completedTasks >= 50) {
-            tryUnlock(AchievementType.FIFTY_TASKS, "Task Legend", "Completed 50 tasks")?.let { newAchievements.add(it) }
-        }
+//        val completedTasks = taskDao.getCompletedCount().firstOrNull() ?: 0
+//        if (completedTasks >= 1) {
+//            tryUnlock(AchievementType.FIRST_TASK, "First Task!", "Completed your first task")?.let { newAchievements.add(it) }
+//        }
+//        if (completedTasks >= 10) {
+//            tryUnlock(AchievementType.TEN_TASKS, "Task Master", "Completed 10 tasks")?.let { newAchievements.add(it) }
+//        }
+//        if (completedTasks >= 50) {
+//            tryUnlock(AchievementType.FIFTY_TASKS, "Task Legend", "Completed 50 tasks")?.let { newAchievements.add(it) }
+//        }
 
         // Note achievements
-        val noteCount = noteDao.getNoteCount().firstOrNull() ?: 0
-        if (noteCount >= 1) {
-            tryUnlock(AchievementType.FIRST_NOTE, "Note Taker", "Created your first note")?.let { newAchievements.add(it) }
-        }
-        if (noteCount >= 10) {
-            tryUnlock(AchievementType.TEN_NOTES, "Scribe", "Created 10 notes")?.let { newAchievements.add(it) }
-        }
+//        val noteCount = noteDao.getNoteCount().firstOrNull() ?: 0
+//        if (noteCount >= 1) {
+//            tryUnlock(AchievementType.FIRST_NOTE, "Note Taker", "Created your first note")?.let { newAchievements.add(it) }
+//        }
+//        if (noteCount >= 10) {
+//            tryUnlock(AchievementType.TEN_NOTES, "Scribe", "Created 10 notes")?.let { newAchievements.add(it) }
+//        }
 
         // Goal achievements
-        val completedGoals = goalDao.getCompletedGoalCount().firstOrNull() ?: 0
-        if (completedGoals >= 1) {
-            tryUnlock(AchievementType.FIRST_GOAL_COMPLETE, "Goal Getter", "Completed your first goal")?.let { newAchievements.add(it) }
-        }
-        if (completedGoals >= 5) {
-            tryUnlock(AchievementType.FIVE_GOALS_COMPLETE, "Ambitious", "Completed 5 goals")?.let { newAchievements.add(it) }
-        }
+//        val completedGoals = goalDao.getCompletedGoalCount().firstOrNull() ?: 0
+//        if (completedGoals >= 1) {
+//            tryUnlock(AchievementType.FIRST_GOAL_COMPLETE, "Goal Getter", "Completed your first goal")?.let { newAchievements.add(it) }
+//        }
+//        if (completedGoals >= 5) {
+//            tryUnlock(AchievementType.FIVE_GOALS_COMPLETE, "Ambitious", "Completed 5 goals")?.let { newAchievements.add(it) }
+//        }
 
         // Flashcard achievements
-        val flashcardCount = flashcardDao.getFlashcardCount().firstOrNull() ?: 0
-        if (flashcardCount >= 1) {
-            tryUnlock(AchievementType.FIRST_FLASHCARD, "Flash Scholar", "Created your first flashcard")?.let { newAchievements.add(it) }
-        }
+//        val flashcardCount = flashcardDao.getFlashcardCount().firstOrNull() ?: 0
+//        if (flashcardCount >= 1) {
+//            tryUnlock(AchievementType.FIRST_FLASHCARD, "Flash Scholar", "Created your first flashcard")?.let { newAchievements.add(it) }
+//        }
 
         // Reflection achievements
         val todayReflection = motivationDao.getReflectionForDate(LocalDate.now().toEpochDay())
@@ -128,13 +128,13 @@ class MotivationRepository(
         var date = LocalDate.now()
         
         for (i in 0 until 60) { // Check up to 60 days back
-            val tasks = taskDao.getTasksDueOn(date).firstOrNull() ?: emptyList()
-            if (tasks.any { it.isCompleted }) {
-                streak++
-                date = date.minusDays(1)
-            } else {
-                break
-            }
+//            val tasks = taskDao.getTasksDueOn(date).firstOrNull() ?: emptyList()
+//            if (tasks.any { it.isCompleted }) {
+//                streak++
+//                date = date.minusDays(1)
+//            } else {
+//                break
+//            }
         }
         
         return streak

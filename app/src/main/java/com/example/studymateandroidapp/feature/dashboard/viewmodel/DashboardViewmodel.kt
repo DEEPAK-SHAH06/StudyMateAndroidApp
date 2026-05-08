@@ -5,10 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.core.model.Exam
 import com.example.studymateandroidapp.core.model.Goal
 import com.example.studymateandroidapp.core.model.Task
-import com.example.studymateandroidapp.feature.exams.data.ExamRepository
-import com.example.studymateandroidapp.feature.goals.data.GoalRepository
-import com.example.studymateandroidapp.feature.sessions.data.SessionRepository
-import com.example.studymateandroidapp.feature.tasks.data.TaskRepository
 import com.example.studymateandroidapp.core.auth.AuthRepository
 import com.example.studymateandroidapp.core.preferences.PreferenceManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,10 +30,10 @@ import java.time.temporal.ChronoUnit
  * but never imports other ViewModels.
  */
 class DashboardViewModel(
-    private val taskRepository: TaskRepository,
-    private val sessionRepository: SessionRepository,
-    private val examRepository: ExamRepository,
-    private val goalRepository: GoalRepository,
+//    private val taskRepository: TaskRepository,
+//    private val sessionRepository: SessionRepository,
+//    private val examRepository: ExamRepository,
+//    private val goalRepository: GoalRepository,
     private val authRepository: AuthRepository,
     private val preferenceManager: PreferenceManager
 ) : ViewModel() {
@@ -112,7 +108,7 @@ class DashboardViewModel(
 
     fun onTaskCompletionToggled(taskId: Long, completed: Boolean) {
         viewModelScope.launch {
-            taskRepository.setCompleted(taskId, completed)
+//            taskRepository.setCompleted(taskId, completed)
         }
     }
 
@@ -165,13 +161,13 @@ class DashboardViewModel(
 
     private fun loadTodayTasks() {
         viewModelScope.launch {
-            taskRepository.getTasksDueOn(LocalDate.now())
-                .catch { e -> _uiState.update { it.copy(errorMessage = e.message) } }
-                .collect { tasks ->
+//            taskRepository.getTasksDueOn(LocalDate.now())
+//                .catch { e -> _uiState.update { it.copy(errorMessage = e.message) } }
+//                .collect { tasks ->
                     _uiState.update {
                         it.copy(
-                            todayTasks = tasks,
-                            pendingTaskCount = tasks.count { t -> !t.isCompleted },
+//                            todayTasks = tasks,
+//                            pendingTaskCount = tasks.count { t -> !t.isCompleted },
                             isLoading = false
                         )
                     }
@@ -180,67 +176,67 @@ class DashboardViewModel(
     }
 
     private fun loadTodayStudyMinutes() {
-        viewModelScope.launch {
-            sessionRepository.getStudyMinutesForDate(LocalDate.now())
-                .catch { /* silently ignore */ }
-                .collect { minutes ->
-                    _uiState.update { it.copy(todayStudyMinutes = minutes) }
-                }
-        }
+//        viewModelScope.launch {
+//            sessionRepository.getStudyMinutesForDate(LocalDate.now())
+//                .catch { /* silently ignore */ }
+//                .collect { minutes ->
+//                    _uiState.update { it.copy(todayStudyMinutes = minutes) }
+//                }
+//        }
     }
 
     private fun loadNextExam() {
-        viewModelScope.launch {
-            examRepository.getAllExams()
-                .catch { /* silently ignore */ }
-                .collect { exams ->
-                    val today = LocalDate.now()
-                    val nextExam = exams
-                        .filter {
-                            !java.time.Instant.ofEpochMilli(it.examDate).atZone(java.time.ZoneId.systemDefault()).toLocalDate().isBefore(today)
-                        }
-                        .minByOrNull { it.examDate }
+//        viewModelScope.launch {
+//            examRepository.getAllExams()
+//                .catch { /* silently ignore */ }
+//                .collect { exams ->
+//                    val today = LocalDate.now()
+//                    val nextExam = exams
+//                        .filter {
+//                            !java.time.Instant.ofEpochMilli(it.examDate).atZone(java.time.ZoneId.systemDefault()).toLocalDate().isBefore(today)
+//                        }
+//                        .minByOrNull { it.examDate }
 
-                    val days = nextExam?.let {
-                        val examDateLocal = java.time.Instant.ofEpochMilli(it.examDate).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
-                        ChronoUnit.DAYS.between(today, examDateLocal)
-                    }
-                    _uiState.update {
-                        it.copy(nextExam = nextExam, daysUntilNextExam = days)
-                    }
-                }
+//                    val days = nextExam?.let {
+//                        val examDateLocal = java.time.Instant.ofEpochMilli(it.examDate).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+//                        ChronoUnit.DAYS.between(today, examDateLocal)
+//                    }
+//                    _uiState.update {
+//                        it.copy(nextExam = nextExam, daysUntilNextExam = days)
+//                    }
+//                }
         }
-    }
+//    }
 
     private fun loadActiveGoals() {
-        viewModelScope.launch {
-            goalRepository.getActiveGoals()
-                .catch { /* silently ignore */ }
-                .collect { goals ->
-                    val summaries = goals.map { goal ->
-                        GoalSummary(
-                            id = goal.id,
-                            title = goal.title,
-                            progressPercent = if (goal.targetValue > 0) {
-                                ((goal.currentValue * 100) / goal.targetValue).coerceIn(0, 100)
-                            } else 0
-                        )
-                    }
-                    _uiState.update { it.copy(activeGoals = summaries) }
-                }
-        }
+//        viewModelScope.launch {
+//            goalRepository.getActiveGoals()
+//                .catch { /* silently ignore */ }
+//                .collect { goals ->
+//                    val summaries = goals.map { goal ->
+//                        GoalSummary(
+//                            id = goal.id,
+//                            title = goal.title,
+//                            progressPercent = if (goal.targetValue > 0) {
+//                                ((goal.currentValue * 100) / goal.targetValue).coerceIn(0, 100)
+//                            } else 0
+//                        )
+//                    }
+//                    _uiState.update { it.copy(activeGoals = summaries) }
+//                }
+//        }
     }
 
     private fun observeProfile() {
-        viewModelScope.launch {
-            preferenceManager.userName.collect { name ->
-                _uiState.update { it.copy(userName = name) }
-            }
-        }
-        viewModelScope.launch {
-            preferenceManager.userBio.collect { bio ->
-                _uiState.update { it.copy(userBio = bio) }
-            }
-        }
+//        viewModelScope.launch {
+//            preferenceManager.userName.collect { name ->
+//                _uiState.update { it.copy(userName = name) }
+//            }
+//        }
+//        viewModelScope.launch {
+//            preferenceManager.userBio.collect { bio ->
+//                _uiState.update { it.copy(userBio = bio) }
+//            }
+//        }
     }
-}
+//}
