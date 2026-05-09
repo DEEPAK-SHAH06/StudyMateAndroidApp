@@ -229,7 +229,7 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.timer),
+                            painter = painterResource(id = R.drawable.today_time),
                             contentDescription = null,
                             modifier = Modifier.size(32.dp),
                             tint = Color.Black
