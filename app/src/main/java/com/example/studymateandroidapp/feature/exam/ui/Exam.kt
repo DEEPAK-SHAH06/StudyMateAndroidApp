@@ -90,13 +90,13 @@ fun ExamScreen(modifier: Modifier = Modifier) {
                     Icon(
                         painter = painterResource(id = R.drawable.achievements),
                         contentDescription = null,
-                        modifier = Modifier.size(28.dp),
+                        modifier = Modifier.size(24.dp),
                         tint = Color.Unspecified
                     )
                     Icon(
                         painter = painterResource(id = R.drawable.statistics),
                         contentDescription = null,
-                        modifier = Modifier.size(28.dp),
+                        modifier = Modifier.size(18.dp),
                         tint = Color.Unspecified
                     )
                 }
@@ -105,7 +105,7 @@ fun ExamScreen(modifier: Modifier = Modifier) {
 
                 Text(
                     text = "Exams :",
-                    fontSize = 28.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
@@ -113,19 +113,19 @@ fun ExamScreen(modifier: Modifier = Modifier) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp),
+                        .padding(vertical = 12.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.exam),
                         contentDescription = null,
-                        modifier = Modifier.size(120.dp)
+                        modifier = Modifier.size(100.dp)
                     )
                 }
 
                 Text(
                     text = "Upcoming",
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     color = Color.Gray,
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier.align(Alignment.End)
@@ -198,9 +198,9 @@ fun ExamCard(title: String, subject: String, date: String) {
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = title, fontWeight = FontWeight.SemiBold, fontSize = 20.sp, color = Color.Black)
-                    Text(text = subject, fontSize = 12.sp, color = Color.DarkGray)
-                    Text(text = date, fontSize = 11.sp, color = Color.Gray)
+                    Text(text = title, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = Color.Black)
+                    Text(text = subject, fontSize = 11.sp, color = Color.DarkGray)
+                    Text(text = date, fontSize = 10.sp, color = Color.Gray)
                 }
 
                 Icon(

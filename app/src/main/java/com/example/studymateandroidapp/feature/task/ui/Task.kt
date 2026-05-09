@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,8 +21,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -41,11 +43,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,6 +56,26 @@ import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.feature.exam.ui.Exam
 import com.example.studymateandroidapp.feature.timer.ui.Timer
 import com.example.studymateandroidapp.ui.theme.StudyMateAndroidAppTheme
+
+/**
+ * Data model for a task item.
+ */
+data class TaskItem(
+    val title: String,
+    val description: String = "",
+    val tag: String,
+    val tagBgColor: Color,
+    val tagTextColor: Color,
+    val time: String
+)
+
+@Preview(showBackground = true)
+@Composable
+fun TaskScreenPreview() {
+    StudyMateAndroidAppTheme {
+        TaskScreen()
+    }
+}
 
 class TaskActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,125 +91,187 @@ class TaskActivity : ComponentActivity() {
 
 @Composable
 fun TaskScreen() {
+
     var searchQuery by remember { mutableStateOf("") }
+
     val filters = listOf(
-        stringResource(R.string.pending),
-        stringResource(R.string.completed),
-        stringResource(R.string.overdue)
+        "Pending",
+        "Completed",
+        "Overdue"
     )
-    var selectedFilter by remember { mutableStateOf(filters[0]) }
+
+    var selectedFilter by remember {
+        mutableStateOf(filters[0])
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        bottomBar = { TaskBottomNavigation() }
+        bottomBar = {
+            TaskBottomNavigation()
+        }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(Color(0xFFF4F4F4))
+        ) {
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White)
+                    .padding(horizontal = 18.dp)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
             ) {
-                Spacer(modifier = Modifier.height(24.dp))
+
+                Spacer(modifier = Modifier.height(10.dp))
+
                 TaskTopBar()
 
-                Spacer(modifier = Modifier.height(32.dp))
-                Column {
-                    Text(
-                        text = stringResource(R.string.my_tasks),
-                        fontSize = 52.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        lineHeight = 56.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.manage_study_load),
-                        fontSize = 18.sp,
-                        color = Color.Gray.copy(alpha = 0.5f)
-                    )
-                }
+                Spacer(modifier = Modifier.height(18.dp))
 
-                Spacer(modifier = Modifier.height(32.dp))
+                HeaderSection()
+
+                Spacer(modifier = Modifier.height(12.dp))
+
                 SearchBar(
                     query = searchQuery,
-                    onQueryChange = { searchQuery = it }
+                    onQueryChange = {
+                        searchQuery = it
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
                 FilterChips(
                     filters = filters,
                     selectedFilter = selectedFilter,
-                    onFilterSelected = { selectedFilter = it }
+                    onFilterSelected = {
+                        selectedFilter = it
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(14.dp))
+
                 SectionHeader(
-                    title = stringResource(R.string.today) + " • •",
-                    subtitle = stringResource(R.string.tasks_remaining, 2)
+                    title = "Today •",
+                    subtitle = "2 TASKS REMAINING"
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+
                 TaskItemView(
                     task = TaskItem(
-                        "Cognitive Psychology Thesis Draft",
-                        "Finalize the literature review section.",
-                        "PSYCHOLOGY",
-                        Color(0xFFB33A3A),
-                        false,
-                        "1:00 PM"
+                        title = "Cognitive Psychology Thesis Draft",
+                        description = "",
+                        tag = "PSYCHOLOGY",
+                        tagBgColor = Color(0xFFE84C4F),
+                        tagTextColor = Color.White,
+                        time = "1:00 PM"
                     )
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+
                 TaskItemView(
                     task = TaskItem(
-                        "Advanced Calculus Problem Set 3",
-                        "Solve problems 1-15 from Chapter 4.",
-                        "MATHEMATICS",
-                        Color(0xFFE6C35C),
-                        false,
-                        "2:45 PM"
+                        title = "Advanced Calculus Problem Set 3",
+                        description = "",
+                        tag = "MATHEMATICS",
+                        tagBgColor = Color(0xFFEACB57),
+                        tagTextColor = Color.White,
+                        time = "2:45 PM"
                     )
                 )
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(14.dp))
+
                 SectionHeader(
-                    title = stringResource(R.string.tomorrow) + " •",
+                    title = "Tomorrow",
                     subtitle = ""
                 )
-                
-                Spacer(modifier = Modifier.height(120.dp))
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                TaskItemView(
+                    task = TaskItem(
+                        title = "History of Art: Romaine Write",
+                        description = "",
+                        tag = "HISTORY",
+                        tagBgColor = Color(0xFF7FAF59),
+                        tagTextColor = Color.White,
+                        time = "5:00 PM"
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                PriorityTaskCard()
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                OverdueMilestoneCard()
+
+                // Added spacer to ensure content is not hidden by the FAB
+                Spacer(modifier = Modifier.height(100.dp))
             }
 
             TaskFAB(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 24.dp, bottom = 100.dp)
+                    .padding(
+                        end = 16.dp,
+                        bottom = 16.dp // Adjusted padding since Scaffold innerPadding already handles bottom bar
+                    )
             )
         }
     }
 }
 
 @Composable
-fun TaskTopBar(modifier: Modifier = Modifier) {
+fun TaskTopBar() {
+
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            painter = painterResource(id = R.drawable.achievement),
-            contentDescription = "Achievements",
-            modifier = Modifier.size(40.dp),
-            tint = Color.Unspecified
+
+        Image(
+            painter = painterResource(id = R.drawable.achievements),
+            contentDescription = "Profile",
+            modifier = Modifier
+                .size(24.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop
         )
+
         Icon(
-            painter = painterResource(id = R.drawable.stat),
-            contentDescription = "Statistics",
-            modifier = Modifier.size(32.dp),
+            painter = painterResource(id = R.drawable.statistics),
+            contentDescription = "Menu",
+            modifier = Modifier.size(18.dp),
             tint = Color.Black
+        )
+    }
+}
+
+@Composable
+fun HeaderSection() {
+
+    Column {
+
+        Text(
+            text = "My Tasks",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+
+        Text(
+            text = "Manage your study load with intentionally.",
+            fontSize = 10.sp,
+            color = Color.Gray
         )
     }
 }
@@ -194,39 +279,40 @@ fun TaskTopBar(modifier: Modifier = Modifier) {
 @Composable
 fun SearchBar(
     query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    onQueryChange: (String) -> Unit
 ) {
+
     TextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp)
-            .clip(RoundedCornerShape(20.dp)),
+            .height(46.dp),
         placeholder = {
+
             Text(
-                text = "Search tasks, subjects, or",
-                fontSize = 17.sp,
-                color = Color.Gray.copy(alpha = 0.5f)
+                text = "Search tasks, subjects, or deadlines..",
+                fontSize = 10.sp,
+                color = Color.Gray
             )
         },
         leadingIcon = {
+
             Icon(
                 painter = painterResource(id = R.drawable.search),
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = Color.Gray.copy(alpha = 0.7f)
+                modifier = Modifier.size(16.dp),
+                tint = Color.Gray
             )
         },
+        shape = RoundedCornerShape(12.dp),
+        singleLine = true,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFF7F8FA),
-            unfocusedContainerColor = Color(0xFFF7F8FA),
+            focusedContainerColor = Color(0xFFE7E7E7),
+            unfocusedContainerColor = Color(0xFFE7E7E7),
             focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            cursorColor = Color.Black
-        ),
-        singleLine = true
+            unfocusedIndicatorColor = Color.Transparent
+        )
     )
 }
 
@@ -234,30 +320,40 @@ fun SearchBar(
 fun FilterChips(
     filters: List<String>,
     selectedFilter: String,
-    onFilterSelected: (String) -> Unit,
-    modifier: Modifier = Modifier
+    onFilterSelected: (String) -> Unit
 ) {
+
     Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+
         filters.forEach { filter ->
+
             val isSelected = filter == selectedFilter
+
             Surface(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { onFilterSelected(filter) },
-                shape = RoundedCornerShape(24.dp),
-                color = if (isSelected) Color.Black else Color(0xFFF2F4F7)
+                    .height(28.dp)
+                    .clickable {
+                        onFilterSelected(filter)
+                    },
+                shape = RoundedCornerShape(20.dp),
+                color = if (isSelected) Color.Black else Color(0xFFDCDCDC)
             ) {
-                Text(
-                    text = filter,
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    color = if (isSelected) Color.White else Color.Black,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
+
+                Box(
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    Text(
+                        text = filter,
+                        color = if (isSelected) Color.White else Color.Black,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }
@@ -266,26 +362,29 @@ fun FilterChips(
 @Composable
 fun SectionHeader(
     title: String,
-    subtitle: String,
-    modifier: Modifier = Modifier
+    subtitle: String
 ) {
+
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
+
         Text(
             text = title,
-            fontSize = 32.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black
         )
+
         if (subtitle.isNotEmpty()) {
+
             Text(
                 text = subtitle,
-                fontSize = 12.sp,
+                fontSize = 8.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Gray.copy(alpha = 0.5f)
+                color = Color.Gray
             )
         }
     }
@@ -293,146 +392,313 @@ fun SectionHeader(
 
 @Composable
 fun TaskItemView(
-    task: TaskItem,
-    modifier: Modifier = Modifier
+    task: TaskItem
 ) {
+
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = Color.White,
-        shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(1.5.dp, Color(0xFFF0F2F5))
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFFEDEDED),
+        border = BorderStroke(
+            1.dp,
+            Color(0xFFDADADA)
+        )
     ) {
+
         Row(
-            modifier = Modifier
-                .padding(24.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(10.dp),
             verticalAlignment = Alignment.Top
         ) {
+
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(2.dp, Color(0xFFE0E4E9), RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center
+                    .size(16.dp)
+                    .border(
+                        1.5.dp,
+                        Color(0xFFBDBDBD),
+                        RoundedCornerShape(4.dp)
+                    )
+            )
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                if (task.isCompleted) {
+
+                Text(
+                    text = task.title,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = task.tagBgColor
+                    ) {
+
+                        Text(
+                            text = task.tag,
+                            modifier = Modifier.padding(
+                                horizontal = 6.dp,
+                                vertical = 2.dp
+                            ),
+                            fontSize = 7.sp,
+                            color = task.tagTextColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
                     Icon(
-                        painter = painterResource(id = R.drawable.done),
+                        painter = painterResource(id = R.drawable.time),
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(10.dp),
                         tint = Color.Black
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = task.time,
+                        fontSize = 8.sp,
+                        color = Color.Black
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(20.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_more_vert_24),
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = Color.Gray
+            )
+        }
+    }
+}
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = task.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    lineHeight = 24.sp,
-                    color = Color.Black
-                )
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+@Composable
+fun PriorityTaskCard() {
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFFE9E9E9)
+    ) {
+
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White
                 ) {
-                    if (task.description.isNotEmpty()) {
-                        Text(
-                            text = task.description,
-                            fontSize = 15.sp,
-                            color = Color.Gray.copy(alpha = 0.5f),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    Icon(
-                        painter = painterResource(id = R.drawable.notes),
-                        contentDescription = "More",
-                        modifier = Modifier.size(22.dp),
-                        tint = Color.Gray.copy(alpha = 0.4f)
-                    )
-                }
 
-                Spacer(modifier = Modifier.height(20.dp))
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        color = task.tagColor,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = task.tag,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(20.dp))
-                    Icon(
-                        painter = painterResource(id = R.drawable.timer),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = Color.Black
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = task.time,
-                        fontSize = 16.sp,
+                        text = "HIGH PRIORITY",
+                        modifier = Modifier.padding(
+                            horizontal = 8.dp,
+                            vertical = 3.dp
+                        ),
+                        fontSize = 6.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
                     )
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Final Exam Review:\nNeuroscience",
+                    fontSize = 16.sp,
+                    lineHeight = 20.sp, // Reduced line height slightly
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Focus on synaptic plasticity and memory\nformation modules.",
+                    fontSize = 9.sp,
+                    color = Color.Gray
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.time),
+                        contentDescription = null,
+                        modifier = Modifier.size(10.dp),
+                        tint = Color.Black
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "4:00 PM Submission",
+                        fontSize = 8.sp,
+                        color = Color.Black
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .border(
+                            1.dp,
+                            Color.Gray,
+                            RoundedCornerShape(4.dp)
+                        )
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Image(
+                    painter = painterResource(id = R.drawable.review),
+                    contentDescription = null,
+                    modifier = Modifier.size(58.dp)
+                )
             }
         }
     }
 }
 
-@Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
-fun TaskScreenPreview() {
-    StudyMateAndroidAppTheme {
-        TaskScreen()
+fun OverdueMilestoneCard() {
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFFE9E9E9)
+    ) {
+
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Text(
+                text = "!",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+
+                Text(
+                    text = "Overdue Milestone",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+
+                Text(
+                    text = "Organic Chemistry Lab\nReport-2 days past\ndue.",
+                    fontSize = 9.sp,
+                    color = Color.Gray
+                )
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Image(
+                    painter = painterResource(id = R.drawable.overdue),
+                    contentDescription = null,
+                    modifier = Modifier.size(44.dp)
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "RESOLVE\nNOW",
+                    fontSize = 7.sp,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun TaskFAB(modifier: Modifier = Modifier) {
+fun TaskFAB(
+    modifier: Modifier = Modifier
+) {
+
     Surface(
-        modifier = modifier
-            .size(92.dp),
-        shape = RoundedCornerShape(28.dp),
+        modifier = modifier.size(34.dp),
+        shape = RoundedCornerShape(4.dp),
         color = Color.White,
-        border = BorderStroke(4.dp, Color.Black)
+        border = BorderStroke(
+            2.dp,
+            Color.Black
+        )
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .border(2.5.dp, Color.Black, RoundedCornerShape(10.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.add),
-                    contentDescription = "Add Task",
-                    modifier = Modifier.size(24.dp),
-                    tint = Color.Black
-                )
-            }
+
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+
+            Icon(
+                painter = painterResource(id = R.drawable.add),
+                contentDescription = "Add",
+                modifier = Modifier.size(18.dp),
+                tint = Color.Black
+            )
         }
     }
 }
 
 @Composable
 fun TaskBottomNavigation() {
+
     val context = LocalContext.current
+
     NavigationBar(
         containerColor = Color.White,
-        modifier = Modifier.height(88.dp)
+        modifier = Modifier.height(72.dp)
     ) {
+
         val items = listOf(
             Triple(R.drawable.home, "Home", false),
             Triple(R.drawable.task, "Task", true),
@@ -442,46 +708,65 @@ fun TaskBottomNavigation() {
         )
 
         items.forEach { (iconRes, label, isSelected) ->
+
             NavigationBarItem(
                 icon = {
-                    Icon(
-                        painterResource(id = iconRes),
-                        contentDescription = label,
-                        modifier = Modifier.size(28.dp)
-                    )
-                },
-                label = {
-                    Text(
-                        text = label,
-                        fontSize = 11.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                    )
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+
+                        Icon(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = label,
+                            modifier = Modifier.size(18.dp)
+                        )
+
+                        Text(
+                            text = label,
+                            fontSize = 8.sp
+                        )
+                    }
                 },
                 selected = isSelected,
                 onClick = {
+
                     when (label) {
-                        "Exams" -> context.startActivity(Intent(context, Exam::class.java))
-                        "Home" -> context.startActivity(Intent(context, com.example.studymateandroidapp.MainActivity::class.java))
-                        "Timer" -> context.startActivity(Intent(context, Timer::class.java))
+
+                        "Exams" -> {
+                            context.startActivity(
+                                Intent(
+                                    context,
+                                    Exam::class.java
+                                )
+                            )
+                        }
+
+                        "Home" -> {
+                            context.startActivity(
+                                Intent(
+                                    context,
+                                    com.example.studymateandroidapp.MainActivity::class.java
+                                )
+                            )
+                        }
+
+                        "Timer" -> {
+                            context.startActivity(
+                                Intent(
+                                    context,
+                                    Timer::class.java
+                                )
+                            )
+                        }
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color.Black,
-                    unselectedIconColor = Color.Gray.copy(alpha = 0.6f),
-                    selectedTextColor = Color.Black,
-                    unselectedTextColor = Color.Gray.copy(alpha = 0.6f),
+                    unselectedIconColor = Color.Gray,
                     indicatorColor = Color.Transparent
                 )
             )
         }
     }
 }
-
-data class TaskItem(
-    val title: String,
-    val description: String = "",
-    val tag: String,
-    val tagColor: Color,
-    val isCompleted: Boolean,
-    val time: String
-)
