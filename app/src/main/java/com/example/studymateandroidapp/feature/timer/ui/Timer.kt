@@ -76,10 +76,10 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(Color.White)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 16.dp)
         ) {
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 // Top Icons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -89,33 +89,33 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                     Icon(
                         painter = painterResource(id = R.drawable.achievements),
                         contentDescription = null,
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(24.dp),
                         tint = Color.Unspecified
                     )
                     Icon(
                         painter = painterResource(id = R.drawable.statistics),
                         contentDescription = null,
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(24.dp),
                         tint = Color.Unspecified
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = "Study Timer :",
-                    fontSize = 28.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Pomodoro / Stop watch Toggle
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(40.dp)
+                        .height(36.dp)
                         .border(1.dp, Color.Black, RoundedCornerShape(20.dp))
                         .clip(RoundedCornerShape(20.dp))
                 ) {
@@ -126,7 +126,7 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                             .background(Color.Black),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Pomodoro", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Pomodoro", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                     Box(
                         modifier = Modifier
@@ -134,23 +134,23 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                             .fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Stop watch", color = Color.Black, fontSize = 14.sp)
+                        Text("Stop watch", color = Color.Black, fontSize = 12.sp)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Work / Break / Long
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    TimerModeChip("Work", isSelected = true)
-                    TimerModeChip("Break", isSelected = false)
-                    TimerModeChip("Long", isSelected = false)
+                    TimerModeChip("Work", isSelected = true, modifier = Modifier.weight(1f))
+                    TimerModeChip("Break", isSelected = false, modifier = Modifier.weight(1f))
+                    TimerModeChip("Long", isSelected = false, modifier = Modifier.weight(1f))
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Circular Timer
                 Box(
@@ -159,20 +159,20 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(200.dp)
-                            .border(15.dp, Color(0xFFE0E0E0), CircleShape),
+                            .size(160.dp)
+                            .border(10.dp, Color(0xFFE0E0E0), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "25:00",
-                            fontSize = 36.sp,
+                            fontSize = 32.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Input Field
                 var studyText by remember { mutableStateOf("") }
@@ -196,7 +196,7 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Start Session Button
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -206,17 +206,17 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                         onClick = { }
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, tint = Color.White)
+                            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Start Session", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("Start Session", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Today's Study Time Card
                 Surface(
@@ -225,24 +225,24 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.timer),
+                            painter = painterResource(id = R.drawable.today_time),
                             contentDescription = null,
-                            modifier = Modifier.size(32.dp),
+                            modifier = Modifier.size(20.dp),
                             tint = Color.Black
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Column {
-                            Text("Today's Study Time", fontSize = 10.sp, color = Color.Gray)
-                            Text("1h 4m", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                            Text("Today's Study Time", fontSize = 9.sp, color = Color.Gray)
+                            Text("1h 4m", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
                     text = "Recent Sessions",
@@ -275,12 +275,12 @@ fun TimerScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun TimerModeChip(label: String, isSelected: Boolean) {
+fun TimerModeChip(label: String, isSelected: Boolean, modifier: Modifier = Modifier) {
     Surface(
         color = if (isSelected) Color.Black else Color.White,
         shape = RoundedCornerShape(12.dp),
         border = if (isSelected) null else androidx.compose.foundation.BorderStroke(1.dp, Color.Gray),
-        modifier = Modifier.width(100.dp)
+        modifier = modifier
     ) {
         Box(
             modifier = Modifier.padding(vertical = 4.dp),
@@ -289,7 +289,7 @@ fun TimerModeChip(label: String, isSelected: Boolean) {
             Text(
                 text = label,
                 color = if (isSelected) Color.White else Color.Black,
-                fontSize = 14.sp
+                fontSize = 12.sp
             )
         }
     }
@@ -303,15 +303,15 @@ fun RecentSessionItem(title: String, duration: String, date: String) {
         shape = RoundedCornerShape(8.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(text = title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Black)
-                Text(text = duration, fontSize = 12.sp, color = Color.Gray)
+                Text(text = title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.Black)
+                Text(text = duration, fontSize = 11.sp, color = Color.Gray)
             }
-            Text(text = date, fontSize = 12.sp, color = Color.Gray)
+            Text(text = date, fontSize = 11.sp, color = Color.Gray)
         }
     }
 }
@@ -323,7 +323,7 @@ fun TimerBottomNavigation(modifier: Modifier = Modifier) {
         containerColor = Color.White,
         tonalElevation = 0.dp,
         modifier = modifier
-            .height(80.dp)
+            .height(72.dp)
             .border(0.5.dp, Color.LightGray, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
     ) {
         val items = listOf(
