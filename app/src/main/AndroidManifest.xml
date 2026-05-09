@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StudyMateAndroidApp">
         <activity
-            android:name=".feature.task.ui.Lockscreen"
+            android:name=".feature.dashboard.ui.Lockscreen"
             android:exported="true"
             android:label="@string/title_activity_lockscreen"
             android:theme="@style/Theme.StudyMateAndroidApp">
