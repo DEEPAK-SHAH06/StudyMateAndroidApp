@@ -12,6 +12,28 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StudyMateAndroidApp">
         <activity
+            android:name=".feature.task.ui.Lockscreen"
+            android:exported="true"
+            android:label="@string/title_activity_lockscreen"
+            android:theme="@style/Theme.StudyMateAndroidApp">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".feature.Lockscreen"
+            android:exported="true"
+            android:label="@string/title_activity_lockscreen"
+            android:theme="@style/Theme.StudyMateAndroidApp">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".feature.reflection.ui.ReflectionHistoryUI"
             android:exported="false"
             android:label="@string/title_activity_reflection_history_ui"
