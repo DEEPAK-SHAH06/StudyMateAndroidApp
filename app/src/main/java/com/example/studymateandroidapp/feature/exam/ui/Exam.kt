@@ -105,7 +105,7 @@ fun ExamScreen(modifier: Modifier = Modifier) {
 
                 Text(
                     text = "Exams :",
-                    fontSize = 24.sp,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
@@ -119,7 +119,7 @@ fun ExamScreen(modifier: Modifier = Modifier) {
                     Image(
                         painter = painterResource(id = R.drawable.exam),
                         contentDescription = null,
-                        modifier = Modifier.size(100.dp)
+                        modifier = Modifier.size(250.dp)
                     )
                 }
 
@@ -229,7 +229,7 @@ fun ExamCard(title: String, subject: String, date: String) {
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Icon(
-                        painter = painterResource(id = R.drawable.exams),
+                        painter = painterResource(id = R.drawable.baseline_file_copy_24),
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                         tint = Color.Black
