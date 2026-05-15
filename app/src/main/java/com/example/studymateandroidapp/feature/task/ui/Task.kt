@@ -1,5 +1,4 @@
 package com.example.studymateandroidapp.feature.task.ui
-
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -25,6 +24,8 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -43,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,10 +52,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.studymateandroidapp.MainActivity
 import com.example.studymateandroidapp.R
-import com.example.studymateandroidapp.feature.exam.ui.Exam
-import com.example.studymateandroidapp.feature.timer.ui.Timer
-import com.example.studymateandroidapp.ui.theme.StudyMateAndroidAppTheme
+
 
 /**
  * Data model for a task item.
@@ -72,9 +71,8 @@ data class TaskItem(
 @Preview(showBackground = true)
 @Composable
 fun TaskScreenPreview() {
-    StudyMateAndroidAppTheme {
-        TaskScreen()
-    }
+    TaskScreen()
+
 }
 
 class TaskActivity : ComponentActivity() {
@@ -82,9 +80,8 @@ class TaskActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            StudyMateAndroidAppTheme {
-                TaskScreen()
-            }
+            TaskScreen()
+
         }
     }
 }
@@ -106,6 +103,7 @@ fun TaskScreen() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
         bottomBar = {
             TaskBottomNavigation()
         }
@@ -115,21 +113,22 @@ fun TaskScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFFF4F4F4))
+                .background(Color.White)
         ) {
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 18.dp)
+                    .padding(horizontal = 30.dp)
+                    .background(Color.White)
                     .verticalScroll(rememberScrollState())
             ) {
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(22.dp))
 
                 TaskTopBar()
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
                 HeaderSection()
 
@@ -238,19 +237,17 @@ fun TaskTopBar() {
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        Image(
+        Icon(
             painter = painterResource(id = R.drawable.achievements),
-            contentDescription = "Profile",
-            modifier = Modifier
-                .size(24.dp)
-                .clip(RoundedCornerShape(8.dp)),
-            contentScale = ContentScale.Crop
+            contentDescription = "Menu",
+            modifier = Modifier.size(24.dp),
+            tint = Color.Black
         )
 
         Icon(
             painter = painterResource(id = R.drawable.statistics),
             contentDescription = "Menu",
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(24.dp),
             tint = Color.Black
         )
     }
@@ -263,7 +260,7 @@ fun HeaderSection() {
 
         Text(
             text = "My Tasks",
-            fontSize = 22.sp,
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black
         )
@@ -287,12 +284,13 @@ fun SearchBar(
         onValueChange = onQueryChange,
         modifier = Modifier
             .fillMaxWidth()
-            .height(46.dp),
+            .width(8.dp)
+            .height(49.dp),
         placeholder = {
 
             Text(
-                text = "Search tasks, subjects, or deadlines..",
-                fontSize = 10.sp,
+                text = "Search tasks, subjects, or deadlines.........",
+                fontSize = 14.sp,
                 color = Color.Gray
             )
         },
@@ -301,17 +299,18 @@ fun SearchBar(
             Icon(
                 painter = painterResource(id = R.drawable.search),
                 contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = Color.Gray
+                modifier = Modifier.size(18.dp),
+                tint = Color.Black
             )
         },
         shape = RoundedCornerShape(12.dp),
         singleLine = true,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFE7E7E7),
-            unfocusedContainerColor = Color(0xFFE7E7E7),
+            focusedContainerColor = Color(0xFFDCDCDC),
+            unfocusedContainerColor = Color(0xFFDCDCDC),
             focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
+            cursorColor = Color.Black
         )
     )
 }
@@ -324,8 +323,10 @@ fun FilterChips(
 ) {
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
         filters.forEach { filter ->
@@ -334,24 +335,26 @@ fun FilterChips(
 
             Surface(
                 modifier = Modifier
-                    .weight(1f)
-                    .height(28.dp)
+                    .weight(0.5f)
+                    .width(6.dp)
+                    .height(26.dp)
                     .clickable {
                         onFilterSelected(filter)
                     },
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(15.dp),
                 color = if (isSelected) Color.Black else Color(0xFFDCDCDC)
             ) {
 
                 Box(
-                    contentAlignment = Alignment.Center
-                ) {
+                    contentAlignment = Alignment.Center,
+
+                    ) {
 
                     Text(
                         text = filter,
                         color = if (isSelected) Color.White else Color.Black,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
@@ -406,21 +409,22 @@ fun TaskItemView(
     ) {
 
         Row(
-            modifier = Modifier.padding(10.dp),
-            verticalAlignment = Alignment.Top
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
 
             Box(
                 modifier = Modifier
-                    .size(16.dp)
+                    .size(20.dp)
+                    .background(Color.White, RoundedCornerShape(4.dp))
                     .border(
-                        1.5.dp,
+                        1.dp,
                         Color(0xFFBDBDBD),
                         RoundedCornerShape(4.dp)
                     )
             )
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -428,14 +432,14 @@ fun TaskItemView(
 
                 Text(
                     text = task.title,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -452,18 +456,18 @@ fun TaskItemView(
                                 horizontal = 6.dp,
                                 vertical = 2.dp
                             ),
-                            fontSize = 7.sp,
+                            fontSize = 8.sp,
                             color = task.tagTextColor,
                             fontWeight = FontWeight.Bold
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
 
                     Icon(
-                        painter = painterResource(id = R.drawable.time),
+                        painter = painterResource(id = R.drawable.timer),
                         contentDescription = null,
-                        modifier = Modifier.size(10.dp),
+                        modifier = Modifier.size(12.dp),
                         tint = Color.Black
                     )
 
@@ -471,8 +475,9 @@ fun TaskItemView(
 
                     Text(
                         text = task.time,
-                        fontSize = 8.sp,
-                        color = Color.Black
+                        fontSize = 9.sp,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
@@ -480,8 +485,8 @@ fun TaskItemView(
             Icon(
                 painter = painterResource(id = R.drawable.baseline_more_vert_24),
                 contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = Color.Gray
+                modifier = Modifier.size(18.dp),
+                tint = Color.Black
             )
         }
     }
@@ -498,18 +503,14 @@ fun PriorityTaskCard() {
         color = Color(0xFFE9E9E9)
     ) {
 
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Box(modifier = Modifier.padding(16.dp)) {
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+            Column {
 
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White
+                    color = Color.White,
+                    border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f))
                 ) {
 
                     Text(
@@ -518,7 +519,7 @@ fun PriorityTaskCard() {
                             horizontal = 8.dp,
                             vertical = 3.dp
                         ),
-                        fontSize = 6.sp,
+                        fontSize = 8.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
                     )
@@ -528,8 +529,8 @@ fun PriorityTaskCard() {
 
                 Text(
                     text = "Final Exam Review:\nNeuroscience",
-                    fontSize = 16.sp,
-                    lineHeight = 20.sp, // Reduced line height slightly
+                    fontSize = 18.sp,
+                    lineHeight = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
@@ -538,55 +539,67 @@ fun PriorityTaskCard() {
 
                 Text(
                     text = "Focus on synaptic plasticity and memory\nformation modules.",
-                    fontSize = 9.sp,
+                    fontSize = 10.sp,
                     color = Color.Gray
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    Icon(
-                        painter = painterResource(id = R.drawable.time),
-                        contentDescription = null,
-                        modifier = Modifier.size(10.dp),
-                        tint = Color.Black
-                    )
+                    // Grouped profile icons placeholder
+                    Row {
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clip(CircleShape)
+                                .background(Color.Gray)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .offset(x = (-6).dp)
+                                .size(18.dp)
+                                .clip(CircleShape)
+                                .background(Color.DarkGray)
+                                .border(1.dp, Color.White, CircleShape)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.width(4.dp))
 
                     Text(
                         text = "4:00 PM Submission",
-                        fontSize = 8.sp,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Medium,
                         color = Color.Black
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
+            // Checkbox and Illustration on the right
             Column(
+                modifier = Modifier.align(Alignment.TopEnd),
                 horizontalAlignment = Alignment.End
             ) {
 
                 Box(
                     modifier = Modifier
-                        .size(16.dp)
+                        .size(24.dp)
+                        .background(Color.White, RoundedCornerShape(4.dp))
                         .border(
                             1.dp,
-                            Color.Gray,
+                            Color(0xFFBDBDBD),
                             RoundedCornerShape(4.dp)
                         )
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
 
                 Image(
                     painter = painterResource(id = R.drawable.review),
                     contentDescription = null,
-                    modifier = Modifier.size(58.dp)
+                    modifier = Modifier.size(100.dp)
                 )
             }
         }
@@ -605,18 +618,18 @@ fun OverdueMilestoneCard() {
     ) {
 
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             Text(
                 text = "!",
-                fontSize = 32.sp,
+                fontSize = 48.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(18.dp))
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -624,14 +637,15 @@ fun OverdueMilestoneCard() {
 
                 Text(
                     text = "Overdue Milestone",
-                    fontSize = 16.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
 
                 Text(
                     text = "Organic Chemistry Lab\nReport-2 days past\ndue.",
-                    fontSize = 9.sp,
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
                     color = Color.Gray
                 )
             }
@@ -643,14 +657,15 @@ fun OverdueMilestoneCard() {
                 Image(
                     painter = painterResource(id = R.drawable.overdue),
                     contentDescription = null,
-                    modifier = Modifier.size(44.dp)
+                    modifier = Modifier.size(80.dp)
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = "RESOLVE\nNOW",
-                    fontSize = 7.sp,
+                    fontSize = 8.sp,
+                    lineHeight = 10.sp,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -666,11 +681,11 @@ fun TaskFAB(
 ) {
 
     Surface(
-        modifier = modifier.size(34.dp),
-        shape = RoundedCornerShape(4.dp),
+        modifier = modifier.size(48.dp),
+        shape = RoundedCornerShape(6.dp),
         color = Color.White,
         border = BorderStroke(
-            2.dp,
+            3.dp,
             Color.Black
         )
     ) {
@@ -682,7 +697,7 @@ fun TaskFAB(
             Icon(
                 painter = painterResource(id = R.drawable.add),
                 contentDescription = "Add",
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(28.dp),
                 tint = Color.Black
             )
         }
@@ -737,7 +752,7 @@ fun TaskBottomNavigation() {
                             context.startActivity(
                                 Intent(
                                     context,
-                                    Exam::class.java
+                                    MainActivity::class.java
                                 )
                             )
                         }
@@ -746,7 +761,7 @@ fun TaskBottomNavigation() {
                             context.startActivity(
                                 Intent(
                                     context,
-                                    com.example.studymateandroidapp.MainActivity::class.java
+                                    MainActivity::class.java
                                 )
                             )
                         }
@@ -755,7 +770,7 @@ fun TaskBottomNavigation() {
                             context.startActivity(
                                 Intent(
                                     context,
-                                    Timer::class.java
+                                    MainActivity::class.java
                                 )
                             )
                         }
