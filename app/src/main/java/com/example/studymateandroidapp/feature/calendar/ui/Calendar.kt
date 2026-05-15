@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -120,7 +121,11 @@ private fun MonthSelector(
         }
     }
 }
-
+@Preview
+@Composable
+fun monthSelectorView(){
+    MonthSelector(currentMonth = YearMonth.now(), onMonthChange = {})
+}
 @Composable
 private fun CalendarGrid(
     currentMonth: YearMonth,
@@ -175,6 +180,12 @@ private fun CalendarGrid(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun calenderGridView(){
+    CalendarGrid(currentMonth = YearMonth.now(), selectedDate = LocalDate.now(), eventsByDate = emptyMap(), onDateSelected = {})
 }
 
 @Composable
@@ -288,6 +299,11 @@ private fun AgendaSection(
         }
     }
 }
+@Preview
+@Composable
+private fun agendaView(){
+    AgendaSection( selectedDate = LocalDate.now(), events = emptyList(), onNavigateToTask = {}, onNavigateToExam = {})
+}
 
 @Composable
 private fun AgendaItem(
@@ -318,6 +334,11 @@ private fun AgendaItem(
             }
         }
     }
+}
+@Preview
+@Composable
+private fun agendaItemView(){
+    AgendaItem(title = "Study Session", subtitle = "Task • Due at 10:00 AM", color = MaterialTheme.colorScheme.primary, onClick = {})
 }
 
 private fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }

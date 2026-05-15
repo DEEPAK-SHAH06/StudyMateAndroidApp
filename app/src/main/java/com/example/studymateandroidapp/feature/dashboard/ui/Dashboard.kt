@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -452,6 +453,12 @@ private fun DashboardContent(
     }
 }
 
+@Preview
+@Composable
+private fun DashboardPreview() {
+    DashboardContent( greeting = "Good Morning", userName = "John", userBio = "Software Engineer", todayTasks = emptyList(), pendingTaskCount = 0, todayStudyFormatted = "00:00", todayStudyMinutes = 0, nextExamTitle = null, daysUntilNextExam = null, activeGoals = emptyList(), isLoading = false, showSyncPrompt = false, dailyQuote = "", dailyQuoteAuthor = "", showReflectionPrompt = false, onTaskToggle = { _, _ -> }, onNavigateToTasks = {}, onNavigateToTimer = {}, onNavigateToExams = {}, onNavigateToGoals = {}, onNavigateToSettings = {}, onNavigateToStats = {}, onNavigateToCalendar = {}, onNavigateToReflection = {}, onNavigateToAchievements = {})
+}
+
 @Composable
 private fun FocusStatRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
     Surface(
@@ -475,6 +482,13 @@ private fun FocusStatRow(icon: androidx.compose.ui.graphics.vector.ImageVector, 
         }
     }
 }
+
+@Preview
+@Composable
+private fun FocusStatRowPreview() {
+    FocusStatRow(icon = Icons.Default.FlashOn, label = "Deep Work", value = "30m")
+}
+
 
 @Composable
 private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
@@ -514,4 +528,9 @@ private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
             }
         }
     }
+}
+@Preview
+@Composable
+private fun AstheticRowView(){
+    //AestheticTaskRow(task = Task(id = 1, title = "Study for exam", priority = Task.Priority.HIGH), onToggle = {})
 }
