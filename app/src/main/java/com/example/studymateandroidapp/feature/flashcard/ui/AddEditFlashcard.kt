@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +24,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -43,13 +49,25 @@ class AddEditFlashcard : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEditFlashcardScreen() {
+fun AddEditFlashcardScreen(
+    examId: Long = -1L,
+    cardId : Long? = null,
+    onNavigateBack: () -> Unit = {}
+
+    ) {
+
+    var front by remember { mutableStateOf("") }
+    var back by remember { mutableStateOf("") }
+    val canSave = front.isNotBlank() && back.isNotBlank() && examId != -1L
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("New Flashcard") },
+                title = { Text(if (cardId == null) {
+                    "New Flashcard"
+                } else "Edit Flashcard") },
                 navigationIcon = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(
                             painter = painterResource(R.drawable.back_arrow),
                             contentDescription = "Back"
@@ -57,7 +75,9 @@ fun AddEditFlashcardScreen() {
                     }
                 },
                 actions = {
-                    IconButton(onClick = {}, modifier = Modifier.size(48.dp)) {
+                    IconButton(onClick = { onNavigateBack()},
+                        enabled = canSave,
+                        modifier = Modifier.size(48.dp)) {
                         Icon(
                             painter = painterResource(R.drawable.done),
                             tint = Color.Black,
@@ -79,6 +99,21 @@ fun AddEditFlashcardScreen() {
 
 
         ){
+            if (examId == -1L){
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ){
+                    Text(
+                        "⚠️ No exam linked. Please create flashcards from an Exam Detail screen.",
+                        modifier = Modifier.padding(12.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -88,8 +123,8 @@ fun AddEditFlashcardScreen() {
                     color = MaterialTheme.colorScheme.primary
                 )
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
+                    value = front,
+                    onValueChange = { front = it},
 
                     modifier = Modifier
                         .fillMaxWidth()
@@ -105,8 +140,8 @@ fun AddEditFlashcardScreen() {
                     color = MaterialTheme.colorScheme.primary
                 )
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
+                    value = back,
+                    onValueChange = {back = it},
 
                     modifier = Modifier
                         .fillMaxWidth()
@@ -119,9 +154,10 @@ fun AddEditFlashcardScreen() {
         }
     }
 }
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun AddEditFlashcardPreview(){
-    AddEditFlashcardScreen()
+    AddEditFlashcardScreen(examId = 1L)
+    
 }
 
