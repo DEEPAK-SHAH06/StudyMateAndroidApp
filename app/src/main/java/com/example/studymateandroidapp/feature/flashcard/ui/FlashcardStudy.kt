@@ -39,7 +39,15 @@ class FlashcardStudy : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FlashcardStudyScreenUI() {
+fun FlashcardStudyScreenUI(
+    examId: Long = -1L,
+    examTitle: String = "Preview Exam",
+    onNavigateBack: () -> Unit = {}
+) {
+    LaunchedEffect(examId) {
+
+    }
+
 
     val cards = remember {
         listOf(
@@ -58,9 +66,9 @@ fun FlashcardStudyScreenUI() {
         topBar = {
             TopAppBar(
                 modifier = Modifier.statusBarsPadding().padding(top = 30.dp),
-                title = { Text("Study Session", fontWeight = FontWeight.Bold) },
+                title = { Text("Study Session :$examTitle", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(
                             painter = painterResource(R.drawable.back_arrow),
                             tint = MaterialTheme.colorScheme.onSurface,
@@ -83,7 +91,8 @@ fun FlashcardStudyScreenUI() {
                         currentIndex = 0
                         isFlipped = false
                         isFinished = false
-                    }
+                    },
+                    onBack = onNavigateBack
                 )
             } else {
                 val currentCard = cards[currentIndex]
@@ -228,7 +237,10 @@ fun StudyControls(onNext: () -> Unit) {
 }
 
 @Composable
-fun StudyFinishedView(onRestart: () -> Unit) {
+fun StudyFinishedView(
+    onRestart: () -> Unit,
+    onBack: ()  -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -246,6 +258,7 @@ fun StudyFinishedView(onRestart: () -> Unit) {
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
+        Text("Your progress has been saved in Box levels.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.height(48.dp))
         Button(
             onClick = onRestart,
@@ -254,6 +267,9 @@ fun StudyFinishedView(onRestart: () -> Unit) {
             Icon(painter = painterResource(R.drawable.again), contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text("Restart Session")
+        }
+        TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+            Text("Back to Exams")
         }
     }
 }

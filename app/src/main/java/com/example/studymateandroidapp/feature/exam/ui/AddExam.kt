@@ -37,6 +37,7 @@ class AddExam : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditExamScreen(
+    onNavigateBack: () -> Unit = {}
 
 ) {
 
@@ -53,7 +54,7 @@ fun AddEditExamScreen(
                 },
                 navigationIcon = {
                     IconButton(
-                        onClick = {},
+                        onClick = onNavigateBack,
                         modifier = Modifier.padding(top = 30.dp)
                     ) {
                         Icon(
