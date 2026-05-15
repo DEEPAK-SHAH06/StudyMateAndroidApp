@@ -14,8 +14,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -23,12 +26,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -51,7 +58,15 @@ class SettingActivity : ComponentActivity() {
 
 @Composable
 fun SettingBody() {
-    var name : String = "username"
+    var name by remember { mutableStateOf("username") }
+
+    var taskNotif by remember { mutableStateOf(true) }
+    var examNotif by remember { mutableStateOf(true) }
+    var habitNotif by remember { mutableStateOf(true) }
+    var missedTaskNotif by remember { mutableStateOf(true) }
+    var dailyGoalNotif by remember { mutableStateOf(true) }
+    var focusMode by remember { mutableStateOf(false) }
+
     val navController = rememberNavController()
 
     Scaffold(
@@ -61,6 +76,8 @@ fun SettingBody() {
     ) { innerpadding ->
         Column(
             modifier = Modifier.padding(innerpadding)
+                .statusBarsPadding()
+                .verticalScroll(rememberScrollState())
                 .fillMaxSize()
                 .background(color = Color.White)
         ) {
@@ -109,7 +126,7 @@ fun SettingBody() {
                 Row(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column() {
+                    Column {
                         OutlinedCard(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
@@ -141,7 +158,9 @@ fun SettingBody() {
                                 }
 
                                 Button(
-                                    onClick = { },
+                                    onClick = {
+                                        navController.navigate("login")
+                                    },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Black,
                                         contentColor = Color.White
@@ -194,39 +213,57 @@ fun SettingBody() {
                 )
 
                 NotifCard(
-                    "Task",
-                    "Get notified before task deadline",
-                    painterResource(R.drawable.on)
+                    heading = "Task",
+                    subheading = "Get notified before task deadline",
+                    checked = taskNotif,
+                    onCheckedChange = {
+                        taskNotif = it
+                    }
                 )
 
                 NotifCard(
-                    "Exam",
-                    "Get alerts 1 and 3 days before exams",
-                    painterResource(R.drawable.on)
+                    heading = "Exam",
+                    subheading = "Get alerts 1 and 3 days before exams",
+                    checked = examNotif,
+                    onCheckedChange = {
+                        examNotif = it
+                    }
                 )
 
                 NotifCard(
-                    "Daily habit",
-                    "Daily reminder to keep up your study habit",
-                    painterResource(R.drawable.on)
+                    heading = "Daily habit",
+                    subheading = "Daily reminder to keep up your study habit",
+                    checked = habitNotif,
+                    onCheckedChange = {
+                        habitNotif = it
+                    }
                 )
 
                 NotifCard(
-                    "Missed task",
-                    "Alert if you have incomplete tasks at the end of the day",
-                    painterResource(R.drawable.on)
+                    heading = "Missed task",
+                    subheading = "Alert if you have incomplete tasks at the end of the day",
+                    checked = missedTaskNotif,
+                    onCheckedChange = {
+                        missedTaskNotif = it
+                    }
                 )
 
                 NotifCard(
-                    "Daily goal",
-                    "Alert if you haven’t met your daily study goal",
-                    painterResource(R.drawable.on)
+                    heading = "Daily goal",
+                    subheading = "Alert if you haven’t met your daily study goal",
+                    checked = dailyGoalNotif,
+                    onCheckedChange = {
+                        dailyGoalNotif = it
+                    }
                 )
 
                 NotifCard(
-                    "Focus mode",
-                    "Pause all notifications during focus time",
-                    painterResource(R.drawable.off)
+                    heading = "Focus mode",
+                    subheading = "Pause all notifications during focus time",
+                    checked = focusMode,
+                    onCheckedChange = {
+                        focusMode = it
+                    }
                 )
             }
         }
@@ -237,16 +274,19 @@ fun SettingBody() {
 fun NotifCard(
     heading : String,
     subheading : String,
-    painter: Painter
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
 ) {
-    OutlinedCard (modifier = Modifier.padding(vertical = 5.dp)) {
+    OutlinedCard (
+        modifier = Modifier.padding(vertical = 5.dp)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth()
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column() {
+            Column {
                 Text(heading,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold)
@@ -256,8 +296,9 @@ fun NotifCard(
                     fontSize = 10.sp)
             }
 
-            Icon(
-                painter, "toggle button"
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange
             )
         }
     }
