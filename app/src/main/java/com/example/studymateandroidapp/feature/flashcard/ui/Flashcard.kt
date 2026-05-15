@@ -81,7 +81,7 @@ fun FlashcardScreen() {
 
 
         ) {
-            IconButton(onClick = { /* Handle back */ }) {
+            IconButton(onClick = { }) {
                 Icon(
                     painter = painterResource(id = R.drawable.back_arrow),
                     contentDescription = "Back",
@@ -195,7 +195,6 @@ fun FlashcardScreen() {
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            // Flashcard List
             val flashcard = listOf (
                 FlashcardData("What is pass in Python?", "a placeholder that does nothing."),
                 FlashcardData("Who is created java?", "James Gosling"),
