@@ -20,11 +20,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.studymateandroidapp.core.model.Achievement
 import com.example.studymateandroidapp.core.model.AchievementType
+import com.example.studymateandroidapp.feature.motivation.data.MotivationRepository
 import com.example.studymateandroidapp.feature.motivation.viewmodel.MotivationViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -135,6 +137,11 @@ fun AchievementsScreen(
     }
 }
 
+@Preview
+@Composable
+private fun AchievementsScreenPreview() {
+    //AchievementsScreen(viewModel = MotivationViewModel(MotivationRepository()), onNavigateBack = {})
+}
 @Composable
 private fun AchievementBadge(
     type: AchievementType,
