@@ -1,9 +1,5 @@
 package com.example.studymateandroidapp.feature.reflection.ui
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,17 +34,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.studymateandroidapp.R
-import com.example.studymateandroidapp.navigation.ReflectionNav
-
-class ReflectionHistoryUI : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            ReflectionNav()
-        }
-    }
-}
 
 data class ReflectionData(
     val day: String,
@@ -59,7 +44,7 @@ data class ReflectionData(
 )
 
 @Composable
-fun ReflectionHistoryBody(
+fun ReflectionHistoryScreen(
     navController: NavController
 ) {
     val reflectionList = listOf(
@@ -252,7 +237,7 @@ fun ReflectionHistoryCard(
 @Preview(showBackground = true)
 @Composable
 fun ReflectionHistoryPreview() {
-    ReflectionHistoryBody(
+    ReflectionHistoryScreen(
         navController = rememberNavController()
     )
 }

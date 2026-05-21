@@ -1,10 +1,5 @@
 package com.example.studymateandroidapp.feature.timer.ui
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -42,31 +36,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.studymateandroidapp.feature.exam.ui.Exam
-import com.example.studymateandroidapp.feature.task.ui.TaskActivity
 import com.example.studymateandroidapp.R
-import com.example.studymateandroidapp.ui.theme.StudyMateAndroidAppTheme
-
-class Timer : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            StudyMateAndroidAppTheme {
-                TimerScreen()
-            }
-        }
-    }
-}
 
 @Composable
-fun TimerScreen(modifier: Modifier = Modifier) {
+fun TimerScreen(
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = { TimerBottomNavigation() }
@@ -318,14 +298,19 @@ fun RecentSessionItem(title: String, duration: String, date: String) {
 
 @Composable
 fun TimerBottomNavigation(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
+
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 0.dp,
         modifier = modifier
             .height(72.dp)
-            .border(0.5.dp, Color.LightGray, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .border(
+                0.5.dp,
+                Color.LightGray,
+                RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            )
     ) {
+
         val items = listOf(
             Triple(R.drawable.home, "Home", false),
             Triple(R.drawable.task, "Task", false),
@@ -335,16 +320,29 @@ fun TimerBottomNavigation(modifier: Modifier = Modifier) {
         )
 
         items.forEach { (iconRes, label, isSelected) ->
+
             NavigationBarItem(
-                icon = { Icon(painterResource(id = iconRes), contentDescription = null, modifier = Modifier.size(24.dp)) },
-                label = { Text(text = label, fontSize = 10.sp) },
-                selected = isSelected,
-                onClick = {
-                    when(label) {
-                        "Task" -> context.startActivity(Intent(context, TaskActivity::class.java))
-                        "Exams" -> context.startActivity(Intent(context, Exam::class.java))
-                    }
+                icon = {
+                    Icon(
+                        painter = painterResource(id = iconRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
                 },
+
+                label = {
+                    Text(
+                        text = label,
+                        fontSize = 10.sp
+                    )
+                },
+
+                selected = isSelected,
+
+                onClick = {
+                    // navigation later
+                },
+
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color.Black,
                     unselectedIconColor = Color.Gray,
@@ -360,7 +358,5 @@ fun TimerBottomNavigation(modifier: Modifier = Modifier) {
 @Preview(showBackground = true, widthDp = 412, heightDp = 915)
 @Composable
 fun TimerPreview() {
-    StudyMateAndroidAppTheme {
-        TimerScreen()
-    }
+    TimerScreen()
 }

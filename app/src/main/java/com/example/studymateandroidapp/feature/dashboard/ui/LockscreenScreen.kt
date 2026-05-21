@@ -1,11 +1,7 @@
-package com.example.studymateandroidapp.feature.task.ui
+package com.example.studymateandroidapp.feature.dashboard.ui
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -31,25 +26,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.studymateandroidapp.R
-import com.example.studymateandroidapp.ui.theme.StudyMateAndroidAppTheme
-
-class Lockscreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            StudyMateAndroidAppTheme {
-                LockscreenBody()
-            }
-        }
-    }
-}
 
 @Composable
-fun LockscreenBody(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-
+fun LockscreenScreen(
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
     Surface(
         modifier = modifier.fillMaxSize(),
         color = Color.White
@@ -59,18 +44,19 @@ fun LockscreenBody(modifier: Modifier = Modifier) {
                 .fillMaxSize()
                 .padding(vertical = 60.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Emoji Illustration
+            // Welcome Illustration
             Icon(
                 painter = painterResource(id = R.drawable.welcome),
                 contentDescription = null,
-                modifier = Modifier.size(200.dp),
+                modifier = Modifier.size(240.dp),
                 tint = Color.Unspecified
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(60.dp))
 
             // Greeting Text
             Column(
@@ -82,9 +68,9 @@ fun LockscreenBody(modifier: Modifier = Modifier) {
                     style = TextStyle(
                         color = Color.Black,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 28.sp,
+                        fontSize = 32.sp,
                         textAlign = TextAlign.Center,
-                        lineHeight = 34.sp
+                        lineHeight = 38.sp
                     )
                 )
 
@@ -93,24 +79,24 @@ fun LockscreenBody(modifier: Modifier = Modifier) {
                     style = TextStyle(
                         color = Color.Black,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 28.sp,
+                        fontSize = 32.sp,
                         textAlign = TextAlign.Center,
-                        lineHeight = 34.sp
+                        lineHeight = 38.sp
                     ),
                     modifier = Modifier.padding(horizontal = 40.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(60.dp))
 
             // Instruction Text
             Text(
-                text = "Please place your finger over the\nsensor",
+                text = "Please place your finger over the sensor",
                 style = TextStyle(
                     color = Color.Black,
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     textAlign = TextAlign.Center,
-                    lineHeight = 24.sp
+                    lineHeight = 28.sp
                 ),
                 modifier = Modifier.padding(horizontal = 40.dp)
             )
@@ -119,13 +105,16 @@ fun LockscreenBody(modifier: Modifier = Modifier) {
 
             // Fingerprint Button
             Surface(
-                modifier = Modifier.size(100.dp),
+                modifier = Modifier.size(120.dp),
                 shape = CircleShape,
                 color = Color.White,
-                border = BorderStroke(1.dp, Color.Black.copy(alpha = 0.5f)),
+                border = BorderStroke(
+                    1.dp,
+                    Color.Black.copy(alpha = 0.5f)
+                ),
                 shadowElevation = 4.dp,
                 onClick = {
-                    context.startActivity(Intent(context, TaskActivity::class.java))
+                    navController.navigate("task")
                 }
             ) {
                 Box(
@@ -134,8 +123,10 @@ fun LockscreenBody(modifier: Modifier = Modifier) {
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.fingerprint),
-                        contentDescription = stringResource(id = R.string.fingerprint_instruction),
-                        modifier = Modifier.size(56.dp),
+                        contentDescription = stringResource(
+                            id = R.string.fingerprint_instruction
+                        ),
+                        modifier = Modifier.size(64.dp),
                         tint = Color.Black
                     )
                 }
@@ -149,7 +140,7 @@ fun LockscreenBody(modifier: Modifier = Modifier) {
 @Preview(showBackground = true, widthDp = 412, heightDp = 892)
 @Composable
 fun LockscreenPreview() {
-    StudyMateAndroidAppTheme {
-        LockscreenBody()
-    }
+    LockscreenScreen(
+        navController = rememberNavController()
+    )
 }

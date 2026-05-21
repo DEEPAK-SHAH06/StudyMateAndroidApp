@@ -1,9 +1,5 @@
 package com.example.studymateandroidapp.feature.exam.ui
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,26 +17,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studymateandroidapp.R
 
-
-
-class AddExam : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-
-                AddEditExamScreen()
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditExamScreen(
     onNavigateBack: () -> Unit = {}
-
 ) {
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -155,8 +136,6 @@ fun AddEditExamScreen(
         }
     }
 }
-
-
 
 @Preview(showBackground = true)
 @Composable

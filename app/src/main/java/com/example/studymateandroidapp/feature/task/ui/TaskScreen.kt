@@ -1,9 +1,6 @@
 package com.example.studymateandroidapp.feature.task.ui
+
 import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -52,9 +49,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.studymateandroidapp.MainActivity
 import com.example.studymateandroidapp.R
-
 
 /**
  * Data model for a task item.
@@ -68,27 +66,8 @@ data class TaskItem(
     val time: String
 )
 
-@Preview(showBackground = true)
-@Composable
-fun TaskScreenPreview() {
-    TaskScreen()
-
-}
-
-class TaskActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            TaskScreen()
-
-        }
-    }
-}
-
 @Composable
 fun TaskScreen() {
-
     var searchQuery by remember { mutableStateOf("") }
 
     val filters = listOf(
@@ -230,7 +209,6 @@ fun TaskScreen() {
 
 @Composable
 fun TaskTopBar() {
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -255,7 +233,6 @@ fun TaskTopBar() {
 
 @Composable
 fun HeaderSection() {
-
     Column {
 
         Text(
@@ -278,7 +255,6 @@ fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit
 ) {
-
     TextField(
         value = query,
         onValueChange = onQueryChange,
@@ -321,7 +297,6 @@ fun FilterChips(
     selectedFilter: String,
     onFilterSelected: (String) -> Unit
 ) {
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -367,13 +342,11 @@ fun SectionHeader(
     title: String,
     subtitle: String
 ) {
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Text(
             text = title,
             fontSize = 16.sp,
@@ -382,7 +355,6 @@ fun SectionHeader(
         )
 
         if (subtitle.isNotEmpty()) {
-
             Text(
                 text = subtitle,
                 fontSize = 8.sp,
@@ -397,7 +369,6 @@ fun SectionHeader(
 fun TaskItemView(
     task: TaskItem
 ) {
-
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -449,7 +420,6 @@ fun TaskItemView(
                         shape = RoundedCornerShape(4.dp),
                         color = task.tagBgColor
                     ) {
-
                         Text(
                             text = task.tag,
                             modifier = Modifier.padding(
@@ -494,7 +464,6 @@ fun TaskItemView(
 
 @Composable
 fun PriorityTaskCard() {
-
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -502,17 +471,13 @@ fun PriorityTaskCard() {
         shape = RoundedCornerShape(18.dp),
         color = Color(0xFFE9E9E9)
     ) {
-
         Box(modifier = Modifier.padding(16.dp)) {
-
             Column {
-
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = Color.White,
                     border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f))
                 ) {
-
                     Text(
                         text = "HIGH PRIORITY",
                         modifier = Modifier.padding(
@@ -548,7 +513,6 @@ fun PriorityTaskCard() {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     // Grouped profile icons placeholder
                     Row {
                         Box(
@@ -557,6 +521,7 @@ fun PriorityTaskCard() {
                                 .clip(CircleShape)
                                 .background(Color.Gray)
                         )
+
                         Box(
                             modifier = Modifier
                                 .offset(x = (-6).dp)
@@ -595,7 +560,6 @@ fun PriorityTaskCard() {
                         )
                 )
 
-
                 Image(
                     painter = painterResource(id = R.drawable.review),
                     contentDescription = null,
@@ -608,7 +572,6 @@ fun PriorityTaskCard() {
 
 @Composable
 fun OverdueMilestoneCard() {
-
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -616,12 +579,10 @@ fun OverdueMilestoneCard() {
         shape = RoundedCornerShape(18.dp),
         color = Color(0xFFE9E9E9)
     ) {
-
         Row(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Text(
                 text = "!",
                 fontSize = 48.sp,
@@ -634,7 +595,6 @@ fun OverdueMilestoneCard() {
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Text(
                     text = "Overdue Milestone",
                     fontSize = 18.sp,
@@ -653,7 +613,6 @@ fun OverdueMilestoneCard() {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Image(
                     painter = painterResource(id = R.drawable.overdue),
                     contentDescription = null,
@@ -693,7 +652,6 @@ fun TaskFAB(
         Box(
             contentAlignment = Alignment.Center
         ) {
-
             Icon(
                 painter = painterResource(id = R.drawable.add),
                 contentDescription = "Add",
@@ -706,14 +664,12 @@ fun TaskFAB(
 
 @Composable
 fun TaskBottomNavigation() {
-
     val context = LocalContext.current
 
     NavigationBar(
         containerColor = Color.White,
         modifier = Modifier.height(72.dp)
     ) {
-
         val items = listOf(
             Triple(R.drawable.home, "Home", false),
             Triple(R.drawable.task, "Task", true),
@@ -723,14 +679,11 @@ fun TaskBottomNavigation() {
         )
 
         items.forEach { (iconRes, label, isSelected) ->
-
             NavigationBarItem(
                 icon = {
-
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-
                         Icon(
                             painter = painterResource(id = iconRes),
                             contentDescription = label,
@@ -745,9 +698,7 @@ fun TaskBottomNavigation() {
                 },
                 selected = isSelected,
                 onClick = {
-
                     when (label) {
-
                         "Exams" -> {
                             context.startActivity(
                                 Intent(
@@ -784,4 +735,10 @@ fun TaskBottomNavigation() {
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TaskScreenPreview() {
+    TaskScreen()
 }

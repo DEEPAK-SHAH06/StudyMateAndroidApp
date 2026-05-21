@@ -1,9 +1,5 @@
 package com.example.studymateandroidapp.feature.flashcard.ui
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -25,21 +21,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.R
 
-
-class FlashcardStudy : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-                FlashcardStudyScreenUI()
-
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FlashcardStudyScreenUI(
+fun FlashcardStudyScreen(
     examId: Long = -1L,
     examTitle: String = "Preview Exam",
     onNavigateBack: () -> Unit = {}
@@ -47,7 +31,6 @@ fun FlashcardStudyScreenUI(
     LaunchedEffect(examId) {
 
     }
-
 
     val cards = remember {
         listOf(
@@ -277,5 +260,5 @@ fun StudyFinishedView(
 @Preview(showBackground = true)
 @Composable
 fun FlashcardStudyPreview() {
-        FlashcardStudyScreenUI()
+        FlashcardStudyScreen()
 }

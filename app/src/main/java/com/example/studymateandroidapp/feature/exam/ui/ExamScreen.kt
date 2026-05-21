@@ -1,10 +1,5 @@
 package com.example.studymateandroidapp.feature.exam.ui
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -38,31 +32,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.studymateandroidapp.MainActivity
 import com.example.studymateandroidapp.R
-import com.example.studymateandroidapp.feature.task.ui.TaskActivity
-import com.example.studymateandroidapp.feature.timer.ui.Timer
-import com.example.studymateandroidapp.ui.theme.StudyMateAndroidAppTheme
-
-
-
-class Exam : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            StudyMateAndroidAppTheme {
-                ExamScreen()
-            }
-        }
-    }
-}
 
 @Composable
 fun ExamScreen(modifier: Modifier = Modifier) {
@@ -258,13 +233,16 @@ fun ExamCard(title: String, subject: String, date: String) {
 
 @Composable
 fun ExamBottomNavigation(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 0.dp,
         modifier = modifier
             .height(72.dp)
-            .border(0.5.dp, Color.LightGray, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .border(
+                0.5.dp,
+                Color.LightGray,
+                RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            )
     ) {
         val items = listOf(
             Triple(R.drawable.home, "Home", false),
@@ -274,19 +252,29 @@ fun ExamBottomNavigation(modifier: Modifier = Modifier) {
             Triple(R.drawable.lock, "Settings", false)
         )
 
-        items.forEach { item ->
-            val (iconRes, label, isSelected) = item
+        items.forEach { (iconRes, label, isSelected) ->
             NavigationBarItem(
-                icon = { Icon(painterResource(id = iconRes), contentDescription = null, modifier = Modifier.size(24.dp)) },
-                label = { Text(text = label, fontSize = 10.sp) },
-                selected = isSelected,
-                onClick = {
-                    when(label) {
-                        "Home" -> context.startActivity(Intent(context, MainActivity::class.java))
-                        "Task" -> context.startActivity(Intent(context, TaskActivity::class.java))
-                        "Timer" -> context.startActivity(Intent(context, Timer::class.java))
-                    }
+                icon = {
+                    Icon(
+                        painter = painterResource(id = iconRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
                 },
+
+                label = {
+                    Text(
+                        text = label,
+                        fontSize = 10.sp
+                    )
+                },
+
+                selected = isSelected,
+
+                onClick = {
+                    // navigation later
+                },
+
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color.Black,
                     unselectedIconColor = Color.Gray,
@@ -302,7 +290,5 @@ fun ExamBottomNavigation(modifier: Modifier = Modifier) {
 @Preview(showBackground = true, widthDp = 412, heightDp = 915)
 @Composable
 fun ExamPreview() {
-    StudyMateAndroidAppTheme {
-        ExamScreen()
-    }
+    ExamScreen()
 }

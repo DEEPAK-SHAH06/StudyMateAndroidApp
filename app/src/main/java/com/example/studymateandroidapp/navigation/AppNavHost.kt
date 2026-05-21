@@ -1,7 +1,6 @@
 package com.example.studymateandroidapp.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -9,6 +8,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.studymateandroidapp.feature.achievements.ui.AchievementsScreen
 import com.example.studymateandroidapp.feature.calendar.ui.CalendarScreen
 import com.example.studymateandroidapp.feature.calendar.viewmodel.CalendarViewModel
 import com.example.studymateandroidapp.feature.dashboard.ui.DashboardScreen
@@ -18,14 +18,12 @@ import com.example.studymateandroidapp.feature.exam.ui.ExamScreen
 import com.example.studymateandroidapp.feature.exam.viewmodel.ExamViewmodel
 import com.example.studymateandroidapp.feature.timer.ui.TimerScreen
 import com.example.studymateandroidapp.feature.timer.viewmodel.TimerViewmodel
-import com.example.studymateandroidapp.feature.settings.ui.SettingBody
 import com.example.studymateandroidapp.feature.settings.ui.EditProfileScreen
 import com.example.studymateandroidapp.feature.settings.viewmodel.SettingViewmodel
-import com.example.studymateandroidapp.feature.flashcard.ui.FlashcardStudyScreenUI
 import com.example.studymateandroidapp.feature.flashcard.ui.FlashcardScreen
 import com.example.studymateandroidapp.feature.flashcard.ui.AddEditFlashcardScreen
+import com.example.studymateandroidapp.feature.flashcard.ui.FlashcardStudyScreen
 import com.example.studymateandroidapp.feature.flashcard.viewmodel.FlashcardViewmodel
-import com.example.studymateandroidapp.feature.statistics.ui.StatisticsBody
 import com.example.studymateandroidapp.feature.statistics.viewmodel.StatisticsViewmodel
 import com.example.studymateandroidapp.feature.task.ui.TaskScreen
 import com.example.studymateandroidapp.feature.task.viewmodel.TaskViewmodel
@@ -33,11 +31,12 @@ import com.example.studymateandroidapp.feature.goal.ui.GoalScreen
 import com.example.studymateandroidapp.feature.goal.viewmodel.GoalViewmodel
 import com.example.studymateandroidapp.feature.note.ui.NoteScreen
 import com.example.studymateandroidapp.feature.note.viewmodel.NoteViewmodel
-import com.example.studymateandroidapp.feature.reflection.ui.DailyReflectionBody
-import com.example.studymateandroidapp.feature.motivation.ui.AchievementsScreen
 import com.example.studymateandroidapp.feature.motivation.viewmodel.MotivationViewModel
+import com.example.studymateandroidapp.feature.reflection.ui.DailyReflectionScreen
+import com.example.studymateandroidapp.feature.reflection.ui.ReflectionHistoryScreen
 import com.example.studymateandroidapp.ui.ViewModelFactory
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.studymateandroidapp.feature.settings.ui.SettingsScreen
+import com.example.studymateandroidapp.feature.statistics.ui.StatisticsScreen
 
 /**
  * Central navigation host binding routes to screen composables.
@@ -123,7 +122,7 @@ fun AppNavHost(
         // ── Statistics ────────────────────────────────
         composable(Screen.Statistics.route) {
             val vm = viewModel<StatisticsViewmodel>(factory = ViewModelFactory)
-            StatisticsBody()
+            StatisticsScreen()
         }
 
         // ── Exams ─────────────────────────────────────
@@ -190,7 +189,7 @@ fun AppNavHost(
         // ── Settings ──────────────────────────────────
         composable(Screen.Settings.route) {
             val vm = viewModel<SettingViewmodel>(factory = ViewModelFactory)
-            SettingBody()
+            SettingsScreen()
         }
 
         composable(Screen.EditProfile.route) {
@@ -223,7 +222,7 @@ fun AppNavHost(
                 viewModelStoreOwner = backStackEntry,
                 factory = ViewModelFactory
             )
-            FlashcardStudyScreenUI(
+            FlashcardStudyScreen (
                 examId = examId,
                 examTitle = "Study Session",
                 onNavigateBack = { navController.popBackStack() }
@@ -250,7 +249,11 @@ fun AppNavHost(
         // ── Daily Reflection ──────────────────────────
         composable(Screen.DailyReflection.route) {
             val vm: MotivationViewModel = viewModel(factory = ViewModelFactory)
-            DailyReflectionBody(navController = navController)
+            DailyReflectionScreen(navController)
+        }
+
+        composable("reflection_history") {
+            ReflectionHistoryScreen(navController)
         }
 
         // ── Achievements ──────────────────────────────

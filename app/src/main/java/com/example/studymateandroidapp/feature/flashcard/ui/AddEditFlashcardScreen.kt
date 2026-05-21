@@ -1,9 +1,5 @@
 package com.example.studymateandroidapp.feature.flashcard.ui
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,27 +31,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.R
 
-class AddEditFlashcard : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            AddEditFlashcardScreen()
-
-        }
-    }
-}
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditFlashcardScreen(
     examId: Long = -1L,
     cardId : Long? = null,
     onNavigateBack: () -> Unit = {}
-
-    ) {
-
+) {
     var front by remember { mutableStateOf("") }
     var back by remember { mutableStateOf("") }
     val canSave = front.isNotBlank() && back.isNotBlank() && examId != -1L
@@ -154,10 +136,9 @@ fun AddEditFlashcardScreen(
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun AddEditFlashcardPreview(){
     AddEditFlashcardScreen(examId = 1L)
-    
 }
-

@@ -1,9 +1,5 @@
 package com.example.studymateandroidapp.feature.reflection.ui
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -47,20 +43,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.studymateandroidapp.R
-import com.example.studymateandroidapp.navigation.ReflectionNav
-
-class DailyReflectionUI : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            ReflectionNav()
-        }
-    }
-}
 
 @Composable
-fun DailyReflectionBody(
+fun DailyReflectionScreen(
     navController: NavController
 ) {
     var reflection by remember { mutableStateOf("") }
@@ -298,7 +283,7 @@ fun MoodEmoji(
 @Preview(showBackground = true)
 @Composable
 fun DailyReflectionPreview() {
-    DailyReflectionBody(
+    DailyReflectionScreen(
         navController = rememberNavController()
     )
 }
