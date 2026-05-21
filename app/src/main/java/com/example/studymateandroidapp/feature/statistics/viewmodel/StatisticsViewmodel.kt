@@ -1,4 +1,6 @@
 package com.example.studymateandroidapp.feature.statistics.viewmodel
 
-class StatisticsViewmodel {
+import androidx.lifecycle.ViewModel
+
+class StatisticsViewmodel : ViewModel() {
 }

@@ -1,4 +1,6 @@
 package com.example.studymateandroidapp.feature.achievements.viewmodel
 
-class AchievementViewmodel {
+import androidx.lifecycle.ViewModel
+
+class AchievementViewmodel : ViewModel() {
 }
