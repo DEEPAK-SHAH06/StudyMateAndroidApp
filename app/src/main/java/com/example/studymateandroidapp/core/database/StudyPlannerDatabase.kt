@@ -13,6 +13,13 @@ import com.example.studymateandroidapp.core.model.Goal
 import com.example.studymateandroidapp.core.model.Note
 import com.example.studymateandroidapp.core.model.StudySession
 import com.example.studymateandroidapp.core.model.Task
+import com.example.studymateandroidapp.feature.task.data.TaskDao
+import com.example.studymateandroidapp.feature.timer.data.SessionDao
+import com.example.studymateandroidapp.feature.exam.data.ExamDao
+import com.example.studymateandroidapp.feature.goal.data.GoalDao
+import com.example.studymateandroidapp.feature.note.data.NoteDao
+import com.example.studymateandroidapp.feature.flashcard.data.FlashcardDao
+import com.example.studymateandroidapp.feature.motivation.data.MotivationDao
 import com.example.studymateandroidapp.model.ReminderSetting
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import java.io.File
@@ -36,14 +43,14 @@ import java.io.File
 @TypeConverters(Converters::class)
 abstract class StudyPlannerDatabase : RoomDatabase() {
 
-//    abstract fun taskDao(): TaskDao
-//    abstract fun sessionDao(): SessionDao
-//    abstract fun examDao(): ExamDao
-//    abstract fun goalDao(): GoalDao
+    abstract fun taskDao(): TaskDao
+    abstract fun sessionDao(): SessionDao
+    abstract fun examDao(): ExamDao
+    abstract fun goalDao(): GoalDao
     abstract fun reminderDao(): ReminderDao
-//    abstract fun noteDao(): NoteDao
-//    abstract fun flashcardDao(): FlashcardDao
-//    abstract fun motivationDao(): MotivationDao
+    abstract fun noteDao(): NoteDao
+    abstract fun flashcardDao(): FlashcardDao
+    abstract fun motivationDao(): MotivationDao
 
     companion object {
         private const val DATABASE_NAME = "study_planner.db"

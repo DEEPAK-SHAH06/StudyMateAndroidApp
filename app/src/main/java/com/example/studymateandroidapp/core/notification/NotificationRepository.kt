@@ -2,6 +2,8 @@ package com.example.studymateandroidapp.core.notification
 
 import android.content.Context
 import com.example.studymateandroidapp.core.database.ReminderDao
+import com.example.studymateandroidapp.feature.task.data.TaskDao
+import com.example.studymateandroidapp.feature.exam.data.ExamDao
 import com.example.studymateandroidapp.model.ReminderSetting
 import com.example.studymateandroidapp.model.ReminderType
 import kotlinx.coroutines.flow.Flow
@@ -12,8 +14,8 @@ import java.time.LocalTime
 class NotificationRepository(
     private val context: Context,
     private val reminderDao: ReminderDao,
-//    private val taskDao: TaskDao,
-//    private val examDao: ExamDao,
+    private val taskDao: TaskDao,
+    private val examDao: ExamDao,
     private val scheduler: ReminderScheduler
 ) {
 
@@ -35,25 +37,25 @@ class NotificationRepository(
         // 1. Exact Alarms (Tasks & Exams)
         val taskSetting = settings.find { it.type == ReminderType.TASK }
         if (taskSetting?.isEnabled == true) {
-//            val pendingTasks = taskDao.getPendingTasks().first()
-//            pendingTasks.forEach { task ->
-//                task.dueDate?.let { date ->
-//                    scheduler.scheduleTaskReminder(task.id, task.title, date, taskSetting.scheduledTime ?: LocalTime.of(9, 0))
-//                }
-//            }
+            val pendingTasks = taskDao.getPendingTasks().first()
+            pendingTasks.forEach { task ->
+                task.dueDate?.let { date ->
+                    scheduler.scheduleTaskReminder(task.id, task.title, date, taskSetting.scheduledTime ?: LocalTime.of(9, 0))
+                }
+            }
         } else {
             // Cancel all task alarms? (Would require knowing IDs, or just cancel when disabled)
         }
 
         val examSetting = settings.find { it.type == ReminderType.EXAM }
         if (examSetting?.isEnabled == true) {
-//            val exams = examDao.getAllExams().first()
+            val exams = examDao.getAllExams().first()
             val daysBefore = listOf(1, 3, 7) // Or configurable
-//            exams.forEach { exam ->
-//                val localDate = java.time.Instant.ofEpochMilli(exam.examDate)
-//                    .atZone(java.time.ZoneId.systemDefault())
-//                    .toLocalDate()
-//                scheduler.scheduleExamReminders(exam.id, exam.title, localDate, daysBefore)
+            exams.forEach { exam ->
+                val localDate = java.time.Instant.ofEpochMilli(exam.examDate)
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDate()
+                scheduler.scheduleExamReminders(exam.id, exam.title, localDate, daysBefore)
             }
         }
 
@@ -78,7 +80,7 @@ class NotificationRepository(
             ReminderSetting(ReminderType.DAILY_GOAL, isEnabled = true, scheduledTime = LocalTime.of(20, 0)),
             ReminderSetting(ReminderType.FOCUS_MODE, isEnabled = false)
         )
-//        reminderDao.insertDefaultSettings(defaults)
-//        rescheduleAll()
-//    }
+        reminderDao.insertDefaultSettings(defaults)
+        rescheduleAll()
+    }
 }
