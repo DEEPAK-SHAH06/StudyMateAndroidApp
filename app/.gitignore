@@ -1,1 +1,4 @@
 /build
+.idea/AndroidProjectSystem.xml
+.idea/deploymentTargetSelector.xml
+.idea/runConfigurations.xml
