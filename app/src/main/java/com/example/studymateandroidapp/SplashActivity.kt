@@ -24,7 +24,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.studymateandroidapp.navigation.Screen
+import com.example.studymateandroidapp.ui.screens.CalendarScreen
+import com.example.studymateandroidapp.ui.screens.DashboardScreen
+import com.example.studymateandroidapp.ui.navigation.Screen
 //import com.example.test101softwaredevelopment.ui.theme.Test101SoftwareDevelopmentTheme
 import kotlinx.coroutines.delay
 
@@ -50,7 +52,7 @@ fun SplashBody(){
             Context.MODE_PRIVATE)
         val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", true)
         if (isLoggedIn){
-            val intent = Intent(context, MainActivity::class.java)
+            val intent = Intent(context,  MainActivity::class.java)
             context.startActivity(intent)
         }else{
             val intent = Intent(context, MainActivity::class.java)

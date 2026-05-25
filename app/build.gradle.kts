@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
+    alias(libs.plugins.google.gms.google.services)
     // id("com.google.gms.google-services")
 }
 
@@ -55,6 +56,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.firebase.auth)
     val composeBom = platform("androidx.compose:compose-bom:2024.04.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)
