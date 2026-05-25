@@ -20,45 +20,39 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.R
+import com.example.studymateandroidapp.data.model.Flashcard
+import com.example.studymateandroidapp.ui.components.StudyMateTopBar
+import com.example.studymateandroidapp.viewmodel.FlashcardViewmodel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlashcardStudyScreen(
-    examId: Long = -1L,
-    examTitle: String = "Preview Exam",
-    onNavigateBack: () -> Unit = {}
+    examId: Long,
+    viewModel: FlashcardViewmodel,
+    onNavigateBack: () -> Unit
 ) {
-    LaunchedEffect(examId) {
+    val flashcards by viewModel.allFlashcards.collectAsState()
+    val examCards = flashcards.filter { it.examId == examId }
 
-    }
+    FlashcardStudyContent(
+        cards = examCards,
+        onBack = onNavigateBack
+    )
+}
 
-    val cards = remember {
-        listOf(
-            FlashcardData("What is Kotlin?", "A modern, statically typed programming language used for Android development."),
-            FlashcardData("What is Jetpack Compose?", "Android's modern toolkit for building native UI using a declarative approach."),
-            FlashcardData("What is a ViewModel?", "A class designed to store and manage UI-related data in a lifecycle-conscious way.")
-        )
-    }
-
+@Composable
+fun FlashcardStudyContent(
+    cards: List<Flashcard>,
+    onBack: () -> Unit
+) {
     var currentIndex by remember { mutableIntStateOf(0) }
     var isFlipped by remember { mutableStateOf(false) }
     var isFinished by remember { mutableStateOf(false) }
 
     Scaffold(
-
         topBar = {
-            TopAppBar(
-                modifier = Modifier.statusBarsPadding().padding(top = 30.dp),
-                title = { Text("Study Session :$examTitle", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            painter = painterResource(R.drawable.back_arrow),
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
+            StudyMateTopBar(
+                title = "Study Session",
+                onBack = onBack
             )
         }
     ) { padding ->
@@ -66,30 +60,31 @@ fun FlashcardStudyScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
+                .background(Color.White)
         ) {
-            if (isFinished) {
+            if (isFinished || cards.isEmpty()) {
                 StudyFinishedView(
                     onRestart = {
                         currentIndex = 0
                         isFlipped = false
                         isFinished = false
                     },
-                    onBack = onNavigateBack
+                    onBack = onBack,
+                    isEmpty = cards.isEmpty()
                 )
             } else {
                 val currentCard = cards[currentIndex]
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(30.dp),
+                        .padding(horizontal = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
                         text = "Card ${currentIndex + 1} of ${cards.size}",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.Gray
                     )
                     Spacer(modifier = Modifier.height(32.dp))
 
@@ -116,7 +111,7 @@ fun FlashcardStudyScreen(
                         Text(
                             text = "Tap card to reveal answer",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            color = Color.Gray
                         )
                     }
                 }
@@ -127,7 +122,7 @@ fun FlashcardStudyScreen(
 
 @Composable
 fun FlashcardView(
-    card: FlashcardData,
+    card: Flashcard,
     isFlipped: Boolean,
     onFlip: () -> Unit
 ) {
@@ -137,31 +132,27 @@ fun FlashcardView(
         label = "cardRotation"
     )
 
-    Card(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(400.dp)
+            .height(350.dp)
             .graphicsLayer {
                 rotationY = rotation
                 cameraDistance = 12 * density
             }
             .clickable(onClick = onFlip),
         shape = RoundedCornerShape(24.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        border = BorderStroke( 1.dp, Color.LightGray),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        color = Color(0xFFF8F8F8),
+        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f))
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-
+            contentAlignment = Alignment.Center
         ) {
             if (rotation <= 90f) {
                 Text(
                     text = card.question,
-                    modifier = Modifier.padding(32.dp),
+                    modifier = Modifier.padding(24.dp),
                     style = MaterialTheme.typography.headlineMedium,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold
@@ -170,11 +161,11 @@ fun FlashcardView(
                 Text(
                     text = card.answer,
                     modifier = Modifier
-                        .padding(32.dp)
+                        .padding(24.dp)
                         .graphicsLayer { rotationY = 180f },
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.primary
+                    color = Color.Black
                 )
             }
         }
@@ -192,14 +183,8 @@ fun StudyControls(onNext: () -> Unit) {
             onClick = onNext,
             modifier = Modifier.weight(1f).height(56.dp),
             shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(0.6.dp, Color.Gray),
-            colors = ButtonDefaults.buttonColors(
-               containerColor = Color.White,
-                contentColor = Color.Black
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEEEEEE), contentColor = Color.Black)
         ) {
-            Icon(painter = painterResource(R.drawable.try_again), contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
             Text("Try Again")
         }
 
@@ -207,13 +192,8 @@ fun StudyControls(onNext: () -> Unit) {
             onClick = onNext,
             modifier = Modifier.weight(1f).height(56.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Black,
-                contentColor = Color.White
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White)
         ) {
-            Icon(painter = painterResource(R.drawable.again), contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
             Text("Got it!")
         }
     }
@@ -222,34 +202,41 @@ fun StudyControls(onNext: () -> Unit) {
 @Composable
 fun StudyFinishedView(
     onRestart: () -> Unit,
-    onBack: ()  -> Unit
+    onBack: () -> Unit,
+    isEmpty: Boolean = false
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Image(
-            painter = painterResource(R.drawable.session_complete),
-            contentDescription = null,
-            modifier = Modifier.size(200.dp)
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = "Study Session Complete!",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-        Text("Your progress has been saved in Box levels.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(modifier = Modifier.height(48.dp))
-        Button(
-            onClick = onRestart,
-            modifier = Modifier.fillMaxWidth().height(56.dp)
-        ) {
-            Icon(painter = painterResource(R.drawable.again), contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Restart Session")
+        if (!isEmpty) {
+            Image(
+                painter = painterResource(R.drawable.session_complete),
+                contentDescription = null,
+                modifier = Modifier.size(160.dp)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Session Complete!",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            Button(
+                onClick = onRestart,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            ) {
+                Text("Restart Session")
+            }
+        } else {
+            Text(
+                text = "No cards to study!",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
         }
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
             Text("Back to Exams")
@@ -260,5 +247,10 @@ fun StudyFinishedView(
 @Preview(showBackground = true)
 @Composable
 fun FlashcardStudyPreview() {
-        FlashcardStudyScreen()
+    MaterialTheme {
+        FlashcardStudyContent(
+            cards = listOf(Flashcard(id = 1, question = "Question", answer = "Answer", examId = 1)),
+            onBack = {}
+        )
+    }
 }

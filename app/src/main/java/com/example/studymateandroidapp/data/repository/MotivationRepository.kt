@@ -7,6 +7,7 @@ import com.example.studymateandroidapp.data.local.TaskDao
 import com.example.studymateandroidapp.data.local.GoalDao
 import com.example.studymateandroidapp.data.local.NoteDao
 import com.example.studymateandroidapp.data.local.FlashcardDao
+import com.example.studymateandroidapp.data.local.MotivationDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate

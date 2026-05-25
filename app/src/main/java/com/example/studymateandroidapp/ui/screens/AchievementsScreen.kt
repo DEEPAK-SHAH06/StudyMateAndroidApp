@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,33 +20,40 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.studymateandroidapp.data.model.Achievement
 import com.example.studymateandroidapp.data.model.AchievementType
-import com.example.studymateandroidapp.data.repository.MotivationRepository
+import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.MotivationViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AchievementsScreen(
     viewModel: MotivationViewModel,
     onNavigateBack: () -> Unit
 ) {
-//    val achievements by viewModel.allAchievements.collectAsStateWithLifecycle()
+    val achievements by viewModel.allAchievements.collectAsStateWithLifecycle(emptyList())
+
+    AchievementsContent(
+        achievements = achievements,
+        onBack = onNavigateBack
+    )
+}
+
+@Composable
+fun AchievementsContent(
+    achievements: List<Achievement>,
+    onBack: () -> Unit
+) {
+    val unlockedTypes = achievements.map { it.type }.toSet()
+    val allTypes = AchievementType.entries
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text("Achievements", fontWeight = FontWeight.Bold)
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            StudyMateTopBar(
+                title = "Achievements",
+                onBack = onBack
             )
         },
         containerColor = Color(0xFFF8F8F8)
@@ -56,8 +62,9 @@ fun AchievementsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 32.dp)
         ) {
             item { Spacer(Modifier.height(8.dp)) }
 
@@ -69,7 +76,7 @@ fun AchievementsScreen(
                         .clip(RoundedCornerShape(24.dp))
                         .background(
                             Brush.linearGradient(
-                                listOf(Color(0xFF6750A4), Color(0xFF9C27B0))
+                                listOf(Color(0xFF2D2D2D), Color(0xFF5A5A5A))
                             )
                         )
                         .padding(24.dp),
@@ -79,14 +86,13 @@ fun AchievementsScreen(
                         Text("🏆", fontSize = 48.sp)
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "",
-//                            "${achievements.size} Unlocked",
+                            text = "${achievements.size} Unlocked",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                         Text(
-                            "of ${AchievementType.entries.size} total badges",
+                            text = "of ${allTypes.size} total badges",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.8f)
                         )
@@ -94,20 +100,16 @@ fun AchievementsScreen(
                 }
             }
 
-            // All achievement types
-//            val unlockedTypes = achievements.map { it.type }.toSet()
-            val allTypes = AchievementType.entries
-
             item {
                 Text(
-                    "All Badges",
+                    text = "All Badges",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
             }
 
-            // Grid of 2
+            // Grid layout using chunked rows
             val rows = allTypes.chunked(2)
             items(rows) { row ->
                 Row(
@@ -115,30 +117,21 @@ fun AchievementsScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     row.forEach { type ->
-//                        val unlockedAchievement = achievements.find { it.type == type }
+                        val unlockedAchievement = achievements.find { it.type == type }
                         AchievementBadge(
                             type = type,
-//                            achievement = unlockedAchievement,
-//                            isUnlocked = type in unlockedTypes,
-                            achievement = null,
-                            isUnlocked = false,
+                            achievement = unlockedAchievement,
+                            isUnlocked = type in unlockedTypes,
                             modifier = Modifier.weight(1f)
                         )
                     }
                     if (row.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
-
-            item { Spacer(Modifier.height(32.dp)) }
         }
     }
 }
 
-@Preview
-@Composable
-private fun AchievementsScreenPreview() {
-    //AchievementsScreen(viewModel = MotivationViewModel(MotivationRepository()), onNavigateBack = {})
-}
 @Composable
 private fun AchievementBadge(
     type: AchievementType,
@@ -150,11 +143,11 @@ private fun AchievementBadge(
     val bgColor = if (isUnlocked) Color.White else Color(0xFFF0F0F0)
     val textColor = if (isUnlocked) Color.Black else Color.Gray
 
-    Card(
+    Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = bgColor),
-        elevation = CardDefaults.cardElevation(if (isUnlocked) 4.dp else 0.dp)
+        shape = RoundedCornerShape(24.dp),
+        color = bgColor,
+        border = if (isUnlocked) null else androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -162,45 +155,43 @@ private fun AchievementBadge(
         ) {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(64.dp)
                     .clip(CircleShape)
                     .background(
-                        if (isUnlocked)
-                            Brush.linearGradient(listOf(Color(0xFF6750A4), Color(0xFF9C27B0)))
-                        else
-                            Brush.linearGradient(listOf(Color.Gray.copy(0.3f), Color.Gray.copy(0.3f)))
+                        if (isUnlocked) Color.Black else Color.Gray.copy(alpha = 0.1f)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 if (isUnlocked) {
-                    Text(emoji, fontSize = 24.sp)
+                    Text(emoji, fontSize = 28.sp)
                 } else {
                     Icon(Icons.Default.Lock, null, tint = Color.Gray, modifier = Modifier.size(24.dp))
                 }
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
             Text(
                 text = title,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = textColor,
                 textAlign = TextAlign.Center
             )
+            Spacer(Modifier.height(4.dp))
             Text(
                 text = desc,
                 style = MaterialTheme.typography.labelSmall,
                 color = textColor.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
-                maxLines = 2
+                maxLines = 2,
+                lineHeight = 14.sp
             )
             if (isUnlocked && achievement != null) {
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(8.dp))
                 Text(
-                    text = SimpleDateFormat("MMM d", Locale.getDefault())
-                        .format(Date(achievement.unlockedAt)),
+                    text = SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(achievement.unlockedAt)),
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF6750A4),
-                    fontWeight = FontWeight.SemiBold
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -222,4 +213,22 @@ private fun achievementInfo(type: AchievementType): Triple<String, String, Strin
     AchievementType.THIRTY_DAY_STREAK -> Triple("👑", "Monthly Master", "30-day streak")
     AchievementType.FIRST_FLASHCARD -> Triple("🃏", "Flash Scholar", "Create your first flashcard")
     AchievementType.FIRST_REFLECTION -> Triple("🪷", "Self Aware", "Write your first reflection")
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AchievementsPreview() {
+    MaterialTheme {
+        AchievementsContent(
+            achievements = listOf(
+                Achievement(
+                    type = AchievementType.FIRST_TASK,
+                    unlockedAt = System.currentTimeMillis(),
+                    title = "First Task!",
+                    description = "Complete your first task"
+                )
+            ),
+            onBack = {}
+        )
+    }
 }

@@ -87,6 +87,7 @@ sealed class Screen(
     data object EditProfile : Screen("edit_profile", "Edit Profile")
     data object DailyReflection : Screen("daily_reflection", "Reflection", Icons.Default.AutoAwesome)
     data object Achievements : Screen("achievements", "Achievements", Icons.Default.EmojiEvents)
+    data object Splash : Screen("splash", "Splash")
 
     companion object {
         /** Destinations shown in the bottom navigation bar. */

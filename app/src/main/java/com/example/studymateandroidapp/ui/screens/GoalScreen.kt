@@ -10,34 +10,69 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.studymateandroidapp.data.model.Goal
+import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.GoalViewmodel
-import com.example.studymateandroidapp.ui.ViewModelFactory
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GoalScreen(viewModel: GoalViewmodel = viewModel(factory = ViewModelFactory)) {
+fun GoalScreen(
+    viewModel: GoalViewmodel,
+    onNavigateBack: () -> Unit
+) {
     val goals by viewModel.allGoals.collectAsState()
+    
+    GoalContent(
+        goals = goals,
+        onBack = onNavigateBack,
+        onAddGoal = { title -> viewModel.addGoal(Goal(title = title)) },
+        onDeleteGoal = { viewModel.deleteGoal(it) }
+    )
+}
+
+@Composable
+fun GoalContent(
+    goals: List<Goal>,
+    onBack: () -> Unit,
+    onAddGoal: (String) -> Unit,
+    onDeleteGoal: (Goal) -> Unit
+) {
     var showAddDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Study Goals") }) },
+        topBar = {
+            StudyMateTopBar(
+                title = "Study Goals",
+                onBack = onBack
+            )
+        },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                containerColor = Color.Black,
+                contentColor = Color.White
+            ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Goal")
             }
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(16.dp)
-        ) {
-            items(goals) { goal ->
-                GoalItem(goal = goal, onDelete = { viewModel.deleteGoal(goal) })
+        if (goals.isEmpty()) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Text("No goals set yet. Start big!", color = Color.Gray)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                items(goals) { goal ->
+                    GoalItem(goal = goal, onDelete = { onDeleteGoal(goal) })
+                }
             }
         }
 
@@ -45,7 +80,7 @@ fun GoalScreen(viewModel: GoalViewmodel = viewModel(factory = ViewModelFactory))
             AddGoalDialog(
                 onDismiss = { showAddDialog = false },
                 onConfirm = { title ->
-                    viewModel.addGoal(Goal(title = title))
+                    onAddGoal(title)
                     showAddDialog = false
                 }
             )
@@ -58,7 +93,8 @@ fun GoalItem(goal: Goal, onDelete: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
     ) {
         Row(
             modifier = Modifier
@@ -67,9 +103,9 @@ fun GoalItem(goal: Goal, onDelete: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = goal.title, style = MaterialTheme.typography.titleMedium)
+            Text(text = goal.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
             }
         }
     }
@@ -85,11 +121,15 @@ fun AddGoalDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
             TextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Goal Title") }
+                label = { Text("Goal Title") },
+                modifier = Modifier.fillMaxWidth()
             )
         },
         confirmButton = {
-            Button(onClick = { if (title.isNotBlank()) onConfirm(title) }) {
+            Button(
+                onClick = { if (title.isNotBlank()) onConfirm(title) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            ) {
                 Text("Add")
             }
         },
@@ -99,4 +139,17 @@ fun AddGoalDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
             }
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GoalPreview() {
+    MaterialTheme {
+        GoalContent(
+            goals = listOf(Goal(id = 1, title = "Complete Physics Course")),
+            onBack = {},
+            onAddGoal = {},
+            onDeleteGoal = {}
+        )
+    }
 }

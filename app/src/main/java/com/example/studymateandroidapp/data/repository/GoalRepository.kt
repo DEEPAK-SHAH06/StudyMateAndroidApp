@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.data.repository
 
+import com.example.studymateandroidapp.data.local.GoalDao
 import com.example.studymateandroidapp.data.model.Goal
 import kotlinx.coroutines.flow.Flow
 

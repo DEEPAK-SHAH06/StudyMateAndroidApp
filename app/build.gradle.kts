@@ -86,7 +86,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:$workVersion")
 
     // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
+    implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
 

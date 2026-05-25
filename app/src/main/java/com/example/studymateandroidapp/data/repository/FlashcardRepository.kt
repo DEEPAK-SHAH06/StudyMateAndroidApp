@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.data.repository
 
+import com.example.studymateandroidapp.data.local.FlashcardDao
 import com.example.studymateandroidapp.data.model.Flashcard
 import kotlinx.coroutines.flow.Flow
 

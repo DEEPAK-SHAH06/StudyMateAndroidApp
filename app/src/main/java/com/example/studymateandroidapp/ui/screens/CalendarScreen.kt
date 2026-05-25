@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Today
@@ -25,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.CalendarViewModel
 import com.example.studymateandroidapp.viewmodel.CalendarViewModel.*
 import java.time.LocalDate
@@ -32,7 +32,6 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel,
@@ -42,17 +41,34 @@ fun CalendarScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    CalendarContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack,
+        onGoToToday = viewModel::onGoToToday,
+        onMonthChange = viewModel::onMonthChanged,
+        onDateSelected = viewModel::onDateSelected,
+        onNavigateToTask = onNavigateToTask,
+        onNavigateToExam = onNavigateToExam
+    )
+}
+
+@Composable
+fun CalendarContent(
+    uiState: CalendarUiState,
+    onNavigateBack: () -> Unit,
+    onGoToToday: () -> Unit,
+    onMonthChange: (YearMonth) -> Unit,
+    onDateSelected: (LocalDate) -> Unit,
+    onNavigateToTask: (Long) -> Unit,
+    onNavigateToExam: (Long) -> Unit
+) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Study Calendar") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
-                    }
-                },
+            StudyMateTopBar(
+                title = "Study Calendar",
+                onBack = onNavigateBack,
                 actions = {
-                    IconButton(onClick = viewModel::onGoToToday) {
+                    IconButton(onClick = onGoToToday) {
                         Icon(Icons.Default.Today, "Today")
                     }
                 }
@@ -66,17 +82,17 @@ fun CalendarScreen(
         ) {
             MonthSelector(
                 currentMonth = uiState.currentMonth,
-                onMonthChange = viewModel::onMonthChanged
+                onMonthChange = onMonthChange
             )
 
             CalendarGrid(
                 currentMonth = uiState.currentMonth,
                 selectedDate = uiState.selectedDate,
                 eventsByDate = uiState.eventsByDate,
-                onDateSelected = viewModel::onDateSelected
+                onDateSelected = onDateSelected
             )
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             AgendaSection(
                 selectedDate = uiState.selectedDate,
@@ -117,11 +133,7 @@ private fun MonthSelector(
         }
     }
 }
-@Preview
-@Composable
-fun monthSelectorView(){
-    MonthSelector(currentMonth = YearMonth.now(), onMonthChange = {})
-}
+
 @Composable
 private fun CalendarGrid(
     currentMonth: YearMonth,
@@ -130,13 +142,10 @@ private fun CalendarGrid(
     onDateSelected: (LocalDate) -> Unit
 ) {
     val daysInMonth = currentMonth.lengthOfMonth()
-    val firstDayOfMonth = currentMonth.atDay(1).dayOfWeek.value // 1 (Mon) to 7 (Sun)
-
-    // Adjust for Monday start: Subtract 1 so Mon=0, Sun=6
+    val firstDayOfMonth = currentMonth.atDay(1).dayOfWeek.value
     val offset = firstDayOfMonth - 1
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        // Weekday labels
         Row(modifier = Modifier.fillMaxWidth()) {
             val daysOfWeek = listOf("M", "T", "W", "T", "F", "S", "S")
             daysOfWeek.forEach { day ->
@@ -152,7 +161,6 @@ private fun CalendarGrid(
 
         Spacer(Modifier.height(8.dp))
 
-        // Simple grid for 6 weeks (42 days)
         val totalCells = 42
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
@@ -176,12 +184,6 @@ private fun CalendarGrid(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun calenderGridView(){
-    CalendarGrid(currentMonth = YearMonth.now(), selectedDate = LocalDate.now(), eventsByDate = emptyMap(), onDateSelected = {})
 }
 
 @Composable
@@ -221,7 +223,6 @@ private fun CalendarDayCell(
             color = contentColor
         )
 
-        // Markers
         Row(
             modifier = Modifier.height(6.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp)
@@ -251,8 +252,9 @@ private fun AgendaSection(
             .fillMaxSize()
             .padding(horizontal = 16.dp)
     ) {
+        val monthName = selectedDate.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
         Text(
-            text = "Agenda for ${selectedDate.dayOfMonth} ${selectedDate.month.name.lowercase().capitalize()}",
+            text = "Agenda for ${selectedDate.dayOfMonth} $monthName",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -295,11 +297,6 @@ private fun AgendaSection(
         }
     }
 }
-@Preview
-@Composable
-private fun agendaView(){
-    AgendaSection( selectedDate = LocalDate.now(), events = emptyList(), onNavigateToTask = {}, onNavigateToExam = {})
-}
 
 @Composable
 private fun AgendaItem(
@@ -331,10 +328,23 @@ private fun AgendaItem(
         }
     }
 }
-@Preview
-@Composable
-private fun agendaItemView(){
-    AgendaItem(title = "Study Session", subtitle = "Task • Due at 10:00 AM", color = MaterialTheme.colorScheme.primary, onClick = {})
-}
 
-private fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+@Preview(showBackground = true)
+@Composable
+fun CalendarPreview() {
+    MaterialTheme {
+        CalendarContent(
+            uiState = CalendarUiState(
+                currentMonth = YearMonth.now(),
+                selectedDate = LocalDate.now(),
+                eventsByDate = emptyMap()
+            ),
+            onNavigateBack = {},
+            onGoToToday = {},
+            onMonthChange = {},
+            onDateSelected = {},
+            onNavigateToTask = {},
+            onNavigateToExam = {}
+        )
+    }
+}
