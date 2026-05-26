@@ -7,10 +7,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.studymateandroidapp.ui.navigation.AppNavHost
+import com.example.studymateandroidapp.ui.navigation.BottomNavBar
+import com.example.studymateandroidapp.ui.navigation.Screen
 import com.example.studymateandroidapp.ui.theme.StudyMateAndroidAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,29 +22,26 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             StudyMateAndroidAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
+                val navController = rememberNavController()
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
+                val showBottomBar = Screen.bottomNavItems.any { it.route == currentRoute }
+
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = {
+                        if (showBottomBar) {
+                            BottomNavBar(navController = navController)
+                        }
+                    }
+                ) { innerPadding ->
+                    AppNavHost(
+                        navController = navController,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    StudyMateAndroidAppTheme {
-        Greeting("Android")
     }
 }
