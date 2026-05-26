@@ -57,6 +57,7 @@ android {
 
 dependencies {
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.database)
     val composeBom = platform("androidx.compose:compose-bom:2024.04.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)
@@ -90,6 +91,14 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
 
+    // Import the BoM for the Firebase platform
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+
+    // Use Firebase libraries without specifying versions
+    implementation("com.google.firebase:firebase-common")
+    implementation("com.google.firebase:firebase-firestore")
+
+    // Add other Firebase products as needed
     // Google Sign-In & Credentials Manager
     implementation("androidx.credentials:credentials:1.2.1")
     implementation("androidx.credentials:credentials-play-services-auth:1.2.1")
