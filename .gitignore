@@ -42,3 +42,5 @@ Thumbs.db
 
 # --- Log Files ---
 *.log
+/.idea/compiler.xml
+/.idea/inspectionProfiles/Project_Default.xml
