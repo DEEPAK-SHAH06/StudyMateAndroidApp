@@ -11,10 +11,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StudyMateAndroidApp">
 
-        <activity
-            android:name=".SplashActivity"
-            android:exported="false"
-            android:theme="@style/Theme.StudyMateAndroidApp" />
+<!--        <activity-->
+<!--            android:name=".MainActivity"-->
+<!--            android:exported="false"-->
+<!--            android:theme="@style/Theme.StudyMateAndroidApp" />-->
 
         <activity
             android:name=".MainActivity"
