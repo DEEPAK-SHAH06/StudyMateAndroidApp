@@ -59,7 +59,7 @@ fun StatisticsContent(
                 .padding(innerPadding)
                 .background(Color.White)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -118,7 +118,7 @@ fun StatisticsContent(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                color = Color.Black
+                color = Color(0xFFEAEAEA)
             ) {
                 Row(
                     modifier = Modifier.padding(24.dp),
@@ -169,18 +169,18 @@ fun WeeklyBar(fillHeight: Int, label: String) {
             modifier = Modifier
                 .width(24.dp)
                 .height(120.dp)
-                .background(Color.White.copy(alpha = 0.2f), shape = RoundedCornerShape(12.dp)),
+                .background(Color.White, shape = RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.BottomCenter
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(fillHeight.dp)
-                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                    .background(Color.Black, shape = RoundedCornerShape(12.dp))
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(label, color = Color.White, fontSize = 10.sp)
+        Text(label, color = Color.Black, fontSize = 10.sp)
     }
 }
 

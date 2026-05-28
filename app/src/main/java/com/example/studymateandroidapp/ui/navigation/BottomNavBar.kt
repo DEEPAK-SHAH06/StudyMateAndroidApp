@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.studymateandroidapp.ui.theme.*
 
 /**
  * Bottom navigation bar composable.
@@ -19,6 +20,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
  * Highlights the current destination and navigates on tap,
  * restoring state and avoiding duplicate back-stack entries.
  */
+
 @Composable
 fun BottomNavBar(
     navController: NavController,
@@ -29,7 +31,7 @@ fun BottomNavBar(
 
     NavigationBar(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = BackgroundWhite,
         tonalElevation = 0.dp // tonal layering, no shadow
     ) {
         Screen.bottomNavItems.forEach { screen ->
@@ -62,11 +64,11 @@ fun BottomNavBar(
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                    selectedIconColor = PureBlack,
+                    selectedTextColor = PureBlack,
+                    unselectedIconColor = TextGray,
+                    unselectedTextColor = TextGray,
+                    indicatorColor = SoftGray
                 )
             )
         }

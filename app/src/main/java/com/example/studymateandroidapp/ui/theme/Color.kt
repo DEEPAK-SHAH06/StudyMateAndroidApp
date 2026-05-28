@@ -2,6 +2,15 @@ package com.example.studymateandroidapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// Main colors
+val PureBlack = Color(0xFF111111)
+val SoftGray = Color(0xFFF5F5F5)
+val BorderGray = Color(0xFFE8E8E8)
+val BackgroundWhite = Color(0xFFFFFFFF)
+
+// Accent colors
+val SoftRed = Color(0xFFE57373)
+
 // Primary Palette
 val PrimaryIndigo = Color(0xFF3F51B5)
 val PrimaryDark = Color(0xFF303F9F)
