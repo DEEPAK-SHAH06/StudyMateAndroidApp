@@ -19,4 +19,7 @@ class GoalRepository(private val goalDao: GoalDao) {
     suspend fun delete(goal: Goal) {
         goalDao.delete(goal)
     }
+
+    fun completedGoalCount(): Flow<Int> =
+        goalDao.getCompletedGoalCount()
 }
