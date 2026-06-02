@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.data.repository
 
+import com.example.studymateandroidapp.data.model.GoalStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import java.time.DayOfWeek
@@ -44,13 +45,18 @@ class StatisticsRepository(
         taskRepository.getTotalCount(),
         taskRepository.getCompletedCount(),
         sessionRepository.getTotalStudyMinutes(),
-        goalRepository.completedGoalCount()
+        goalRepository.allGoals
     ) { total, completed, minutes, goals ->
+        val completedGoals = if (goals.isNotEmpty()) {
+            goals.count { it.status == GoalStatus.COMPLETED }
+        } else {
+            completed
+        }
         OverviewStats(
             totalTasks        = total,
             completedTasks    = completed,
             totalStudyMinutes = minutes,
-            completedGoals    = goals
+            completedGoals    = completedGoals
         )
     }
 

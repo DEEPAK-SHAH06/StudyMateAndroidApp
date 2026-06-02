@@ -31,7 +31,22 @@ class MotivationRepository(
         motivationDao.getRecentReflections(limit)
 
     suspend fun saveReflection(reflection: DailyReflection) {
-        motivationDao.insertReflection(reflection)
+        val existing = motivationDao.getReflectionForDate(reflection.date)
+        if (existing != null) {
+            motivationDao.updateReflection(
+                reflection.copy(
+                    id = existing.id,
+                    createdAt = existing.createdAt,
+                    lastUpdated = System.currentTimeMillis()
+                )
+            )
+        } else {
+            motivationDao.insertReflection(reflection.copy(lastUpdated = System.currentTimeMillis()))
+        }
+    }
+
+    suspend fun deleteReflection(reflection: DailyReflection) {
+        motivationDao.deleteReflection(reflection)
     }
 
     // ── Achievements ──────────────────────────────────────

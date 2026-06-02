@@ -11,6 +11,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -57,7 +60,9 @@ fun DailyReflectionScreen(
         onContentChange   = viewModel::onReflectionContentChanged,
         onMoodChange      = viewModel::onReflectionMoodChanged,
         onHighlightChange = viewModel::onReflectionHighlightChanged,
-        onSave            = viewModel::saveReflection
+        onSave            = viewModel::saveReflection,
+        onEditReflection  = viewModel::editReflection,
+        onDeleteReflection = viewModel::deleteReflection
     )
 }
 
@@ -72,7 +77,9 @@ fun DailyReflectionContent(
     onContentChange: (String) -> Unit,
     onMoodChange: (String) -> Unit,
     onHighlightChange: (String) -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    onEditReflection: (DailyReflection) -> Unit,
+    onDeleteReflection: (DailyReflection) -> Unit
 ) {
     val moods = listOf("😊", "😴", "🙂", "💪", "🤯", "😭")
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -123,7 +130,14 @@ fun DailyReflectionContent(
                         onSave          = onSave
                     )
                 } else {
-                    HistoryTab(reflections = recentReflections)
+                    HistoryTab(
+                        reflections = recentReflections,
+                        onEditReflection = {
+                            onEditReflection(it)
+                            selectedTab = 0
+                        },
+                        onDeleteReflection = onDeleteReflection
+                    )
                 }
             }
         }
@@ -251,7 +265,11 @@ private fun TodayTab(
 // ── History Tab ───────────────────────────────────────────
 
 @Composable
-private fun HistoryTab(reflections: List<DailyReflection>) {
+private fun HistoryTab(
+    reflections: List<DailyReflection>,
+    onEditReflection: (DailyReflection) -> Unit,
+    onDeleteReflection: (DailyReflection) -> Unit
+) {
     if (reflections.isEmpty()) {
         Box(
             modifier          = Modifier.fillMaxSize(),
@@ -273,7 +291,11 @@ private fun HistoryTab(reflections: List<DailyReflection>) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(reflections) { reflection ->
-            ReflectionHistoryCard(reflection = reflection)
+            ReflectionHistoryCard(
+                reflection = reflection,
+                onEdit = { onEditReflection(reflection) },
+                onDelete = { onDeleteReflection(reflection) }
+            )
         }
         item { Spacer(Modifier.height(32.dp)) }
     }
@@ -305,7 +327,11 @@ fun MoodEmoji(
 }
 
 @Composable
-fun ReflectionHistoryCard(reflection: DailyReflection) {
+fun ReflectionHistoryCard(
+    reflection: DailyReflection,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
     val date = LocalDate.ofEpochDay(reflection.date)
 
     OutlinedCard(
@@ -332,7 +358,15 @@ fun ReflectionHistoryCard(reflection: DailyReflection) {
                         color    = TextGray
                     )
                 }
-                Text(reflection.mood, fontSize = 24.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(reflection.mood, fontSize = 24.sp)
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit reflection")
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete reflection")
+                    }
+                }
             }
 
             if (reflection.content.isNotBlank()) {
@@ -383,7 +417,9 @@ fun DailyReflectionPreview() {
             onContentChange   = {},
             onMoodChange      = {},
             onHighlightChange = {},
-            onSave            = {}
+            onSave            = {},
+            onEditReflection  = {},
+            onDeleteReflection = {}
         )
     }
 }
