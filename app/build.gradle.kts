@@ -41,6 +41,7 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.10"
@@ -106,6 +107,10 @@ dependencies {
 
     // Preferences
     implementation("androidx.datastore:datastore-preferences:1.1.2")
+    // Jetpack Glance
+    val glanceVersion = "1.1.1"
+    implementation("androidx.glance:glance-appwidget:$glanceVersion")
+    implementation("androidx.glance:glance-material3:$glanceVersion")
 
 
 
