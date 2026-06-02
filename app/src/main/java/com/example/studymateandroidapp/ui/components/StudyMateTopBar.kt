@@ -12,10 +12,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.studymateandroidapp.ui.theme.BackgroundWhite
+import com.example.studymateandroidapp.ui.theme.PureBlack
 
+/**
+ * Shared top app bar used throughout the app.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudyMateTopBar(
@@ -29,26 +33,29 @@ fun StudyMateTopBar(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.SemiBold,
+                color = PureBlack
             )
         },
+
         navigationIcon = {
             if (onBack != null) {
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = "Back",
+                        tint = PureBlack
                     )
                 }
             }
         },
+
         actions = actions,
+
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color.Transparent,
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
-            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-            actionIconContentColor = MaterialTheme.colorScheme.onSurface
+            containerColor = BackgroundWhite
         ),
+
         modifier = modifier
     )
 }

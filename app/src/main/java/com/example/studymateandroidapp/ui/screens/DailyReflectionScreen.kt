@@ -1,11 +1,13 @@
 package com.example.studymateandroidapp.ui.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -21,159 +23,280 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studymateandroidapp.R
+import com.example.studymateandroidapp.data.model.DailyReflection
+import com.example.studymateandroidapp.ui.components.AppCard
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
+import com.example.studymateandroidapp.ui.theme.*
 import com.example.studymateandroidapp.viewmodel.MotivationViewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun DailyReflectionScreen(
     viewModel: MotivationViewModel,
     onNavigateBack: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState         by viewModel.uiState.collectAsState()
+    val recentReflections by viewModel.recentReflections.collectAsState()
 
+    // Navigate back only on first save, not every time state changes
     LaunchedEffect(uiState.isReflectionSaved) {
         if (uiState.isReflectionSaved) {
-            onNavigateBack()
             viewModel.resetReflectionSaved()
+            // Don't pop — let the user see the updated "Update Reflection" button
         }
     }
 
     DailyReflectionContent(
-        onBack = onNavigateBack,
-        onSaveReflection = { mood, reflection, highlight ->
-            viewModel.onReflectionMoodChanged(mood)
-            viewModel.onReflectionContentChanged(reflection)
-            viewModel.onReflectionHighlightChanged(highlight)
-            viewModel.saveReflection()
-        }
+        content           = uiState.reflectionContent,
+        mood              = uiState.reflectionMood,
+        highlight         = uiState.reflectionHighlight,
+        alreadySaved      = uiState.todayReflection != null,
+        recentReflections = recentReflections,
+        onBack            = onNavigateBack,
+        onContentChange   = viewModel::onReflectionContentChanged,
+        onMoodChange      = viewModel::onReflectionMoodChanged,
+        onHighlightChange = viewModel::onReflectionHighlightChanged,
+        onSave            = viewModel::saveReflection
     )
 }
 
 @Composable
 fun DailyReflectionContent(
+    content: String,
+    mood: String,
+    highlight: String,
+    alreadySaved: Boolean,
+    recentReflections: List<DailyReflection>,
     onBack: () -> Unit,
-    onSaveReflection: (String, String, String) -> Unit
+    onContentChange: (String) -> Unit,
+    onMoodChange: (String) -> Unit,
+    onHighlightChange: (String) -> Unit,
+    onSave: () -> Unit
 ) {
-    var reflection by remember { mutableStateOf("") }
-    var highlight by remember { mutableStateOf("") }
-    var selectedMood by remember { mutableStateOf("😊") }
+    val moods = listOf("😊", "😴", "🙂", "💪", "🤯", "😭")
+    var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = {
-            StudyMateTopBar(
-                title = "Daily Reflection",
-                onBack = onBack
-            )
+            StudyMateTopBar(title = "Daily Reflection", onBack = onBack)
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color.White)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .background(BackgroundWhite)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Date Card
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                color = Color(0xFFF5F5F5),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f))
+            // ── Tabs ──────────────────────────────────────
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor   = BackgroundWhite
             ) {
-                Row(
-                    modifier = Modifier.padding(20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text("Today", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text("Friday, May 8", style = MaterialTheme.typography.bodySmall, color = Color.Red)
+                Tab(
+                    selected = selectedTab == 0,
+                    onClick  = { selectedTab = 0 },
+                    text = {
+                        Text("Today", color = if (selectedTab == 0) PureBlack else TextGray)
                     }
-                    Icon(
-                        painter = painterResource(R.drawable.reflection),
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = Color.Unspecified
+                )
+                Tab(
+                    selected = selectedTab == 1,
+                    onClick  = { selectedTab = 1 },
+                    text = {
+                        Text("History", color = if (selectedTab == 1) PureBlack else TextGray)
+                    }
+                )
+            }
+
+            AnimatedContent(targetState = selectedTab, label = "reflection_tabs") { tab ->
+                if (tab == 0) {
+                    TodayTab(
+                        content         = content,
+                        mood            = mood,
+                        highlight       = highlight,
+                        moods           = moods,
+                        alreadySaved    = alreadySaved,
+                        onContentChange = onContentChange,
+                        onMoodChange    = onMoodChange,
+                        onHighlightChange = onHighlightChange,
+                        onSave          = onSave
                     )
+                } else {
+                    HistoryTab(reflections = recentReflections)
                 }
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text("How are you feeling?", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                listOf("😊", "😴", "🙂", "💪", "🤯", "😭").forEach { mood ->
-                    MoodEmoji(
-                        emoji = mood,
-                        isSelected = selectedMood == mood,
-                        onClick = { selectedMood = mood }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text("What did you study today?", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = reflection,
-                onValueChange = { reflection = it },
-                modifier = Modifier.fillMaxWidth().height(150.dp),
-                placeholder = { Text("Write freely... what went well, what you learned?") },
-                shape = RoundedCornerShape(16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text("⭐ Study highlight of the day", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = highlight,
-                onValueChange = { highlight = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("e.g. Finally understood recursion!") },
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Button(
-                onClick = { onSaveReflection(selectedMood, reflection, highlight) },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(painter = painterResource(R.drawable.save), contentDescription = null)
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("Save Reflection", fontWeight = FontWeight.Bold)
-            }
-            
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
+// ── Today Tab ─────────────────────────────────────────────
+
 @Composable
-fun MoodEmoji(emoji: String, isSelected: Boolean, onClick: () -> Unit) {
+private fun TodayTab(
+    content: String,
+    mood: String,
+    highlight: String,
+    moods: List<String>,
+    alreadySaved: Boolean,
+    onContentChange: (String) -> Unit,
+    onMoodChange: (String) -> Unit,
+    onHighlightChange: (String) -> Unit,
+    onSave: () -> Unit
+) {
+    LazyColumn(
+        modifier            = Modifier.fillMaxSize(),
+        contentPadding      = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        // Date card
+        item {
+            val today = LocalDate.now()
+            AppCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier              = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            today.format(DateTimeFormatter.ofPattern("EEEE")),
+                            style      = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            today.format(DateTimeFormatter.ofPattern("MMMM d, yyyy")),
+                            color = SoftRed
+                        )
+                    }
+                    Icon(
+                        painter            = painterResource(R.drawable.reflection),
+                        contentDescription = null,
+                        modifier           = Modifier.size(70.dp),
+                        tint               = Color.Unspecified
+                    )
+                }
+            }
+        }
+
+        // Mood picker
+        item {
+            Text("How are you feeling?", fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(12.dp))
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                moods.forEach { m ->
+                    MoodEmoji(
+                        emoji      = m,
+                        isSelected = mood == m,
+                        onClick    = { onMoodChange(m) }
+                    )
+                }
+            }
+        }
+
+        // Study notes
+        item {
+            Text("What did you study today?", fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value         = content,
+                onValueChange = onContentChange,
+                modifier      = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
+                placeholder   = { Text("Write freely... what went well, what you learned, any questions?") },
+                shape         = RoundedCornerShape(16.dp)
+            )
+        }
+
+        // Study highlight
+        item {
+            Text("⭐ Study highlight of the day", fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value         = highlight,
+                onValueChange = onHighlightChange,
+                modifier      = Modifier.fillMaxWidth(),
+                placeholder   = { Text("e.g. Finally understood recursion!") },
+                singleLine    = true,
+                shape         = RoundedCornerShape(12.dp)
+            )
+        }
+
+        // Save button
+        item {
+            Button(
+                onClick  = onSave,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PureBlack),
+                shape  = RoundedCornerShape(14.dp)
+            ) {
+                Icon(
+                    painter            = painterResource(R.drawable.save),
+                    contentDescription = null
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(if (alreadySaved) "Update Reflection" else "Save Reflection")
+            }
+            Spacer(Modifier.height(32.dp))
+        }
+    }
+}
+
+// ── History Tab ───────────────────────────────────────────
+
+@Composable
+private fun HistoryTab(reflections: List<DailyReflection>) {
+    if (reflections.isEmpty()) {
+        Box(
+            modifier          = Modifier.fillMaxSize(),
+            contentAlignment  = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("🌱", fontSize = 48.sp)
+                Spacer(Modifier.height(12.dp))
+                Text("No reflections yet", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("Start journaling today!", style = MaterialTheme.typography.bodyMedium, color = TextGray)
+            }
+        }
+        return
+    }
+
+    LazyColumn(
+        modifier            = Modifier.fillMaxSize(),
+        contentPadding      = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(reflections) { reflection ->
+            ReflectionHistoryCard(reflection = reflection)
+        }
+        item { Spacer(Modifier.height(32.dp)) }
+    }
+}
+
+// ── Reusable components ───────────────────────────────────
+
+@Composable
+fun MoodEmoji(
+    emoji: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
-            .size(48.dp)
+            .size(50.dp)
             .clip(CircleShape)
-            .background(if (isSelected) Color.Black else Color.Transparent)
-            .border(1.dp, if (isSelected) Color.Black else Color.LightGray, CircleShape)
+            .background(Color.White)
+            .border(
+                width  = 2.dp,
+                color  = if (isSelected) PureBlack else Color.LightGray,
+                shape  = CircleShape
+            )
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -181,10 +304,86 @@ fun MoodEmoji(emoji: String, isSelected: Boolean, onClick: () -> Unit) {
     }
 }
 
+@Composable
+fun ReflectionHistoryCard(reflection: DailyReflection) {
+    val date = LocalDate.ofEpochDay(reflection.date)
+
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 4.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        date.format(DateTimeFormatter.ofPattern("EEEE")),
+                        fontSize   = 15.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        date.format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
+                        fontSize = 10.sp,
+                        color    = TextGray
+                    )
+                }
+                Text(reflection.mood, fontSize = 24.sp)
+            }
+
+            if (reflection.content.isNotBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    reflection.content,
+                    style    = MaterialTheme.typography.bodyMedium,
+                    maxLines = 3
+                )
+            }
+
+            if (reflection.studyHighlight.isNotBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFFFF9C4))
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("⭐ ", fontSize = 14.sp)
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            reflection.studyHighlight,
+                            style      = MaterialTheme.typography.labelMedium,
+                            color      = Color(0xFF5D4037),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun DailyReflectionPreview() {
     MaterialTheme {
-        DailyReflectionContent(onBack = {}, onSaveReflection = { _, _, _ -> })
+        DailyReflectionContent(
+            content           = "",
+            mood              = "😊",
+            highlight         = "",
+            alreadySaved      = false,
+            recentReflections = emptyList(),
+            onBack            = {},
+            onContentChange   = {},
+            onMoodChange      = {},
+            onHighlightChange = {},
+            onSave            = {}
+        )
     }
 }

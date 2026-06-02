@@ -1,7 +1,6 @@
 package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,14 +17,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.studymateandroidapp.R
+import com.example.studymateandroidapp.data.model.ReminderSetting
+import com.example.studymateandroidapp.data.model.ReminderType
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.SettingViewmodel
 
@@ -37,31 +35,50 @@ fun SettingsScreen(
     onNavigateToAchievements: () -> Unit,
     onNavigateToEditProfile: () -> Unit
 ) {
+    val settings by viewModel.settings.collectAsState()
+    val currentUser by viewModel.currentUser.collectAsState()
+    val syncStatus by viewModel.syncStatus.collectAsState()
+
+    val isSignedIn = currentUser != null
+    val displayName =
+        currentUser?.displayName
+            ?: currentUser?.email
+            ?: "Guest"
+
     SettingsContent(
-        onBack = onBack,
-        onStatsClick = onNavigateToStats,
+        displayName         = displayName,
+        isSignedIn          = isSignedIn,
+        syncStatus          = syncStatus,
+        reminderSettings    = settings,
+        onBack              = onBack,
+        onStatsClick        = onNavigateToStats,
         onAchievementsClick = onNavigateToAchievements,
-        onEditProfileClick = onNavigateToEditProfile
+        onEditProfileClick  = onNavigateToEditProfile,
+        onToggleReminder    = { viewModel.toggleReminder(it) },
+        onSignIn            = { viewModel.signInWithGoogle() },
+        onSignOut           = { viewModel.signOut() }
     )
 }
 
 @Composable
 fun SettingsContent(
-    onBack: () -> Unit,
+    displayName: String,
+    isSignedIn: Boolean,
+    syncStatus: String,
+    reminderSettings: List<ReminderSetting>,
+    onBack: (() -> Unit)?,
     onStatsClick: () -> Unit,
     onAchievementsClick: () -> Unit,
-    onEditProfileClick: () -> Unit
+    onEditProfileClick: () -> Unit,
+    onToggleReminder: (ReminderSetting) -> Unit,
+    onSignIn: () -> Unit,
+    onSignOut: () -> Unit
 ) {
-    var taskNotif by remember { mutableStateOf(true) }
-    var examNotif by remember { mutableStateOf(true) }
-    var habitNotif by remember { mutableStateOf(true) }
-    var focusMode by remember { mutableStateOf(false) }
-
     Scaffold(
         topBar = {
             StudyMateTopBar(
                 title = "Settings",
-                onBack = onBack,
+                onBack = null,
                 actions = {
                     IconButton(onClick = onAchievementsClick) {
                         Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements")
@@ -79,11 +96,11 @@ fun SettingsContent(
                 .padding(innerPadding)
                 .background(Color.White)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Profile Section
+            // ── Profile Section ───────────────────────────
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -104,14 +121,14 @@ fun SettingsContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Username",
+                    text = displayName,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Sync Card
+                // ── Sync Card ─────────────────────────────
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -124,15 +141,31 @@ fun SettingsContent(
                         Icon(Icons.Default.Sync, contentDescription = null, tint = Color.Gray)
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Not Synced", fontWeight = FontWeight.Bold)
-                            Text("Sign in to keep your data safe", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                            Text(
+                                text = if (isSignedIn) "Synced" else "Not Synced",
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = if (isSignedIn) "Your data is backed up" else "Sign in to keep your data safe",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
                         }
-                        Button(
-                            onClick = { /* TODO */ },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text("Sign In", fontSize = 12.sp)
+                        if (isSignedIn) {
+                            OutlinedButton(
+                                onClick = onSignOut,
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("Sign Out", fontSize = 12.sp)
+                            }
+                        } else {
+                            Button(
+                                onClick = onSignIn,
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("Sign In", fontSize = 12.sp)
+                            }
                         }
                     }
                 }
@@ -153,6 +186,7 @@ fun SettingsContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // ── Notifications ─────────────────────────────
             Text(
                 "Notifications",
                 style = MaterialTheme.typography.titleMedium,
@@ -162,36 +196,77 @@ fun SettingsContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            NotificationSettingItem(
-                title = "Task Reminders",
-                subtitle = "Get notified before task deadline",
-                checked = taskNotif,
-                onCheckedChange = { taskNotif = it }
-            )
+            if (reminderSettings.isEmpty()) {
+                // Fallback while Room loads (first launch)
+                DefaultNotificationItems()
+            } else {
+                reminderSettings.forEach { setting ->
 
-            NotificationSettingItem(
-                title = "Exam Alerts",
-                subtitle = "Get alerts 1 and 3 days before exams",
-                checked = examNotif,
-                onCheckedChange = { examNotif = it }
-            )
+                    val title = when (setting.type) {
+                        ReminderType.TASK -> "Task"
+                        ReminderType.EXAM -> "Exam"
+                        ReminderType.DAILY_HABIT -> "Daily Habit"
+                        ReminderType.MISSED_TASK -> "Missed Task"
+                        ReminderType.DAILY_GOAL -> "Daily Goal"
+                        ReminderType.FOCUS_MODE -> "Focus Mode"
+                    }
 
-            NotificationSettingItem(
-                title = "Daily Study Habit",
-                subtitle = "Daily reminder to keep up your study habit",
-                checked = habitNotif,
-                onCheckedChange = { habitNotif = it }
-            )
+                    val subtitle = when (setting.type) {
+                        ReminderType.TASK ->
+                            "Get notified before task deadline"
 
-            NotificationSettingItem(
-                title = "Focus Mode",
-                subtitle = "Pause all notifications during focus time",
-                checked = focusMode,
-                onCheckedChange = { focusMode = it }
-            )
+                        ReminderType.EXAM ->
+                            "Get alerts 1 and 3 days before exams"
+
+                        ReminderType.DAILY_HABIT ->
+                            "Daily reminder to keep up your study habit"
+
+                        ReminderType.MISSED_TASK ->
+                            "Alert if you have incomplete tasks at the end of the day"
+
+                        ReminderType.DAILY_GOAL ->
+                            "Alert if you haven't met your daily study goal"
+
+                        ReminderType.FOCUS_MODE ->
+                            "Pause all notifications during focus time"
+                    }
+
+                    NotificationSettingItem(
+                        title = title,
+                        subtitle = subtitle,
+                        checked = setting.isEnabled,
+                        onCheckedChange = {
+                            onToggleReminder(
+                                setting.copy(isEnabled = it)
+                            )
+                        }
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+}
+
+/** Shown only on very first load before Room emits — same labels as the Figma mockup. */
+@Composable
+private fun DefaultNotificationItems() {
+    val defaults = listOf(
+        "Task" to "Get notified before task deadline",
+        "Exam" to "Get alerts 1 and 3 days before exams",
+        "Daily habit" to "Daily reminder to keep up your study habit",
+        "Missed task" to "Alert if you have incomplete tasks at the end of the day",
+        "Daily goal" to "Alert if you haven't met your daily study goal",
+        "Focus mode" to "Pause all notifications during focus time"
+    )
+    defaults.forEach { (title, subtitle) ->
+        NotificationSettingItem(
+            title    = title,
+            subtitle = subtitle,
+            checked  = true,
+            onCheckedChange = {}
+        )
     }
 }
 
@@ -203,8 +278,10 @@ fun NotificationSettingItem(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Surface(
-        modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .padding(vertical = 4.dp)
+            .fillMaxWidth(),
+        shape  = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, Color(0xFFEEEEEE))
     ) {
         Row(
@@ -219,21 +296,11 @@ fun NotificationSettingItem(
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color.Black)
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor  = Color.White,
+                    checkedTrackColor  = Color.Black
+                )
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SettingsPreview() {
-    MaterialTheme {
-        SettingsContent(
-            onBack = {},
-            onStatsClick = {},
-            onAchievementsClick = {},
-            onEditProfileClick = {}
-        )
     }
 }
