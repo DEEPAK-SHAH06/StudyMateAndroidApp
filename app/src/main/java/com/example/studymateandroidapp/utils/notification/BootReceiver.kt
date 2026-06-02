@@ -7,9 +7,7 @@ import com.example.studymateandroidapp.data.local.StudyPlannerDatabase
 import com.example.studymateandroidapp.data.repository.NotificationRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 /**
  * BroadcastReceiver triggered on device reboot.
@@ -57,9 +55,9 @@ class BootReceiver : BroadcastReceiver() {
         val repository = NotificationRepository(
             context = context,
             reminderDao = database.reminderDao(),
-            taskDao = TODO(),
-            examDao = TODO(),
-           scheduler = scheduler
+            taskDao = database.taskDao(),
+            examDao = database.examDao(),
+            scheduler = scheduler
         )
 
         repository.rescheduleAll()

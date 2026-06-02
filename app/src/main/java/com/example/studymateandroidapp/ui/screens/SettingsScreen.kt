@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -38,6 +39,16 @@ fun SettingsScreen(
     val settings by viewModel.settings.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
+    val pendingReminderStates = remember { mutableStateMapOf<ReminderType, Boolean>() }
+
+    LaunchedEffect(settings) {
+        Log.d("SettingsScreen", "Loaded ${settings.size} reminder settings")
+        settings.forEach { setting ->
+            if (pendingReminderStates[setting.type] == setting.isEnabled) {
+                pendingReminderStates.remove(setting.type)
+            }
+        }
+    }
 
     val isSignedIn = currentUser != null
     val displayName =
@@ -49,12 +60,18 @@ fun SettingsScreen(
         displayName         = displayName,
         isSignedIn          = isSignedIn,
         syncStatus          = syncStatus,
-        reminderSettings    = settings,
+        reminderSettings    = settings.map { setting ->
+            pendingReminderStates[setting.type]?.let { setting.copy(isEnabled = it) } ?: setting
+        },
         onBack              = onBack,
         onStatsClick        = onNavigateToStats,
         onAchievementsClick = onNavigateToAchievements,
         onEditProfileClick  = onNavigateToEditProfile,
-        onToggleReminder    = { viewModel.toggleReminder(it) },
+        onToggleReminder    = {
+            Log.d("SettingsScreen", "Switch changed: type=${it.type}, enabled=${it.isEnabled}")
+            pendingReminderStates[it.type] = it.isEnabled
+            viewModel.toggleReminder(it)
+        },
         onSignIn            = { viewModel.signInWithGoogle() },
         onSignOut           = { viewModel.signOut() }
     )
@@ -197,8 +214,7 @@ fun SettingsContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             if (reminderSettings.isEmpty()) {
-                // Fallback while Room loads (first launch)
-                DefaultNotificationItems()
+                NotificationSettingsLoading()
             } else {
                 reminderSettings.forEach { setting ->
 
@@ -249,24 +265,29 @@ fun SettingsContent(
     }
 }
 
-/** Shown only on very first load before Room emits — same labels as the Figma mockup. */
+/** Shown while Room emits the first real reminder settings list. */
 @Composable
-private fun DefaultNotificationItems() {
-    val defaults = listOf(
-        "Task" to "Get notified before task deadline",
-        "Exam" to "Get alerts 1 and 3 days before exams",
-        "Daily habit" to "Daily reminder to keep up your study habit",
-        "Missed task" to "Alert if you have incomplete tasks at the end of the day",
-        "Daily goal" to "Alert if you haven't met your daily study goal",
-        "Focus mode" to "Pause all notifications during focus time"
-    )
-    defaults.forEach { (title, subtitle) ->
-        NotificationSettingItem(
-            title    = title,
-            subtitle = subtitle,
-            checked  = true,
-            onCheckedChange = {}
-        )
+private fun NotificationSettingsLoading() {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, Color(0xFFEEEEEE))
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                strokeWidth = 2.dp
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "Loading notification settings...",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        }
     }
 }
 
@@ -298,7 +319,10 @@ fun NotificationSettingItem(
                 onCheckedChange = onCheckedChange,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor  = Color.White,
-                    checkedTrackColor  = Color.Black
+                    checkedTrackColor  = Color.Black,
+                    uncheckedThumbColor = Color.White,
+                    uncheckedTrackColor = Color(0xFFBDBDBD),
+                    uncheckedBorderColor = Color(0xFF9E9E9E)
                 )
             )
         }
