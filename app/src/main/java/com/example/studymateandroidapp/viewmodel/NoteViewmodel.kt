@@ -14,6 +14,10 @@ class NoteViewmodel(private val repository: NoteRepository) : ViewModel() {
     val allNotes: StateFlow<List<Note>> = repository.allNotes
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    fun getNotesByExamId(examId: Long): StateFlow<List<Note>> =
+        repository.getNotesByExamId(examId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun addNote(note: Note) {
         viewModelScope.launch {
             repository.insert(note)

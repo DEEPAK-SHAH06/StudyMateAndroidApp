@@ -1,6 +1,8 @@
 package com.example.studymateandroidapp.data.repository
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -16,7 +18,7 @@ import kotlinx.coroutines.tasks.await
 /**
  * Repository handling user authentication and Google Sign-In via Credentials Manager.
  */
-class AuthRepository(private val context: Context) {
+class AuthRepository(val context: Context) {
 
     private val auth: FirebaseAuth = Firebase.auth
     private val credentialManager = CredentialManager.create(context)
@@ -28,10 +30,14 @@ class AuthRepository(private val context: Context) {
      * Triggers the Google Sign-In bottom sheet using modern Credentials Manager.
      */
     suspend fun signInWithGoogle(): Result<Unit> {
+        if (!isNetworkAvailable()) {
+            return Result.failure(Exception("Network connection error"))
+        }
+
         return try {
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
-                .setServerClientId("699079368997-1741hh0bnvrrg7df4nrm13fgbvgk7ufb.apps.googleusercontent.com") // User must replace this
+                .setServerClientId("699079368997-1741hh0bnvrrg7df4nrm13fgbvgk7ufb.apps.googleusercontent.com")
                 .setAutoSelectEnabled(true)
                 .build()
 
@@ -61,4 +67,16 @@ class AuthRepository(private val context: Context) {
     }
 
     fun getUserId(): String? = auth.currentUser?.uid
+
+    fun isNetworkAvailable(): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return when {
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+            else -> false
+        }
+    }
 }

@@ -57,9 +57,9 @@ class BootReceiver : BroadcastReceiver() {
         val repository = NotificationRepository(
             context = context,
             reminderDao = database.reminderDao(),
-            taskDao = TODO(),
-            examDao = TODO(),
-           scheduler = scheduler
+            taskDao = database.taskDao(),
+            examDao = database.examDao(),
+            scheduler = scheduler
         )
 
         repository.rescheduleAll()

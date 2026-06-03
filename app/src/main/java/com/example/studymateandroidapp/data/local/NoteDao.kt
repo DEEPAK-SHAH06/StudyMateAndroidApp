@@ -9,6 +9,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes ORDER BY createdAt DESC")
     fun getAllNotes(): Flow<List<Note>>
 
+    @Query("SELECT * FROM notes WHERE examId = :examId ORDER BY createdAt DESC")
+    fun getNotesByExamId(examId: Long): Flow<List<Note>>
+
     @Query("SELECT COUNT(*) FROM notes")
     fun getNoteCount(): Flow<Int>
 

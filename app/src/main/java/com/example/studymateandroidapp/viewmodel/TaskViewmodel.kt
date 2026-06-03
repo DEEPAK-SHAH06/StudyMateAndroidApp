@@ -31,4 +31,6 @@ class TaskViewmodel(private val repository: TaskRepository) : ViewModel() {
             repository.delete(task)
         }
     }
+
+    suspend fun getTaskById(id: Long): Task? = repository.getTaskById(id)
 }

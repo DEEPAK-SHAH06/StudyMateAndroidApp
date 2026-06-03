@@ -2,12 +2,7 @@ package com.example.studymateandroidapp.data.local
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -26,6 +21,7 @@ class PreferenceManager(private val context: Context) {
         val LAST_SYNC_TIME = longPreferencesKey("last_sync_time")
         val USER_NAME = stringPreferencesKey("user_name")
         val USER_BIO = stringPreferencesKey("user_bio")
+        val IS_SYNC_ENABLED = booleanPreferencesKey("is_sync_enabled")
     }
 
     val themeMode: Flow<Int> = context.dataStore.data
@@ -58,6 +54,11 @@ class PreferenceManager(private val context: Context) {
             preferences[USER_BIO] ?: "Ready for your deep work session?"
         }
 
+    val isSyncEnabled: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[IS_SYNC_ENABLED] ?: false
+        }
+
     suspend fun setThemeMode(mode: Int) {
         context.dataStore.edit { preferences ->
             preferences[THEME_MODE] = mode
@@ -86,6 +87,12 @@ class PreferenceManager(private val context: Context) {
     suspend fun setUserBio(bio: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_BIO] = bio
+        }
+    }
+
+    suspend fun setSyncEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[IS_SYNC_ENABLED] = enabled
         }
     }
 }

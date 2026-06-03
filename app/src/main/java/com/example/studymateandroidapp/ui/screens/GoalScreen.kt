@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.studymateandroidapp.data.model.Goal
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.GoalViewmodel
@@ -23,7 +24,7 @@ fun GoalScreen(
     viewModel: GoalViewmodel,
     onNavigateBack: () -> Unit
 ) {
-    val goals by viewModel.allGoals.collectAsState()
+    val goals by viewModel.allGoals.collectAsStateWithLifecycle()
     
     GoalContent(
         goals = goals,

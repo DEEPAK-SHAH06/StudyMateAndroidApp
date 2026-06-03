@@ -68,8 +68,10 @@ fun AppNavHost(
         // ── Add/Edit Task ─────────────────────────────
         composable(Screen.AddTask.route) {
             val vm: TaskViewmodel = viewModel(factory = ViewModelFactory)
-            // Note: AddEditTaskScreen doesn't exist yet, using TaskScreen as placeholder or will create it
-            // For now, let's assume TaskScreen can handle add/edit or I'll create the missing screens
+            AddEditTaskScreen(
+                viewModel = vm,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(
@@ -78,7 +80,11 @@ fun AppNavHost(
         ) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getLong("taskId") ?: return@composable
             val vm: TaskViewmodel = viewModel(factory = ViewModelFactory)
-            // Placeholder for Edit Task
+            AddEditTaskScreen(
+                taskId = taskId,
+                viewModel = vm,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         // ── Study Timer ───────────────────────────────
@@ -109,7 +115,7 @@ fun AppNavHost(
                 viewModel = vm,
                 onNavigateToAddExam = { navController.navigate(Screen.AddExam.route) },
                 onNavigateToEditExam = { examId ->
-                    navController.navigate(Screen.EditExam.createRoute(examId))
+                    navController.navigate(Screen.ExamDetail.createRoute(examId))
                 },
                 onStartStudy = { examId ->
                     navController.navigate(Screen.StudyTimer.createRoute(examId))
@@ -120,6 +126,23 @@ fun AppNavHost(
                 onNavigateToFlashcards = { examId ->
                     navController.navigate(Screen.Flashcards.createRoute(examId))
                 }
+            )
+        }
+
+        composable(
+            route = Screen.ExamDetail.route,
+            arguments = listOf(navArgument("examId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val examId = backStackEntry.arguments?.getLong("examId") ?: return@composable
+            val vm: ExamViewmodel = viewModel(factory = ViewModelFactory)
+            ExamDetailScreen(
+                examId = examId,
+                viewModel = vm,
+                onNavigateToEdit = { id -> navController.navigate(Screen.EditExam.createRoute(id)) },
+                onNavigateToNotes = { id -> navController.navigate(Screen.Notes.createRoute(id)) },
+                onNavigateToFlashcards = { id -> navController.navigate(Screen.Flashcards.createRoute(id)) },
+                onStartStudy = { id -> navController.navigate(Screen.StudyTimer.createRoute(id)) },
+                onBack = { navController.popBackStack() }
             )
         }
 

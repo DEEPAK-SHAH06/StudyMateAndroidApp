@@ -14,6 +14,9 @@ class TaskRepository(private val taskDao: TaskDao) {
     fun getTasksDueOn(date: LocalDate): Flow<List<Task>> =
         taskDao.getTasksDueOn(date)
 
+    suspend fun getTaskById(id: Long): Task? =
+        taskDao.getTaskById(id)
+
     suspend fun insert(task: Task) {
         taskDao.insert(task)
     }

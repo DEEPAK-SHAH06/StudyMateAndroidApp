@@ -22,6 +22,9 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE dueDate = :date AND isCompleted = 0")
     fun getIncompleteTasksDueOn(date: LocalDate): Flow<List<Task>>
 
+    @Query("SELECT * FROM tasks WHERE id = :id")
+    suspend fun getTaskById(id: Long): Task?
+
     @Query("SELECT COUNT(*) FROM tasks WHERE isCompleted = 1")
     fun getCompletedCount(): Flow<Int>
 
