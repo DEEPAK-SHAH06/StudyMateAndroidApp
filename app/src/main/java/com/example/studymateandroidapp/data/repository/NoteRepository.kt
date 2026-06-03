@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.Flow
 class NoteRepository(private val noteDao: NoteDao) {
     val allNotes: Flow<List<Note>> = noteDao.getAllNotes()
 
+    fun getNotesByExamId(examId: Long): Flow<List<Note>> =
+        noteDao.getNotesByExamId(examId)
+
     suspend fun insert(note: Note) {
         noteDao.insert(note)
     }

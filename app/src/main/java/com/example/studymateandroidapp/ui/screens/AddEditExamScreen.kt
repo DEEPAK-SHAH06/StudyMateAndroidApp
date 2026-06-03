@@ -26,9 +26,23 @@ fun AddEditExamScreen(
     viewModel: ExamViewmodel,
     onNavigateBack: () -> Unit
 ) {
-    // In a real app, if examId is not null, load the exam from ViewModel
+    var initialTitle by remember { mutableStateOf("") }
+    var initialSubject by remember { mutableStateOf("") }
+
+    if (examId != null) {
+        val examState by viewModel.getExamWithDetails(examId).collectAsState()
+        LaunchedEffect(examState) {
+            examState?.exam?.let {
+                initialTitle = it.title
+                initialSubject = it.subject
+            }
+        }
+    }
+
     AddEditExamContent(
         isEdit = examId != null,
+        initialTitle = initialTitle,
+        initialSubject = initialSubject,
         onBack = onNavigateBack,
         onSave = { title, subject ->
             if (examId == null) {
@@ -44,11 +58,13 @@ fun AddEditExamScreen(
 @Composable
 fun AddEditExamContent(
     isEdit: Boolean,
+    initialTitle: String = "",
+    initialSubject: String = "",
     onBack: () -> Unit,
     onSave: (String, String) -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var subject by remember { mutableStateOf("") }
+    var title by remember(initialTitle) { mutableStateOf(initialTitle) }
+    var subject by remember(initialSubject) { mutableStateOf(initialSubject) }
     var location by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
 

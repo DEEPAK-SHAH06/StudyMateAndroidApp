@@ -22,13 +22,20 @@ object ViewModelFactory : ViewModelProvider.Factory {
             // ── Dashboard ──────────────────────────────────────────
             modelClass.isAssignableFrom(DashboardViewModel::class.java) ->
                 DashboardViewModel(
+                    taskRepository    = TaskRepository(db.taskDao()),
+                    sessionRepository = SessionRepository(db.sessionDao()),
+                    examRepository    = ExamRepository(db.examDao()),
+                    goalRepository    = GoalRepository(db.goalDao()),
                     authRepository    = AuthRepository(application),
                     preferenceManager = PreferenceManager(application)
                 ) as T
 
             // ── Calendar ───────────────────────────────────────────
             modelClass.isAssignableFrom(CalendarViewModel::class.java) ->
-                CalendarViewModel() as T
+                CalendarViewModel(
+                    taskRepository = TaskRepository(db.taskDao()),
+                    examRepository = ExamRepository(db.examDao())
+                ) as T
 
             // ── Tasks ──────────────────────────────────────────────
             modelClass.isAssignableFrom(TaskViewmodel::class.java) ->
@@ -52,7 +59,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
 
             // ── Timer ──────────────────────────────────────────────
             modelClass.isAssignableFrom(TimerViewmodel::class.java) ->
-                TimerViewmodel() as T
+                TimerViewmodel(SessionRepository(db.sessionDao())) as T
 
             // ── Motivation / Reflection / Achievements ─────────────
             modelClass.isAssignableFrom(MotivationViewModel::class.java) ->

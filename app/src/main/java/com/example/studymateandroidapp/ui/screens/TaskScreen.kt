@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.Task
@@ -66,6 +67,30 @@ fun TaskContent(
     var searchQuery by remember { mutableStateOf("") }
     val filters = listOf("Pending", "Completed", "Overdue")
     var selectedFilter by remember { mutableStateOf(filters[0]) }
+
+    val filteredTasks = remember(tasks, searchQuery, selectedFilter) {
+        tasks.filter { task ->
+            val matchesQuery = task.title.contains(searchQuery, ignoreCase = true) ||
+                    (task.subjectTag?.contains(searchQuery, ignoreCase = true) == true)
+            
+            val matchesFilter = when (selectedFilter) {
+                "Pending" -> !task.isCompleted
+                "Completed" -> task.isCompleted
+                "Overdue" -> !task.isCompleted && task.dueDate != null && task.dueDate!!.isBefore(LocalDate.now())
+                else -> true
+            }
+            matchesQuery && matchesFilter
+        }
+    }
+
+    val highPriorityTask = remember(tasks) {
+        tasks.filter { !it.isCompleted && it.priority == Priority.HIGH }
+            .minByOrNull { it.dueDate ?: LocalDate.MAX }
+    }
+
+    val overdueTask = remember(tasks) {
+        tasks.find { !it.isCompleted && it.dueDate != null && it.dueDate!!.isBefore(LocalDate.now()) }
+    }
 
     Scaffold(
         topBar = {
@@ -116,12 +141,20 @@ fun TaskContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Section: Today
-            SectionHeader(title = "Today •", subtitle = "${tasks.count { !it.isCompleted }} TASKS REMAINING")
+            // Section: List
+            val sectionTitle = when(selectedFilter) {
+                "Pending" -> "Pending •"
+                "Completed" -> "Completed •"
+                "Overdue" -> "Overdue •"
+                else -> "All Tasks •"
+            }
+            val sectionSubtitle = "${filteredTasks.size} TASKS"
+            
+            SectionHeader(title = sectionTitle, subtitle = sectionSubtitle)
             
             Spacer(modifier = Modifier.height(12.dp))
 
-            tasks.filter { !it.isCompleted }.forEach { task ->
+            filteredTasks.forEach { task ->
                 TaskItemView(
                     task = task,
                     onToggle = { onToggleTask(task) },
@@ -130,23 +163,27 @@ fun TaskContent(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            if (tasks.none { !it.isCompleted }) {
-                Text(
-                    text = "No pending tasks for today!",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    color = Color.Gray
-                )
+            if (filteredTasks.isEmpty()) {
+                Box(Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "No tasks found.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            PriorityTaskCard()
+            if (highPriorityTask != null) {
+                PriorityTaskCard(highPriorityTask)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OverdueMilestoneCard()
+            if (overdueTask != null) {
+                OverdueMilestoneCard(overdueTask)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             Spacer(modifier = Modifier.height(80.dp)) // Space for FAB
         }
@@ -276,7 +313,7 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit) {
 }
 
 @Composable
-fun PriorityTaskCard() {
+fun PriorityTaskCard(task: Task) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -298,28 +335,30 @@ fun PriorityTaskCard() {
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Final Exam Review:\nNeuroscience",
+                    text = task.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Focus on synaptic plasticity and memory formation modules.",
+                    text = task.description.ifBlank { "Focus on this critical task today." },
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray
+                    color = Color.DarkGray,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             Image(
                 painter = painterResource(id = R.drawable.review),
                 contentDescription = null,
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(80.dp)
             )
         }
     }
 }
 
 @Composable
-fun OverdueMilestoneCard() {
+fun OverdueMilestoneCard(task: Task) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -333,7 +372,7 @@ fun OverdueMilestoneCard() {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "Overdue Milestone", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(text = "Organic Chemistry Lab Report - 2 days past due.", style = MaterialTheme.typography.bodySmall)
+                Text(text = "${task.title} - Overdue!", style = MaterialTheme.typography.bodySmall)
             }
             Image(
                 painter = painterResource(id = R.drawable.overdue),

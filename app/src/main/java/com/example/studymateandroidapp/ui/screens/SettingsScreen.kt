@@ -1,6 +1,5 @@
 package com.example.studymateandroidapp.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,11 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,14 +34,17 @@ fun SettingsScreen(
     val settings by viewModel.settings.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
-    val pendingReminderStates = remember { mutableStateMapOf<ReminderType, Boolean>() }
+    val isSyncEnabled by viewModel.isSyncEnabled.collectAsState()
+    
+    // Explicitly collecting uiError
+    val errorState by viewModel.uiError.collectAsState()
 
-    LaunchedEffect(settings) {
-        Log.d("SettingsScreen", "Loaded ${settings.size} reminder settings")
-        settings.forEach { setting ->
-            if (pendingReminderStates[setting.type] == setting.isEnabled) {
-                pendingReminderStates.remove(setting.type)
-            }
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    LaunchedEffect(errorState) {
+        errorState?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
         }
     }
 
@@ -60,20 +58,18 @@ fun SettingsScreen(
         displayName         = displayName,
         isSignedIn          = isSignedIn,
         syncStatus          = syncStatus,
-        reminderSettings    = settings.map { setting ->
-            pendingReminderStates[setting.type]?.let { setting.copy(isEnabled = it) } ?: setting
-        },
+        isSyncEnabled       = isSyncEnabled,
+        reminderSettings    = settings,
+        snackbarHostState   = snackbarHostState,
         onBack              = onBack,
         onStatsClick        = onNavigateToStats,
         onAchievementsClick = onNavigateToAchievements,
         onEditProfileClick  = onNavigateToEditProfile,
-        onToggleReminder    = {
-            Log.d("SettingsScreen", "Switch changed: type=${it.type}, enabled=${it.isEnabled}")
-            pendingReminderStates[it.type] = it.isEnabled
-            viewModel.toggleReminder(it)
-        },
+        onToggleReminder    = { viewModel.toggleReminder(it) },
         onSignIn            = { viewModel.signInWithGoogle() },
-        onSignOut           = { viewModel.signOut() }
+        onSignOut           = { viewModel.signOut() },
+        onToggleSync        = { viewModel.toggleSync(it) },
+        onSyncNow           = { viewModel.triggerSync() }
     )
 }
 
@@ -82,20 +78,25 @@ fun SettingsContent(
     displayName: String,
     isSignedIn: Boolean,
     syncStatus: String,
+    isSyncEnabled: Boolean,
     reminderSettings: List<ReminderSetting>,
+    snackbarHostState: SnackbarHostState,
     onBack: (() -> Unit)?,
     onStatsClick: () -> Unit,
     onAchievementsClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onToggleReminder: (ReminderSetting) -> Unit,
     onSignIn: () -> Unit,
-    onSignOut: () -> Unit
+    onSignOut: () -> Unit,
+    onToggleSync: (Boolean) -> Unit,
+    onSyncNow: () -> Unit
 ) {
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             StudyMateTopBar(
                 title = "Settings",
-                onBack = null,
+                onBack = onBack,
                 actions = {
                     IconButton(onClick = onAchievementsClick) {
                         Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements")
@@ -151,37 +152,62 @@ fun SettingsContent(
                     shape = RoundedCornerShape(16.dp),
                     color = Color(0xFFF5F5F5)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.Sync, contentDescription = null, tint = Color.Gray)
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = if (isSignedIn) "Synced" else "Not Synced",
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = if (isSignedIn) "Your data is backed up" else "Sign in to keep your data safe",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
-                            )
-                        }
-                        if (isSignedIn) {
-                            OutlinedButton(
-                                onClick = onSignOut,
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text("Sign Out", fontSize = 12.sp)
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Sync, contentDescription = null, tint = Color.Gray)
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (isSignedIn) "Cloud Sync" else "Not Signed In",
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = if (isSignedIn) "Sync Status: $syncStatus" else "Sign in to keep your data safe",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.Gray
+                                )
                             }
-                        } else {
-                            Button(
-                                onClick = onSignIn,
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text("Sign In", fontSize = 12.sp)
+                            if (isSignedIn) {
+                                Switch(
+                                    checked = isSyncEnabled,
+                                    onCheckedChange = onToggleSync,
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = Color.White,
+                                        checkedTrackColor = Color.Black
+                                    )
+                                )
+                            } else {
+                                Button(
+                                    onClick = onSignIn,
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text("Sign In", fontSize = 12.sp)
+                                }
+                            }
+                        }
+
+                        if (isSignedIn) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(
+                                    onClick = onSignOut,
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Sign Out", fontSize = 12.sp)
+                                }
+                                if (isSyncEnabled) {
+                                    Button(
+                                        onClick = onSyncNow,
+                                        shape = RoundedCornerShape(8.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                                        modifier = Modifier.weight(1f),
+                                        enabled = syncStatus != "SYNCING"
+                                    ) {
+                                        Text("Sync Now", fontSize = 12.sp)
+                                    }
+                                }
                             }
                         }
                     }
@@ -214,7 +240,7 @@ fun SettingsContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             if (reminderSettings.isEmpty()) {
-                NotificationSettingsLoading()
+                DefaultNotificationItems()
             } else {
                 reminderSettings.forEach { setting ->
 
@@ -265,29 +291,23 @@ fun SettingsContent(
     }
 }
 
-/** Shown while Room emits the first real reminder settings list. */
 @Composable
-private fun NotificationSettingsLoading() {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, Color(0xFFEEEEEE))
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                strokeWidth = 2.dp
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = "Loading notification settings...",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
-        }
+private fun DefaultNotificationItems() {
+    val defaults = listOf(
+        "Task" to "Get notified before task deadline",
+        "Exam" to "Get alerts 1 and 3 days before exams",
+        "Daily habit" to "Daily reminder to keep up your study habit",
+        "Missed task" to "Alert if you have incomplete tasks at the end of the day",
+        "Daily goal" to "Alert if you haven't met your daily study goal",
+        "Focus mode" to "Pause all notifications during focus time"
+    )
+    defaults.forEach { (title, subtitle) ->
+        NotificationSettingItem(
+            title    = title,
+            subtitle = subtitle,
+            checked  = true,
+            onCheckedChange = {}
+        )
     }
 }
 
@@ -319,12 +339,21 @@ fun NotificationSettingItem(
                 onCheckedChange = onCheckedChange,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor  = Color.White,
-                    checkedTrackColor  = Color.Black,
-                    uncheckedThumbColor = Color.White,
-                    uncheckedTrackColor = Color(0xFFBDBDBD),
-                    uncheckedBorderColor = Color(0xFF9E9E9E)
+                    checkedTrackColor  = Color.Black
                 )
             )
         }
     }
 }
+// }
+//    }
+//}
+//,
+//                colors = SwitchDefaults.colors(
+//                    checkedThumbColor  = Color.White,
+//                    checkedTrackColor  = Color.Black
+//                )
+//            )
+//        }
+//    }
+//}

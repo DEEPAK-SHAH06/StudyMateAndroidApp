@@ -99,7 +99,7 @@ dependencies {
     implementation("com.google.firebase:firebase-common")
     implementation("com.google.firebase:firebase-firestore")
 
-    // Add other Firebase products as needed
+    // Add other Firebase products as neededg
     // Google Sign-In & Credentials Manager
     implementation("androidx.credentials:credentials:1.2.1")
     implementation("androidx.credentials:credentials-play-services-auth:1.2.1")
