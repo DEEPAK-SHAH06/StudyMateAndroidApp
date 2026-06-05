@@ -11,7 +11,6 @@ import com.example.studymateandroidapp.data.model.ReminderType
 import com.example.studymateandroidapp.utils.notification.NotificationWorker
 import com.example.studymateandroidapp.utils.notification.ReminderScheduler
 import com.example.studymateandroidapp.utils.notification.NotificationHelper
-import com.example.studymateandroidapp.utils.notification.NotificationWorker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach

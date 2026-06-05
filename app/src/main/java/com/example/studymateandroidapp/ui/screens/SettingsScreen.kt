@@ -96,7 +96,7 @@ fun SettingsContent(
         topBar = {
             StudyMateTopBar(
                 title = "Settings",
-                onBack = onBack,
+                onBack = null,
                 actions = {
                     IconButton(onClick = onAchievementsClick) {
                         Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements")

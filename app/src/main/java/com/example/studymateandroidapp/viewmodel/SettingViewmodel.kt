@@ -7,8 +7,11 @@ import com.example.studymateandroidapp.data.local.PreferenceManager
 import com.example.studymateandroidapp.data.model.ReminderSetting
 import com.example.studymateandroidapp.data.repository.AuthRepository
 import com.example.studymateandroidapp.data.repository.NotificationRepository
+import com.example.studymateandroidapp.utils.sync.SyncManager
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -41,6 +44,16 @@ class SettingViewmodel(
             initialValue = 0L
         )
 
+    val isSyncEnabled: StateFlow<Boolean> = preferenceManager.isSyncEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false
+        )
+
+    private val _uiError = MutableStateFlow<String?>(null)
+    val uiError = _uiError.asStateFlow()
+
     init {
         viewModelScope.launch {
             try {
@@ -53,6 +66,7 @@ class SettingViewmodel(
 
     fun toggleReminder(setting: ReminderSetting) {
         Log.d(TAG, "Toggle received: type=${setting.type}, enabled=${setting.isEnabled}")
+
         viewModelScope.launch {
             try {
                 notificationRepository.updateSetting(setting)
@@ -64,12 +78,40 @@ class SettingViewmodel(
 
     fun signInWithGoogle() {
         viewModelScope.launch {
-            authRepository.signInWithGoogle()
+            val result = authRepository.signInWithGoogle()
+
+            if (result.isFailure) {
+                _uiError.value =
+                    result.exceptionOrNull()?.message
+                        ?: "Unknown Error"
+            }
         }
+    }
+
+    fun clearError() {
+        _uiError.value = null
     }
 
     fun signOut() {
         authRepository.signOut()
+    }
+
+    fun toggleSync(enabled: Boolean) {
+        viewModelScope.launch {
+            preferenceManager.setSyncEnabled(enabled)
+
+            if (enabled) {
+                SyncManager(authRepository.context)
+                    .triggerImmediateSync()
+            }
+        }
+    }
+
+    fun triggerSync() {
+        viewModelScope.launch {
+            SyncManager(authRepository.context)
+                .triggerImmediateSync()
+        }
     }
 
     fun getUserId(): String? = authRepository.getUserId()
