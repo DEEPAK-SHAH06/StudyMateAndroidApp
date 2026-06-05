@@ -1,12 +1,15 @@
 package com.example.studymateandroidapp.viewmodel
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.local.PreferenceManager
+import com.example.studymateandroidapp.data.model.ProfileState
 import com.example.studymateandroidapp.data.model.ReminderSetting
 import com.example.studymateandroidapp.data.repository.AuthRepository
 import com.example.studymateandroidapp.data.repository.NotificationRepository
+import com.example.studymateandroidapp.data.repository.ProfileRepository
 import com.example.studymateandroidapp.utils.sync.SyncManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,6 +23,8 @@ class SettingViewmodel(
     private val authRepository: AuthRepository,
     private val preferenceManager: PreferenceManager
 ) : ViewModel() {
+    private val _profileState = MutableStateFlow(ProfileState())
+    val profileState: StateFlow<ProfileState> = _profileState
 
     val settings: StateFlow<List<ReminderSetting>> = notificationRepository.allSettings
         .stateIn(
@@ -62,6 +67,54 @@ class SettingViewmodel(
                 Log.e(TAG, "Failed to initialize reminder defaults", e)
             }
         }
+        loadCurrentUser()
+    }
+    private fun loadCurrentUser() {
+        val user = ProfileRepository.getCurrentUser()
+        _profileState.value = ProfileState(
+            currentUsername = user?.displayName ?: "",
+            photoUrl = user?.photoUrl?.toString()
+        )
+    }
+
+    fun setSelectedImageUri(uri: Uri) {
+        _profileState.value = _profileState.value.copy(selectedImageUri = uri)
+    }
+
+    fun updateProfile(username: String, imageUri: Uri? = null) {
+        viewModelScope.launch {
+            _profileState.value = _profileState.value.copy(
+                isLoading = true,
+                errorMessage = null
+            )
+
+            val result = ProfileRepository.updateProfile(username, imageUri)
+
+            if (result.isSuccess) {
+
+                val user = ProfileRepository.getCurrentUser()
+
+                _profileState.value = _profileState.value.copy(
+                    isLoading = false,
+                    isSuccess = true,
+                    currentUsername = user?.displayName ?: username,
+                    photoUrl = user?.photoUrl?.toString(),
+                    selectedImageUri = null
+                )
+            } else {
+                _profileState.value = _profileState.value.copy(
+                    isLoading = false,
+                    errorMessage = result.exceptionOrNull()?.message ?: "Something went wrong"
+                )
+            }
+        }
+    }
+
+    fun resetProfileState() {
+        _profileState.value = _profileState.value.copy(
+            isSuccess = false,
+            errorMessage = null
+        )
     }
 
     fun toggleReminder(setting: ReminderSetting) {

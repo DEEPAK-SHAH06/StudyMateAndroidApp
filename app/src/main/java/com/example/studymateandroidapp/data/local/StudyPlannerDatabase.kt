@@ -74,32 +74,25 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
         fun getInstance(context: Context): StudyPlannerDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: run {
-                    // Force delete if not migrated to SQLCipher (Legacy Cleanup)
-                    // This ensures a clean slate for the new 16KB-aligned version
-                    try {
-                        val prefs = context.getSharedPreferences("study_planner_secure_prefs", Context.MODE_PRIVATE)
-                        val currentVersion = prefs.getInt("database_version", 0)
-
-                        // Force manual destructive migration for version 10 if not already done
-                        if (currentVersion < 10) {
-                            val dbFile = context.getDatabasePath(DATABASE_NAME)
-                            if (dbFile.exists()) {
-                                dbFile.delete()
-                                File(dbFile.path + "-journal").delete()
-                                File(dbFile.path + "-shm").delete()
-                                File(dbFile.path + "-wal").delete()
-                            }
-                            prefs.edit().putInt("database_version", 10).apply()
+                    // Clean up legacy non-SQLCipher files if needed
+                    val prefs = context.getSharedPreferences("study_planner_secure_prefs", Context.MODE_PRIVATE)
+                    if (prefs.getInt("database_version", 0) < 10) {
+                        val dbFile = context.getDatabasePath(DATABASE_NAME)
+                        if (dbFile.exists()) {
+                            dbFile.delete()
+                            File(dbFile.path + "-journal").delete()
+                            File(dbFile.path + "-shm").delete()
+                            File(dbFile.path + "-wal").delete()
                         }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                        prefs.edit().putInt("database_version", 10).apply()
                     }
 
                     val factory = SupportOpenHelperFactory(DatabaseKeyHelper.getDatabaseKey(context), object : net.zetetic.database.sqlcipher.SQLiteDatabaseHook {
-                        override fun preKey(connection: net.zetetic.database.sqlcipher.SQLiteConnection?) {}
-                        override fun postKey(connection: net.zetetic.database.sqlcipher.SQLiteConnection?) {
+                        override fun preKey(connection: net.zetetic.database.sqlcipher.SQLiteConnection?) {
+                            // Fix for emulator mlock() ENOMEM (errno 12) issues
                             connection?.execute("PRAGMA cipher_memory_security = OFF;", null, null)
                         }
+                        override fun postKey(connection: net.zetetic.database.sqlcipher.SQLiteConnection?) {}
                     }, true)
 
                     Room.databaseBuilder(
