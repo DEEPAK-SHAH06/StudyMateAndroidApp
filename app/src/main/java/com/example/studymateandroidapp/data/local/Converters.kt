@@ -4,6 +4,7 @@ import androidx.room.TypeConverter
 import com.example.studymateandroidapp.data.model.AchievementType
 import com.example.studymateandroidapp.data.model.GoalStatus
 import com.example.studymateandroidapp.data.model.Priority
+import com.example.studymateandroidapp.data.model.ReminderType
 import com.example.studymateandroidapp.data.model.TaskStatus
 import java.time.Instant
 import java.time.LocalDate
@@ -53,6 +54,9 @@ class Converters {
     @TypeConverter fun fromAchievementType(value: AchievementType): String = value.name
     @TypeConverter fun toAchievementType(value: String): AchievementType = AchievementType.valueOf(value)
 
+    @TypeConverter fun fromReminderType(value: ReminderType): String = value.name
+    @TypeConverter fun toReminderType(value: String): ReminderType = ReminderType.valueOf(value)
+
 
     // ── LocalTime ↔ Long (nano-of-day) ───────────────────
     @TypeConverter
@@ -61,15 +65,6 @@ class Converters {
     @TypeConverter
     fun toLocalTime(nano: Long?): java.time.LocalTime? =
         nano?.let { java.time.LocalTime.ofNanoOfDay(it) }
-
-
-    // ── ReminderType ↔ String ─────────────────────────────
-//    @TypeConverter
-//    fun fromReminderType(type: com.studyplanner.core.model.ReminderType): String = type.name
-//
-//    @TypeConverter
-//    fun toReminderType(value: String): com.studyplanner.core.model.ReminderType =
-//        com.studyplanner.core.model.ReminderType.valueOf(value)
 
 
     // ── List<String> ↔ String (comma-separated) ───────────
