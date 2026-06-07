@@ -129,9 +129,9 @@ class SettingViewmodel(
         }
     }
 
-    fun signInWithGoogle() {
+    fun signInWithGoogle(activity: android.app.Activity) {
         viewModelScope.launch {
-            val result = authRepository.signInWithGoogle()
+            val result = authRepository.signInWithGoogle(activity)
 
             if (result.isFailure) {
                 _uiError.value =

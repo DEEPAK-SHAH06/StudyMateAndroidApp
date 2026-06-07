@@ -39,6 +39,7 @@ fun SettingsScreen(
     // Explicitly collecting uiError
     val errorState by viewModel.uiError.collectAsState()
 
+    val context = androidx.compose.ui.platform.LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     
     LaunchedEffect(errorState) {
@@ -66,7 +67,11 @@ fun SettingsScreen(
         onAchievementsClick = onNavigateToAchievements,
         onEditProfileClick  = onNavigateToEditProfile,
         onToggleReminder    = { viewModel.toggleReminder(it) },
-        onSignIn            = { viewModel.signInWithGoogle() },
+        onSignIn            = { 
+            (context as? android.app.Activity)?.let { activity ->
+                viewModel.signInWithGoogle(activity) 
+            }
+        },
         onSignOut           = { viewModel.signOut() },
         onToggleSync        = { viewModel.toggleSync(it) },
         onSyncNow           = { viewModel.triggerSync() }
@@ -345,15 +350,3 @@ fun NotificationSettingItem(
         }
     }
 }
-// }
-//    }
-//}
-//,
-//                colors = SwitchDefaults.colors(
-//                    checkedThumbColor  = Color.White,
-//                    checkedTrackColor  = Color.Black
-//                )
-//            )
-//        }
-//    }
-//}

@@ -30,6 +30,8 @@ import kotlinx.coroutines.withContext
  */
 class ReminderReceiver : BroadcastReceiver() {
 
+    private val TAG = "ReminderReceiver"
+
     companion object {
         const val EXTRA_TYPE = "type"
         const val EXTRA_ENTITY_ID = "entity_id"
@@ -46,6 +48,8 @@ class ReminderReceiver : BroadcastReceiver() {
         val title = intent.getStringExtra(EXTRA_TITLE) ?: return
         val message = intent.getStringExtra(EXTRA_MESSAGE) ?: ""
 
+        android.util.Log.d(TAG, "Alarm triggered: type=$type, id=$entityId, title=$title")
+
         val manager = context.getSystemService<NotificationManager>() ?: return
         val pendingResult = goAsync()
 
@@ -57,8 +61,12 @@ class ReminderReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val focusSetting = reminderDao.getSettingByType(ReminderType.FOCUS_MODE)
-                if (focusSetting?.isEnabled == true) return@launch
+                if (focusSetting?.isEnabled == true) {
+                    android.util.Log.d(TAG, "Notification suppressed by Focus Mode")
+                    return@launch
+                }
 
+                android.util.Log.d(TAG, "Posting notification for $type")
                 withContext(Dispatchers.Main) {
                     when (type) {
                         TYPE_TASK -> {

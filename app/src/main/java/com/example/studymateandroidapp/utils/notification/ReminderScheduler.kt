@@ -35,6 +35,8 @@ class ReminderScheduler(private val context: Context) {
     private val alarmManager: AlarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
+    private val TAG = "ReminderScheduler"
+
     // ── Task Reminders ────────────────────────────────────
 
     /**
@@ -57,8 +59,13 @@ class ReminderScheduler(private val context: Context) {
             .toInstant()
             .toEpochMilli()
 
+        android.util.Log.d(TAG, "Scheduling task reminder: id=$taskId, title=$title, time=$triggerDateTime")
+
         // Don't schedule if the time is already past
-        if (triggerMillis <= System.currentTimeMillis()) return
+        if (triggerMillis <= System.currentTimeMillis()) {
+            android.util.Log.w(TAG, "Skipping task reminder: trigger time is in the past")
+            return
+        }
 
         val requestCode = TASK_REQUEST_CODE_BASE + taskId.toInt()
         val pendingIntent = createPendingIntent(
