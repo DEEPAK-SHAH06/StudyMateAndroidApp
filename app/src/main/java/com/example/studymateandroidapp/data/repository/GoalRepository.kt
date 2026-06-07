@@ -3,6 +3,7 @@ package com.example.studymateandroidapp.data.repository
 import com.example.studymateandroidapp.data.local.GoalDao
 import com.example.studymateandroidapp.data.model.Goal
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
 
 class GoalRepository(private val goalDao: GoalDao) {
     val allGoals: Flow<List<Goal>> = goalDao.getAllGoals()
@@ -11,6 +12,9 @@ class GoalRepository(private val goalDao: GoalDao) {
     suspend fun insert(goal: Goal) {
         goalDao.insert(goal)
     }
+
+    fun getOverdueCount(date: LocalDate): Flow<Int> =
+        goalDao.getOverdueCount(date)
 
     suspend fun update(goal: Goal) {
         goalDao.update(goal)

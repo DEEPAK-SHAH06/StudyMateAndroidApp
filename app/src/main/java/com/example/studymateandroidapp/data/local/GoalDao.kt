@@ -3,6 +3,7 @@ package com.example.studymateandroidapp.data.local
 import androidx.room.*
 import com.example.studymateandroidapp.data.model.Goal
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
 
 @Dao
 interface GoalDao {
@@ -14,6 +15,9 @@ interface GoalDao {
 
     @Query("SELECT COUNT(*) FROM goals WHERE status = 'COMPLETED'")
     fun getCompletedGoalCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM goals WHERE status != 'COMPLETED' AND deadline < :date")
+    fun getOverdueCount(date: LocalDate): Flow<Int>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(goal: Goal): Long

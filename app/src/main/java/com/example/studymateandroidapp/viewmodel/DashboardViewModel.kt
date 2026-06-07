@@ -24,6 +24,7 @@ class DashboardViewModel(
     private val sessionRepository: SessionRepository,
     private val examRepository: ExamRepository,
     private val goalRepository: GoalRepository,
+    private val motivationRepository: MotivationRepository,
     private val authRepository: AuthRepository,
     private val preferenceManager: PreferenceManager
 ) : ViewModel() {
@@ -92,6 +93,15 @@ class DashboardViewModel(
         observeAuthState()
         checkReflectionPrompt()
         observeProfile()
+        observeStreak()
+    }
+
+    private fun observeStreak() {
+        viewModelScope.launch {
+            motivationRepository.getStreak().collect { streak ->
+                _uiState.update { it.copy(currentStreak = streak) }
+            }
+        }
     }
 
     // ── Event Handlers ────────────────────────────────────
@@ -100,7 +110,11 @@ class DashboardViewModel(
         viewModelScope.launch {
             val task = taskRepository.getTaskById(taskId)
             if (task != null) {
-                taskRepository.update(task.copy(isCompleted = completed))
+                taskRepository.update(task.copy(
+                    isCompleted = completed,
+                    status = if (completed) com.example.studymateandroidapp.data.model.TaskStatus.COMPLETED else com.example.studymateandroidapp.data.model.TaskStatus.TODO,
+                    completedAt = if (completed) LocalDate.now() else null
+                ))
             }
         }
     }

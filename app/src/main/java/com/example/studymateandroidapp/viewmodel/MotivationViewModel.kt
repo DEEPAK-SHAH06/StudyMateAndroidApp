@@ -47,6 +47,15 @@ class MotivationViewModel(
         loadDailyQuote()
         loadTodayReflection()
         checkShowReflectionPrompt()
+        observeStreak()
+    }
+
+    private fun observeStreak() {
+        viewModelScope.launch {
+            repository.getStreak().collect { streak ->
+                _uiState.update { it.copy(currentStreak = streak) }
+            }
+        }
     }
 
     private fun loadDailyQuote() {
