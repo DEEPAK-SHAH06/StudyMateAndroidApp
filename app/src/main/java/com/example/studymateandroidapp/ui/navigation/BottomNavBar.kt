@@ -41,7 +41,8 @@ fun BottomNavBar(
                 selected = selected,
                 onClick = {
                     if (!selected) {
-                        navController.navigate(screen.route) {
+                        val route = if (screen is Screen.StudyTimer) "study_timer" else screen.route
+                        navController.navigate(route) {
                             // Pop up to the start destination to avoid stacking
                             popUpTo(Screen.Dashboard.route) { saveState = true }
                             launchSingleTop = true
