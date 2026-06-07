@@ -24,8 +24,10 @@ class StatisticsRepository(
     data class OverviewStats(
         val totalTasks: Int,
         val completedTasks: Int,
+        val overdueTasks: Int,
         val totalStudyMinutes: Int,
-        val completedGoals: Int
+        val completedGoals: Int,
+        val overdueGoals: Int
     ) {
         val taskCompletionRate: Int
             get() = if (totalTasks > 0) (completedTasks * 100) / totalTasks else 0
@@ -41,23 +43,36 @@ class StatisticsRepository(
 
     // ── Flows ─────────────────────────────────────────────
 
-    fun getOverviewStats(): Flow<OverviewStats> = combine(
-        taskRepository.getTotalCount(),
-        taskRepository.getCompletedCount(),
-        sessionRepository.getTotalStudyMinutes(),
-        goalRepository.allGoals
-    ) { total, completed, minutes, goals ->
-        val completedGoals = if (goals.isNotEmpty()) {
-            goals.count { it.status == GoalStatus.COMPLETED }
-        } else {
-            completed
+    fun getOverviewStats(): Flow<OverviewStats> {
+        val today = LocalDate.now()
+        val now = java.time.LocalTime.now()
+        
+        return combine(
+            taskRepository.getTotalCount(),
+            taskRepository.getCompletedCount(),
+            taskRepository.getOverdueCount(today, now),
+            sessionRepository.getTotalStudyMinutes(),
+            goalRepository.allGoals,
+            goalRepository.getOverdueCount(today)
+        ) { args: Array<Any> ->
+            val total = args[0] as Int
+            val completed = args[1] as Int
+            val overdueTasks = args[2] as Int
+            val minutes = args[3] as Int
+            val goals = args[4] as List<com.example.studymateandroidapp.data.model.Goal>
+            val overdueGoals = args[5] as Int
+            
+            val completedGoalsCount = goals.count { it.status == GoalStatus.COMPLETED }
+            
+            OverviewStats(
+                totalTasks        = total,
+                completedTasks    = completed,
+                overdueTasks      = overdueTasks,
+                totalStudyMinutes = minutes,
+                completedGoals    = completedGoalsCount,
+                overdueGoals      = overdueGoals
+            )
         }
-        OverviewStats(
-            totalTasks        = total,
-            completedTasks    = completed,
-            totalStudyMinutes = minutes,
-            completedGoals    = completedGoals
-        )
     }
 
     fun getTodayStudyMinutes(): Flow<Int> =

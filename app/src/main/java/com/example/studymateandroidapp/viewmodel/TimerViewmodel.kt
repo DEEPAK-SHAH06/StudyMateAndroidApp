@@ -30,6 +30,7 @@ class TimerViewmodel(
         val isRunning: Boolean = false,
         val totalSecondsWorkedToday: Int = 0,
         val studyTitle: String = "",
+        val examId: Long? = null,
         val recentSessions: List<StudySession> = emptyList()
     )
 
@@ -55,8 +56,12 @@ class TimerViewmodel(
         }
     }
 
+    fun setExamId(id: Long?) {
+        _uiState.update { it.copy(examId = id) }
+    }
+
     fun setMode(mode: TimerMode) {
-        stopTimer()
+        if (_uiState.value.isRunning) stopTimer()
         _uiState.update { 
             it.copy(
                 mode = mode, 
@@ -66,7 +71,7 @@ class TimerViewmodel(
     }
 
     fun setPhase(phase: PomodoroPhase) {
-        stopTimer()
+        if (_uiState.value.isRunning) stopTimer()
         _uiState.update { it.copy(phase = phase, timeLeftSeconds = getPhaseDuration(phase)) }
     }
 
@@ -77,30 +82,38 @@ class TimerViewmodel(
     fun startTimer() {
         if (_uiState.value.isRunning) return
         _uiState.update { it.copy(isRunning = true) }
-        startTime = LocalDateTime.now()
+        if (startTime == null || _uiState.value.mode == TimerMode.POMODORO) {
+            startTime = LocalDateTime.now()
+        }
 
         timerJob = viewModelScope.launch {
-            while (true) {
+            while (_uiState.value.isRunning) {
                 delay(1000)
                 _uiState.update { state ->
                     if (state.mode == TimerMode.POMODORO) {
                         if (state.timeLeftSeconds > 0) {
                             state.copy(timeLeftSeconds = state.timeLeftSeconds - 1)
                         } else {
-                            onTimerFinished()
                             state.copy(isRunning = false)
                         }
                     } else {
                         state.copy(timeLeftSeconds = state.timeLeftSeconds + 1)
                     }
                 }
-                if (!_uiState.value.isRunning) break
+                
+                if (_uiState.value.mode == TimerMode.POMODORO && _uiState.value.timeLeftSeconds == 0) {
+                    onTimerFinished()
+                    break
+                }
             }
         }
     }
 
     fun stopTimer() {
+        if (!_uiState.value.isRunning) return
+        
         timerJob?.cancel()
+        timerJob = null
         _uiState.update { it.copy(isRunning = false) }
         
         if (_uiState.value.mode == TimerMode.STOPWATCH && _uiState.value.timeLeftSeconds > 0) {
@@ -109,19 +122,21 @@ class TimerViewmodel(
     }
 
     fun resetTimer() {
-        stopTimer()
+        timerJob?.cancel()
+        timerJob = null
         _uiState.update { 
             it.copy(
+                isRunning = false,
                 timeLeftSeconds = if (it.mode == TimerMode.POMODORO) getPhaseDuration(it.phase) else 0 
             ) 
         }
+        startTime = null
     }
 
     private fun onTimerFinished() {
         if (_uiState.value.phase == PomodoroPhase.WORK) {
             saveSession()
         }
-        // Logic for auto-switching phases could go here
     }
 
     private fun saveSession() {
@@ -131,19 +146,26 @@ class TimerViewmodel(
             _uiState.value.timeLeftSeconds
         }
 
-        if (durationSeconds < 10) return // Don't save very short sessions
+        if (durationSeconds < 5) return // Don't save very short sessions
 
         val session = StudySession(
             subject = _uiState.value.studyTitle.ifBlank { "Study Session" },
             startTime = startTime ?: LocalDateTime.now().minusSeconds(durationSeconds.toLong()),
             endTime = LocalDateTime.now(),
             durationMinutes = (durationSeconds / 60).coerceAtLeast(1),
-            examId = null // Could be passed from screen
+            examId = _uiState.value.examId
         )
 
         viewModelScope.launch {
             sessionRepository.insert(session)
-            resetTimer()
+            // For Pomodoro, we reset. For stopwatch, we already reset in stopTimer/resetTimer logic if needed.
+            if (_uiState.value.mode == TimerMode.POMODORO) {
+                resetTimer()
+            } else {
+                // Clear stopwatch start time but keep total seconds until manually reset? 
+                // Usually stopwatch resets after save.
+                resetTimer()
+            }
         }
     }
 

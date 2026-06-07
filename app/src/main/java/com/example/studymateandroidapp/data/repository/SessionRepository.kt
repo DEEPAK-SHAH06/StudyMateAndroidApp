@@ -7,10 +7,15 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
+import kotlinx.coroutines.flow.map
+
 class SessionRepository(private val sessionDao: SessionDao) {
 
     fun getAllSessions(): Flow<List<StudySession>> =
         sessionDao.getAllSessions()
+
+    fun getStudyDates(): Flow<Set<LocalDate>> =
+        sessionDao.getAllStartTimes().map { it.map { dt -> dt.toLocalDate() }.toSet() }
 
     fun getSessionById(id: Long): Flow<StudySession?> =
         sessionDao.getSessionById(id)

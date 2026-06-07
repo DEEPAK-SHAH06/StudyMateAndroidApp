@@ -34,6 +34,9 @@ interface SessionDao {
     """)
     fun getSessionsForTask(taskId: Long): Flow<List<StudySession>>
 
+    @Query("SELECT startTime FROM study_sessions")
+    fun getAllStartTimes(): Flow<List<LocalDateTime>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(session: StudySession): Long
 
