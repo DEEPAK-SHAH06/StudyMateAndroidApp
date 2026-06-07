@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 class SettingViewmodel(
     private val notificationRepository: NotificationRepository,
@@ -67,18 +69,57 @@ class SettingViewmodel(
                 Log.e(TAG, "Failed to initialize reminder defaults", e)
             }
         }
-        loadCurrentUser()
+        observeLocalProfile()
+        syncWithFirebase()
     }
-    private fun loadCurrentUser() {
+
+    private fun observeLocalProfile() {
+        viewModelScope.launch {
+            preferenceManager.userName.collect { name ->
+                _profileState.value = _profileState.value.copy(currentUsername = name)
+            }
+        }
+        viewModelScope.launch {
+            preferenceManager.userPhotoUri.collect { uri ->
+                _profileState.value = _profileState.value.copy(photoUrl = uri)
+            }
+        }
+    }
+
+    private fun syncWithFirebase() {
         val user = ProfileRepository.getCurrentUser()
-        _profileState.value = ProfileState(
-            currentUsername = user?.displayName ?: "",
-            photoUrl = user?.photoUrl?.toString()
-        )
+        if (user != null) {
+            viewModelScope.launch {
+                // If local is default or empty, sync from Firebase
+                val currentLocalName = _profileState.value.currentUsername
+                if (currentLocalName == "Anastasia" || currentLocalName.isEmpty()) {
+                    user.displayName?.let { preferenceManager.setUserName(it) }
+                }
+                val currentLocalPhoto = _profileState.value.photoUrl
+                if (currentLocalPhoto == null) {
+                    user.photoUrl?.let { preferenceManager.setUserPhotoUri(it.toString()) }
+                }
+            }
+        }
     }
 
     fun setSelectedImageUri(uri: Uri) {
         _profileState.value = _profileState.value.copy(selectedImageUri = uri)
+    }
+
+    private fun saveImageLocally(uri: Uri): Uri? {
+        return try {
+            val inputStream = authRepository.context.contentResolver.openInputStream(uri)
+            val file = File(authRepository.context.filesDir, "profile_picture.jpg")
+            val outputStream = FileOutputStream(file)
+            inputStream?.copyTo(outputStream)
+            inputStream?.close()
+            outputStream.close()
+            Uri.fromFile(file)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save image locally", e)
+            null
+        }
     }
 
     fun updateProfile(username: String, imageUri: Uri? = null) {
@@ -88,23 +129,50 @@ class SettingViewmodel(
                 errorMessage = null
             )
 
-            val result = ProfileRepository.updateProfile(username, imageUri)
+            try {
+                // 1. Save locally first (Offline-first)
+                preferenceManager.setUserName(username)
+                
+                var localUri: Uri? = null
+                if (imageUri != null) {
+                    localUri = saveImageLocally(imageUri)
+                    if (localUri != null) {
+                        preferenceManager.setUserPhotoUri(localUri.toString())
+                    }
+                }
 
-            if (result.isSuccess) {
-
-                val user = ProfileRepository.getCurrentUser()
-
+                // 2. Try to sync with Firebase if online and logged in
+                if (authRepository.isNetworkAvailable() && authRepository.getUserId() != null) {
+                    val result = ProfileRepository.updateProfile(username, imageUri)
+                    if (result.isSuccess) {
+                        val user = ProfileRepository.getCurrentUser()
+                        _profileState.value = _profileState.value.copy(
+                            isLoading = false,
+                            isSuccess = true,
+                            currentUsername = user?.displayName ?: username,
+                            photoUrl = user?.photoUrl?.toString() ?: localUri?.toString(),
+                            selectedImageUri = null
+                        )
+                    } else {
+                        // We still consider it a partial success because it's saved locally
+                        _profileState.value = _profileState.value.copy(
+                            isLoading = false,
+                            isSuccess = true, // Still success locally
+                            selectedImageUri = null
+                        )
+                    }
+                } else {
+                    // Offline success
+                    _profileState.value = _profileState.value.copy(
+                        isLoading = false,
+                        isSuccess = true,
+                        selectedImageUri = null
+                    )
+                }
+            } catch (e: Exception) {
                 _profileState.value = _profileState.value.copy(
                     isLoading = false,
-                    isSuccess = true,
-                    currentUsername = user?.displayName ?: username,
-                    photoUrl = user?.photoUrl?.toString(),
-                    selectedImageUri = null
-                )
-            } else {
-                _profileState.value = _profileState.value.copy(
-                    isLoading = false,
-                    errorMessage = result.exceptionOrNull()?.message ?: "Something went wrong"
+                    errorMessage = e.message ?: "Something went wrong"
                 )
             }
         }

@@ -20,6 +20,7 @@ class PreferenceManager(private val context: Context) {
         val SYNC_STATUS = stringPreferencesKey("sync_status") // "IDLE", "SYNCING", "ERROR"
         val LAST_SYNC_TIME = longPreferencesKey("last_sync_time")
         val USER_NAME = stringPreferencesKey("user_name")
+        val USER_PHOTO_URI = stringPreferencesKey("user_photo_uri")
         val USER_BIO = stringPreferencesKey("user_bio")
         val IS_SYNC_ENABLED = booleanPreferencesKey("is_sync_enabled")
     }
@@ -46,7 +47,12 @@ class PreferenceManager(private val context: Context) {
 
     val userName: Flow<String> = context.dataStore.data
         .map { preferences ->
-            preferences[USER_NAME] ?: "Anastasia"
+            preferences[USER_NAME] ?: "Guest"
+        }
+
+    val userPhotoUri: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[USER_PHOTO_URI]
         }
 
     val userBio: Flow<String> = context.dataStore.data
@@ -81,6 +87,16 @@ class PreferenceManager(private val context: Context) {
     suspend fun setUserName(name: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_NAME] = name
+        }
+    }
+
+    suspend fun setUserPhotoUri(uri: String?) {
+        context.dataStore.edit { preferences ->
+            if (uri != null) {
+                preferences[USER_PHOTO_URI] = uri
+            } else {
+                preferences.remove(USER_PHOTO_URI)
+            }
         }
     }
 

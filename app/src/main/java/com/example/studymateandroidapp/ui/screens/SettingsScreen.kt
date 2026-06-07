@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.example.studymateandroidapp.data.model.ReminderSetting
 import com.example.studymateandroidapp.data.model.ReminderType
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
@@ -35,6 +37,7 @@ fun SettingsScreen(
     val currentUser by viewModel.currentUser.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
     val isSyncEnabled by viewModel.isSyncEnabled.collectAsState()
+    val profileState by viewModel.profileState.collectAsState()
     
     // Explicitly collecting uiError
     val errorState by viewModel.uiError.collectAsState()
@@ -50,13 +53,13 @@ fun SettingsScreen(
     }
 
     val isSignedIn = currentUser != null
-    val displayName =
-        currentUser?.displayName
-            ?: currentUser?.email
-            ?: "Guest"
+    val displayName = profileState.currentUsername.ifBlank {
+        currentUser?.displayName ?: currentUser?.email ?: "Guest"
+    }
 
     SettingsContent(
         displayName         = displayName,
+        photoUrl            = profileState.photoUrl,
         isSignedIn          = isSignedIn,
         syncStatus          = syncStatus,
         isSyncEnabled       = isSyncEnabled,
@@ -81,6 +84,7 @@ fun SettingsScreen(
 @Composable
 fun SettingsContent(
     displayName: String,
+    photoUrl: String?,
     isSignedIn: Boolean,
     syncStatus: String,
     isSyncEnabled: Boolean,
@@ -133,12 +137,21 @@ fun SettingsContent(
                     shape = CircleShape,
                     color = Color.LightGray
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.padding(24.dp),
-                        tint = Color.White
-                    )
+                    if (photoUrl != null) {
+                        AsyncImage(
+                            model = photoUrl,
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.padding(24.dp),
+                            tint = Color.White
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
