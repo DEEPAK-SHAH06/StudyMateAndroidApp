@@ -26,6 +26,14 @@ object ViewModelFactory : ViewModelProvider.Factory {
                     sessionRepository = SessionRepository(db.sessionDao()),
                     examRepository    = ExamRepository(db.examDao()),
                     goalRepository    = GoalRepository(db.goalDao()),
+                    motivationRepository = MotivationRepository(
+                        motivationDao = db.motivationDao(),
+                        taskDao       = db.taskDao(),
+                        sessionDao    = db.sessionDao(),
+                        goalDao       = db.goalDao(),
+                        noteDao       = db.noteDao(),
+                        flashcardDao  = db.flashcardDao()
+                    ),
                     authRepository    = AuthRepository(application),
                     preferenceManager = PreferenceManager(application)
                 ) as T
@@ -39,11 +47,17 @@ object ViewModelFactory : ViewModelProvider.Factory {
 
             // ── Tasks ──────────────────────────────────────────────
             modelClass.isAssignableFrom(TaskViewmodel::class.java) ->
-                TaskViewmodel(TaskRepository(db.taskDao())) as T
+                TaskViewmodel(
+                    repository = TaskRepository(db.taskDao()),
+                    reminderScheduler = ReminderScheduler(application)
+                ) as T
 
             // ── Exams ──────────────────────────────────────────────
             modelClass.isAssignableFrom(ExamViewmodel::class.java) ->
-                ExamViewmodel(ExamRepository(db.examDao())) as T
+                ExamViewmodel(
+                    repository = ExamRepository(db.examDao()),
+                    reminderScheduler = ReminderScheduler(application)
+                ) as T
 
             // ── Goals ──────────────────────────────────────────────
             modelClass.isAssignableFrom(GoalViewmodel::class.java) ->
@@ -67,6 +81,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
                     MotivationRepository(
                         motivationDao = db.motivationDao(),
                         taskDao       = db.taskDao(),
+                        sessionDao    = db.sessionDao(),
                         goalDao       = db.goalDao(),
                         noteDao       = db.noteDao(),
                         flashcardDao  = db.flashcardDao()

@@ -12,13 +12,48 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate
 
+import com.example.studymateandroidapp.data.local.SessionDao
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+
 class MotivationRepository(
     private val motivationDao: MotivationDao,
     private val taskDao: TaskDao,
+    private val sessionDao: SessionDao,
     private val goalDao: GoalDao,
     private val noteDao: NoteDao,
     private val flashcardDao: FlashcardDao
 ) {
+    // ── Streak Logic ──────────────────────────────────────
+
+    fun getStreak(): Flow<Int> = combine(
+        taskDao.getCompletedDates(),
+        sessionDao.getAllStartTimes().map { it.map { dt -> dt.toLocalDate() }.toSet() }
+    ) { completedDates, studyDates ->
+        val allActivityDates = completedDates.toSet() + studyDates
+        calculateStreakFromDates(allActivityDates)
+    }
+
+    private fun calculateStreakFromDates(dates: Set<LocalDate>): Int {
+        if (dates.isEmpty()) return 0
+        
+        var streak = 0
+        var today = LocalDate.now()
+        var dateToCheck = today
+        
+        // If nothing today, check if streak is still alive from yesterday
+        if (!dates.contains(today)) {
+            dateToCheck = today.minusDays(1)
+        }
+        
+        while (dates.contains(dateToCheck)) {
+            streak++
+            dateToCheck = dateToCheck.minusDays(1)
+        }
+        
+        return streak
+    }
+
     // ── Reflections ───────────────────────────────────────
 
     suspend fun getReflectionForDate(date: LocalDate): DailyReflection? =
@@ -136,24 +171,15 @@ class MotivationRepository(
     }
 
     /**
-     * Calculate consecutive days with at least one completed task.
+     * Calculate consecutive days with at least one completed task or study session.
      * Counts backwards from today.
      */
     private suspend fun calculateStreak(): Int {
-        var streak = 0
-        var date = LocalDate.now()
+        val completedDates = taskDao.getCompletedDates().firstOrNull() ?: emptyList()
+        val studyDates = sessionDao.getAllStartTimes().firstOrNull()?.map { it.toLocalDate() } ?: emptyList()
+        val allDates = (completedDates + studyDates).toSet()
         
-        for (i in 0 until 60) { // Check up to 60 days back
-            val tasks = taskDao.getTasksDueOn(date).firstOrNull() ?: emptyList()
-            if (tasks.any { it.isCompleted }) {
-                streak++
-                date = date.minusDays(1)
-            } else {
-                break
-            }
-        }
-        
-        return streak
+        return calculateStreakFromDates(allDates)
     }
 
     /**
