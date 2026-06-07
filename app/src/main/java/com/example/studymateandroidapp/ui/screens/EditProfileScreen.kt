@@ -183,12 +183,14 @@ fun EditProfileContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            val isDirty = editedUsername != username || selectedImageUri != null
+
             Button(
                 onClick = { onSaveProfile(editedUsername) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
                 shape = RoundedCornerShape(12.dp),
-                enabled = !isLoading && editedUsername.isNotBlank()
+                enabled = !isLoading && editedUsername.isNotBlank() && isDirty
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
