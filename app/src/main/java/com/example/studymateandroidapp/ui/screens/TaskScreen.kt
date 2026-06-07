@@ -52,7 +52,12 @@ fun TaskScreen(
         onAddTask = onNavigateToAddTask,
         onTaskClick = onNavigateToEditTask,
         onToggleTask = { task ->
-            viewModel.updateTask(task.copy(isCompleted = !task.isCompleted))
+            val isCompleted = !task.isCompleted
+            viewModel.updateTask(task.copy(
+                isCompleted = isCompleted,
+                status = if (isCompleted) TaskStatus.COMPLETED else TaskStatus.TODO,
+                completedAt = if (isCompleted) LocalDate.now() else null
+            ))
         }
     )
 }
@@ -74,9 +79,9 @@ fun TaskContent(
                     (task.subjectTag?.contains(searchQuery, ignoreCase = true) == true)
             
             val matchesFilter = when (selectedFilter) {
-                "Pending" -> !task.isCompleted
+                "Pending" -> !task.isCompleted && !task.isOverdue
                 "Completed" -> task.isCompleted
-                "Overdue" -> !task.isCompleted && task.dueDate != null && task.dueDate!!.isBefore(LocalDate.now())
+                "Overdue" -> task.isOverdue
                 else -> true
             }
             matchesQuery && matchesFilter
@@ -84,12 +89,12 @@ fun TaskContent(
     }
 
     val highPriorityTask = remember(tasks) {
-        tasks.filter { !it.isCompleted && it.priority == Priority.HIGH }
+        tasks.filter { !it.isCompleted && !it.isOverdue && it.priority == Priority.HIGH }
             .minByOrNull { it.dueDate ?: LocalDate.MAX }
     }
 
     val overdueTask = remember(tasks) {
-        tasks.find { !it.isCompleted && it.dueDate != null && it.dueDate!!.isBefore(LocalDate.now()) }
+        tasks.find { it.isOverdue }
     }
 
     Scaffold(

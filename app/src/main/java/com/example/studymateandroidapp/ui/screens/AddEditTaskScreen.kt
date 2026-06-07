@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -105,24 +106,78 @@ fun AddEditTaskScreen(
             }
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                
                 OutlinedTextField(
                     value = dueDate.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
-                    onValueChange = { /* TODO: Date Picker */ },
+                    onValueChange = {},
                     label = { Text("Due Date") },
                     readOnly = true,
-                    leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
+                    leadingIcon = { 
+                        IconButton(onClick = {
+                            val calendar = java.util.Calendar.getInstance()
+                            android.app.DatePickerDialog(
+                                context,
+                                { _, year, month, dayOfMonth ->
+                                    dueDate = LocalDate.of(year, month + 1, dayOfMonth)
+                                },
+                                dueDate.year,
+                                dueDate.monthValue - 1,
+                                dueDate.dayOfMonth
+                            ).show()
+                        }) {
+                            Icon(Icons.Default.CalendarMonth, contentDescription = null)
+                        }
+                    },
+                    modifier = Modifier.weight(1f).clickable {
+                        val calendar = java.util.Calendar.getInstance()
+                        android.app.DatePickerDialog(
+                            context,
+                            { _, year, month, dayOfMonth ->
+                                dueDate = LocalDate.of(year, month + 1, dayOfMonth)
+                            },
+                            dueDate.year,
+                            dueDate.monthValue - 1,
+                            dueDate.dayOfMonth
+                        ).show()
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = true
                 )
 
                 OutlinedTextField(
                     value = dueTime.format(DateTimeFormatter.ofPattern("hh:mm a")),
-                    onValueChange = { /* TODO: Time Picker */ },
+                    onValueChange = {},
                     label = { Text("Due Time") },
                     readOnly = true,
-                    leadingIcon = { Icon(Icons.Default.Timer, contentDescription = null) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
+                    leadingIcon = { 
+                        IconButton(onClick = {
+                            android.app.TimePickerDialog(
+                                context,
+                                { _, hourOfDay, minute ->
+                                    dueTime = LocalTime.of(hourOfDay, minute)
+                                },
+                                dueTime.hour,
+                                dueTime.minute,
+                                false
+                            ).show()
+                        }) {
+                            Icon(Icons.Default.Timer, contentDescription = null)
+                        }
+                    },
+                    modifier = Modifier.weight(1f).clickable {
+                        android.app.TimePickerDialog(
+                            context,
+                            { _, hourOfDay, minute ->
+                                dueTime = LocalTime.of(hourOfDay, minute)
+                            },
+                            dueTime.hour,
+                            dueTime.minute,
+                            false
+                        ).show()
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = true
                 )
             }
 

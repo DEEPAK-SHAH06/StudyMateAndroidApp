@@ -36,9 +36,19 @@ data class Task(
     val examId: Long? = null,
     val subjectTag: String? = null, // Cached for display (e.g., "PSYCHOLOGY")
     val isCompleted: Boolean = false,
+    val completedAt: LocalDate? = null,
     
     // Sync metadata
     val userId: String? = null,
     val serverId: String? = null,
     val lastUpdated: Long = System.currentTimeMillis()
-)
+) {
+    val isOverdue: Boolean
+        get() {
+            if (isCompleted) return false
+            val date = dueDate ?: return false
+            val time = dueTime ?: java.time.LocalTime.MAX
+            val dueDateTime = java.time.LocalDateTime.of(date, time)
+            return dueDateTime.isBefore(java.time.LocalDateTime.now())
+        }
+}

@@ -12,8 +12,8 @@ class ExamRepository(private val examDao: ExamDao) {
 
     fun getExamWithDetails(id: Long): Flow<ExamWithDetails?> = examDao.getExamWithDetails(id)
 
-    suspend fun insert(exam: Exam) {
-        examDao.insert(exam)
+    suspend fun insert(exam: Exam): Long {
+        return examDao.insert(exam)
     }
 
     suspend fun update(exam: Exam) {

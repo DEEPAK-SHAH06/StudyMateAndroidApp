@@ -10,7 +10,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class ExamViewmodel(private val repository: ExamRepository) : ViewModel() {
+import com.example.studymateandroidapp.utils.notification.ReminderScheduler
+import java.time.Instant
+import java.time.ZoneId
+
+class ExamViewmodel(
+    private val repository: ExamRepository,
+    private val reminderScheduler: ReminderScheduler
+) : ViewModel() {
 
     val allExams: StateFlow<List<Exam>> = repository.allExams
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -20,19 +27,38 @@ class ExamViewmodel(private val repository: ExamRepository) : ViewModel() {
 
     fun addExam(exam: Exam) {
         viewModelScope.launch {
-            repository.insert(exam)
+            val id = repository.insert(exam)
+            val examLocalDate = Instant.ofEpochMilli(exam.examDate)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+            
+            reminderScheduler.scheduleExamReminders(
+                examId = id,
+                title = exam.title,
+                examDate = examLocalDate
+            )
         }
     }
 
     fun updateExam(exam: Exam) {
         viewModelScope.launch {
             repository.update(exam)
+            val examLocalDate = Instant.ofEpochMilli(exam.examDate)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+            
+            reminderScheduler.scheduleExamReminders(
+                examId = exam.id,
+                title = exam.title,
+                examDate = examLocalDate
+            )
         }
     }
 
     fun deleteExam(exam: Exam) {
         viewModelScope.launch {
             repository.delete(exam)
+            reminderScheduler.cancelExamReminders(exam.id)
         }
     }
 }
