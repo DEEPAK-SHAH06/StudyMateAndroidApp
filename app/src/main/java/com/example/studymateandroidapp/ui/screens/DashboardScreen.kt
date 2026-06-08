@@ -121,22 +121,23 @@ private fun DashboardContent(
 ) {
     if (isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color.Black)
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
         return
     }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             StudyMateTopBar(
                 title = "StudyMate",
+                onBack = null,
                 actions = {
                     IconButton(onClick = onNavigateToAchievements) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements")
+                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements", tint = MaterialTheme.colorScheme.onSurface)
                     }
                     IconButton(onClick = onNavigateToStats) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Statistics")
+                        Icon(Icons.Default.BarChart, contentDescription = "Statistics", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             )
@@ -146,8 +147,7 @@ private fun DashboardContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            //contentPadding = PaddingValues(horizontal = 24.dp, bottom = 32.dp)
-            contentPadding = PaddingValues(horizontal = 24.dp)
+            contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 24.dp)
         ) {
             // ── 1. Profile Header ────────────────────────────
             item {
@@ -158,13 +158,13 @@ private fun DashboardContent(
                     Surface(
                         modifier = Modifier.size(80.dp),
                         shape = CircleShape,
-                        color = Color.LightGray
+                        color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
                             modifier = Modifier.padding(16.dp),
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Spacer(Modifier.width(16.dp))
@@ -172,18 +172,19 @@ private fun DashboardContent(
                         Text(
                             text = greeting.uppercase(),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                             letterSpacing = 1.sp
                         )
                         Text(
                             text = "Hi, $userName",
                             style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = userBio,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.DarkGray
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
                         )
                     }
                 }
@@ -205,15 +206,15 @@ private fun DashboardContent(
                         onClick = onNavigateToSettings,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp),
-                        color = Color(0xFFFFE0B2).copy(alpha = 0.5f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF9800).copy(alpha = 0.3f))
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                     ) {
                         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Keep your data safe", fontWeight = FontWeight.Bold, color = Color(0xFFE65100))
-                                Text("Sign in with Google to enable auto-sync and backup.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFE65100).copy(alpha = 0.8f))
+                                Text("Keep your data safe", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                Text("Sign in with Google to enable auto-sync and backup.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
                             }
-                            Icon(Icons.Default.CloudSync, null, tint = Color(0xFFE65100), modifier = Modifier.size(32.dp))
+                            Icon(Icons.Default.CloudSync, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(32.dp))
                         }
                     }
                     Spacer(Modifier.height(24.dp))
@@ -227,12 +228,12 @@ private fun DashboardContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(32.dp))
-                            .background(Brush.verticalGradient(colors = listOf(Color(0xFF2D2D2D), Color(0xFF5A5A5A))))
+                            .background(MaterialTheme.colorScheme.primary)
                     ) {
                         Column(modifier = Modifier.padding(24.dp)) {
-                            Surface(color = Color.White, shape = RoundedCornerShape(50.dp)) {
+                            Surface(color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f), shape = RoundedCornerShape(50.dp)) {
                                 Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Timer, null, Modifier.size(14.dp), tint = Color.Black)
+                                    Icon(Icons.Default.Timer, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onPrimary)
                                     Spacer(Modifier.width(4.dp))
                                     Text(
                                         text = when {
@@ -240,20 +241,20 @@ private fun DashboardContent(
                                             daysUntilNextExam == 1L -> "DUE TOMORROW"
                                             else -> "STARTS IN $daysUntilNextExam DAYS"
                                         },
-                                        fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Black
+                                        fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
                             }
                             Spacer(Modifier.height(16.dp))
-                            Text(text = nextExamTitle, style = MaterialTheme.typography.headlineSmall, color = Color.White, fontWeight = FontWeight.Bold)
-                            Text("Preparing for your next big challenge.", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.8f))
+                            Text(text = nextExamTitle, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                            Text("Preparing for your next big challenge.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
                             Spacer(Modifier.height(16.dp))
                             Button(
                                 onClick = onNavigateToTimer,
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("Start Session", color = Color.Black, fontWeight = FontWeight.Bold)
+                                Text("Start Session", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -263,17 +264,17 @@ private fun DashboardContent(
 
             // ── 5. Focus Pulse ───────────────────────────
             item {
-                Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = Color(0xFFF5F5F5)) {
+                Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
                     Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Focus Pulse", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                            Text("Total focus: $todayStudyFormatted today", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                            Text("Focus Pulse", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Total focus: $todayStudyFormatted today", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                             Spacer(Modifier.height(16.dp))
                             FocusStatRow(Icons.Default.FlashOn, "Deep Work", "${(todayStudyMinutes * 0.6).toInt()}m")
                             FocusStatRow(Icons.Default.MenuBook, "Study", "${(todayStudyMinutes * 0.4).toInt()}m")
                             
                             Spacer(Modifier.height(12.dp))
-                            Text("Full insights →", fontWeight = FontWeight.Bold, fontSize = 12.sp, modifier = Modifier.clickable { onNavigateToStats() })
+                            Text("Full insights →", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { onNavigateToStats() })
                         }
                     }
                 }
@@ -283,14 +284,14 @@ private fun DashboardContent(
             // ── 6. Today's Plan ────────────────────
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Today's Plan", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                    TextButton(onClick = onNavigateToTasks) { Text("View All") }
+                    Text("Today's Plan", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground)
+                    TextButton(onClick = onNavigateToTasks) { Text("View All", color = MaterialTheme.colorScheme.primary) }
                 }
             }
 
             if (todayTasks.isEmpty()) {
                 item {
-                    Text("No tasks for today!", modifier = Modifier.padding(16.dp), color = Color.Gray)
+                    Text("No tasks for today!", modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
                 }
             } else {
                 items(todayTasks.take(3)) { task ->
@@ -306,15 +307,15 @@ private fun DashboardContent(
                         onClick = onNavigateToReflection,
                         modifier = Modifier.fillMaxWidth().height(64.dp),
                         shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFFE3F2FD),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2196F3))
+                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f))
                     ) {
                         Row(modifier = Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.RateReview, null, tint = Color(0xFF2196F3))
+                            Icon(Icons.Default.RateReview, null, tint = MaterialTheme.colorScheme.secondary)
                             Spacer(Modifier.width(16.dp))
-                            Text("Evening Reflection", fontWeight = FontWeight.Bold)
+                            Text("Evening Reflection", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
                             Spacer(Modifier.weight(1f))
-                            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, null, Modifier.size(16.dp))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                         }
                     }
                 }
@@ -326,11 +327,11 @@ private fun DashboardContent(
 @Composable
 private fun FocusStatRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
     Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, Modifier.size(14.dp), tint = Color.Gray)
+        Icon(icon, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
         Spacer(Modifier.width(8.dp))
-        Text(label, fontSize = 12.sp)
+        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.weight(1f))
-        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -343,16 +344,17 @@ private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
         Icon(
             imageVector = if (task.isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
             contentDescription = null,
-            tint = if (task.isCompleted) Color(0xFF4CAF50) else Color.Gray
+            tint = if (task.isCompleted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
         )
         Spacer(Modifier.width(16.dp))
         Column {
             Text(
                 text = task.title,
                 style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground,
                 textDecoration = if (task.isCompleted) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
             )
-            Text(task.priority.name, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text(task.priority.name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
         }
     }
 }

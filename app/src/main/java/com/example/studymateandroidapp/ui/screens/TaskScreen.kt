@@ -111,8 +111,8 @@ fun TaskContent(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddTask,
-                containerColor = Color.Black,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Task")
@@ -123,13 +123,14 @@ fun TaskContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
                 text = "Manage your study load intentionally.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -173,7 +174,7 @@ fun TaskContent(
                     Text(
                         text = "No tasks found.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                     )
                 }
             }
@@ -202,15 +203,17 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         value = query,
         onValueChange = onQueryChange,
         modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Search tasks, subjects...") },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+        placeholder = { Text("Search tasks, subjects...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         shape = RoundedCornerShape(12.dp),
         singleLine = true,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFF2F2F2),
-            unfocusedContainerColor = Color(0xFFF2F2F2),
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     )
 }
@@ -229,12 +232,12 @@ fun FilterChips(filters: List<String>, selectedFilter: String, onFilterSelected:
                     .height(36.dp)
                     .clickable { onFilterSelected(filter) },
                 shape = RoundedCornerShape(18.dp),
-                color = if (isSelected) Color.Black else Color(0xFFF2F2F2)
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = filter,
-                        color = if (isSelected) Color.White else Color.Black,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -250,9 +253,9 @@ fun SectionHeader(title: String, subtitle: String) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
         if (subtitle.isNotEmpty()) {
-            Text(text = subtitle, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text(text = subtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
         }
     }
 }
@@ -264,8 +267,8 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        color = Color(0xFFF8F8F8),
-        border = BorderStroke(1.dp, Color(0xFFEEEEEE))
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -274,7 +277,7 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit) {
             Checkbox(
                 checked = task.isCompleted,
                 onCheckedChange = { onToggle() },
-                colors = CheckboxDefaults.colors(checkedColor = Color.Black)
+                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
             )
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -286,36 +289,46 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textDecoration = if (task.isCompleted) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     task.subjectTag?.let { tag ->
                         Surface(
                             shape = RoundedCornerShape(4.dp),
-                            color = Color.Black.copy(alpha = 0.1f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
                         ) {
                             Text(
                                 text = tag,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Icon(Icons.Default.Timer, contentDescription = null, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = task.dueTime?.format(DateTimeFormatter.ofPattern("h:mm a")) ?: "No time",
-                        style = MaterialTheme.typography.labelSmall
-                    )
                 }
             }
-
-            Icon(Icons.Default.MoreVert, contentDescription = null)
         }
     }
 }
+//                                fontWeight = FontWeight.Bold
+//                            )
+//                        }
+//                        Spacer(modifier = Modifier.width(8.dp))
+//                    }
+//                    Icon(Icons.Default.Timer, contentDescription = null, modifier = Modifier.size(14.dp))
+//                    Spacer(modifier = Modifier.width(4.dp))
+//                    Text(
+//                        text = task.dueTime?.format(DateTimeFormatter.ofPattern("h:mm a")) ?: "No time",
+//                        style = MaterialTheme.typography.labelSmall
+//                    )
+//                }
+//            }
+//
+//            Icon(Icons.Default.MoreVert, contentDescription = null)
+//        }
+//    }
+//}
 
 @Composable
 fun PriorityTaskCard(task: Task) {

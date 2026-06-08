@@ -5,12 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.studymateandroidapp.ui.theme.BorderGray
-import com.example.studymateandroidapp.ui.theme.SoftGray
 
 /**
  * Reusable card used across the app.
@@ -24,8 +23,8 @@ fun AppCard(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        color = SoftGray,
-        border = BorderStroke(1.dp, BorderGray)
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
