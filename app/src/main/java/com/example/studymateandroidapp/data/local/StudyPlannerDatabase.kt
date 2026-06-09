@@ -37,7 +37,7 @@ import java.io.File
         Exam::class, Task::class, Goal::class, StudySession::class, Note::class,
         Flashcard::class, ReminderSetting::class, Achievement::class, DailyReflection::class
     ],
-    version = 10,
+    version = 12,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -54,6 +54,20 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
 
     companion object {
         private const val DATABASE_NAME = "study_planner.db"
+
+        val MIGRATION_10_11 = object : androidx.room.migration.Migration(10, 11) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                // Delete the obsolete FOCUS_MODE setting if it exists
+                db.execSQL("DELETE FROM reminder_settings WHERE type = 'FOCUS_MODE'")
+            }
+        }
+
+        val MIGRATION_11_12 = object : androidx.room.migration.Migration(11, 12) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                // Add isTimeSet column to exams table
+                db.execSQL("ALTER TABLE exams ADD COLUMN isTimeSet INTEGER NOT NULL DEFAULT 0")
+            }
+        }
 
         @Volatile
         private var INSTANCE: StudyPlannerDatabase? = null
@@ -76,7 +90,8 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                 INSTANCE ?: run {
                     // Clean up legacy non-SQLCipher files if needed
                     val prefs = context.getSharedPreferences("study_planner_secure_prefs", Context.MODE_PRIVATE)
-                    if (prefs.getInt("database_version", 0) < 10) {
+                    val currentStoredVersion = prefs.getInt("database_version", 0)
+                    if (currentStoredVersion < 10) {
                         val dbFile = context.getDatabasePath(DATABASE_NAME)
                         if (dbFile.exists()) {
                             dbFile.delete()
@@ -84,7 +99,9 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                             File(dbFile.path + "-shm").delete()
                             File(dbFile.path + "-wal").delete()
                         }
-                        prefs.edit().putInt("database_version", 10).apply()
+                        prefs.edit().putInt("database_version", 12).apply()
+                    } else if (currentStoredVersion < 12) {
+                        prefs.edit().putInt("database_version", 12).apply()
                     }
 
                     val factory = SupportOpenHelperFactory(DatabaseKeyHelper.getDatabaseKey(context), object : net.zetetic.database.sqlcipher.SQLiteDatabaseHook {
@@ -101,6 +118,7 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                         DATABASE_NAME
                     )
                         .openHelperFactory(factory)
+                        .addMigrations(MIGRATION_10_11, MIGRATION_11_12)
                         .fallbackToDestructiveMigration()
                         .fallbackToDestructiveMigrationOnDowngrade()
                         .build()

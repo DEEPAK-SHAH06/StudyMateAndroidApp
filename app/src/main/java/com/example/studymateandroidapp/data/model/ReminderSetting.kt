@@ -28,6 +28,5 @@ enum class ReminderType {
     EXAM,          // Before exam (1-day, 3-day etc)
     DAILY_HABIT,   // General study habit reminder
     MISSED_TASK,   // If task incomplete at end of day
-    DAILY_GOAL,    // If goal not met at end of day
-    FOCUS_MODE     // Global toggle to pause all notifications
+    DAILY_GOAL     // If goal not met at end of day
 }

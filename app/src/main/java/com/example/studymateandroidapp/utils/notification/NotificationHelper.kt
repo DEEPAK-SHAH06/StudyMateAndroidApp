@@ -9,6 +9,9 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.example.studymateandroidapp.MainActivity
 
+import android.media.RingtoneManager
+import android.util.Log
+
 /**
  * Centralized notification helper.
  *
@@ -27,6 +30,8 @@ import com.example.studymateandroidapp.MainActivity
  * | Daily Reminder | DEFAULT | Yes | No |
  */
 object NotificationHelper {
+
+    private const val TAG = "NotificationHelper"
 
     // ── Channel IDs ───────────────────────────────────────
     const val CHANNEL_TASK_REMINDER = "task_reminders"
@@ -50,7 +55,10 @@ object NotificationHelper {
     fun createChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
+        Log.d(TAG, "Creating notification channels")
         val manager = context.getSystemService(NotificationManager::class.java)
+
+        val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
         val taskChannel = NotificationChannel(
             CHANNEL_TASK_REMINDER,
@@ -59,6 +67,7 @@ object NotificationHelper {
         ).apply {
             description = "Reminders for upcoming task deadlines"
             enableVibration(true)
+            setSound(soundUri, null)
         }
 
         val examChannel = NotificationChannel(
@@ -68,6 +77,7 @@ object NotificationHelper {
         ).apply {
             description = "Notifications for upcoming exams"
             enableVibration(true)
+            setSound(soundUri, null)
         }
 
         val dailyChannel = NotificationChannel(
@@ -77,6 +87,7 @@ object NotificationHelper {
         ).apply {
             description = "Daily reminder to keep up your study habit"
             enableVibration(false)
+            setSound(soundUri, null)
         }
 
         val missedTaskChannel = NotificationChannel(
@@ -85,6 +96,7 @@ object NotificationHelper {
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             description = "Alerts for incomplete tasks at the end of the day"
+            setSound(soundUri, null)
         }
 
         val goalChannel = NotificationChannel(
@@ -93,59 +105,89 @@ object NotificationHelper {
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             description = "Daily alerts if your study goals aren't met"
+            setSound(soundUri, null)
         }
 
         manager.createNotificationChannels(
             listOf(taskChannel, examChannel, dailyChannel, missedTaskChannel, goalChannel)
         )
+        Log.d(TAG, "Notification channels created successfully")
     }
 
     // ── Builders ──────────────────────────────────────────
 
     /**
+     * Build the morning summary notification.
+     */
+    fun buildMorningSummary(
+        context: Context,
+        taskCount: Int
+    ): NotificationCompat.Builder {
+        Log.d(TAG, "Building morning summary for $taskCount tasks")
+        return NotificationCompat.Builder(context, CHANNEL_DAILY_REMINDER)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("Good Morning!")
+            .setContentText("You have $taskCount task(s) due today.")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(createLaunchIntent(context))
+    }
+
+    /**
+     * Build the end of day check notification.
+     */
+    fun buildEndOfDayCheck(
+        context: Context
+    ): NotificationCompat.Builder {
+        Log.d(TAG, "Building end of day check")
+        return NotificationCompat.Builder(context, CHANNEL_MISSED_TASK)
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setContentTitle("Unfinished Tasks")
+            .setContentText("You still have unfinished tasks today :/")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(createLaunchIntent(context))
+    }
+
+    /**
      * Build a task reminder notification.
-     *
-     * @param taskId    Used to generate a unique notification ID
-     * @param title     Task title
-     * @param dueInfo   e.g. "Due today" or "Due in 1 hour"
      */
     fun buildTaskReminder(
         context: Context,
         taskId: Long,
         title: String,
-        dueInfo: String
+        message: String,
+        isCritical: Boolean = false
     ): NotificationCompat.Builder {
+        Log.d(TAG, "Building task reminder notification for task $taskId (critical=$isCritical)")
         return NotificationCompat.Builder(context, CHANNEL_TASK_REMINDER)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Task Reminder")
-            .setContentText("$title — $dueInfo")
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(if (isCritical) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setAutoCancel(true)
             .setContentIntent(createLaunchIntent(context))
     }
 
     /**
      * Build an exam alert notification.
-     *
-     * @param examId    Used to generate a unique notification ID
-     * @param title     Exam title
-     * @param timeInfo  e.g. "Tomorrow" or "In 3 days"
      */
     fun buildExamAlert(
         context: Context,
         examId: Long,
         title: String,
-        timeInfo: String
+        message: String,
+        isCritical: Boolean = false
     ): NotificationCompat.Builder {
+        Log.d(TAG, "Building exam alert notification for exam $examId (critical=$isCritical)")
         return NotificationCompat.Builder(context, CHANNEL_EXAM_ALERT)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Exam Alert: $title")
-            .setContentText("$title is $timeInfo")
-            .setStyle(
-                NotificationCompat.BigTextStyle()
-                    .bigText("$title is $timeInfo. Make sure you're prepared!")
-            )
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setPriority(if (isCritical) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setAutoCancel(true)
             .setContentIntent(createLaunchIntent(context))
     }

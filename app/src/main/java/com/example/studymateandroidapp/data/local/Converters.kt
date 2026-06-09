@@ -55,7 +55,14 @@ class Converters {
     @TypeConverter fun toAchievementType(value: String): AchievementType = AchievementType.valueOf(value)
 
     @TypeConverter fun fromReminderType(value: ReminderType): String = value.name
-    @TypeConverter fun toReminderType(value: String): ReminderType = ReminderType.valueOf(value)
+    @TypeConverter fun toReminderType(value: String): ReminderType {
+        return try {
+            ReminderType.valueOf(value)
+        } catch (e: Exception) {
+            android.util.Log.e("Converters", "Unknown ReminderType: $value, falling back to TASK")
+            ReminderType.TASK
+        }
+    }
 
 
     // ── LocalTime ↔ Long (nano-of-day) ───────────────────

@@ -63,9 +63,9 @@ fun AddEditExamScreen(
                 .toInstant()
                 .toEpochMilli()
             if (examId == null) {
-                viewModel.addExam(Exam(title = title, subject = subject, examDate = examDate))
+                viewModel.addExam(Exam(title = title, subject = subject, examDate = examDate, isTimeSet = true))
             } else {
-                viewModel.updateExam(Exam(id = examId, title = title, subject = subject, examDate = examDate))
+                viewModel.updateExam(Exam(id = examId, title = title, subject = subject, examDate = examDate, isTimeSet = true))
             }
             onNavigateBack()
         }

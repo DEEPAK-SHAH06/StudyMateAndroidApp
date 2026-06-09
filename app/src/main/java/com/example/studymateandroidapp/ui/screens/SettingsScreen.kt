@@ -268,7 +268,6 @@ fun SettingsContent(
                         ReminderType.DAILY_HABIT -> "Daily Habit"
                         ReminderType.MISSED_TASK -> "Missed Task"
                         ReminderType.DAILY_GOAL -> "Daily Goal"
-                        ReminderType.FOCUS_MODE -> "Focus Mode"
                     }
 
                     val subtitle = when (setting.type) {
@@ -286,9 +285,6 @@ fun SettingsContent(
 
                         ReminderType.DAILY_GOAL ->
                             "Alert if you haven't met your daily study goal"
-
-                        ReminderType.FOCUS_MODE ->
-                            "Pause all notifications during focus time"
                     }
 
                     NotificationSettingItem(
@@ -316,8 +312,7 @@ private fun DefaultNotificationItems() {
         "Exam" to "Get alerts 1 and 3 days before exams",
         "Daily habit" to "Daily reminder to keep up your study habit",
         "Missed task" to "Alert if you have incomplete tasks at the end of the day",
-        "Daily goal" to "Alert if you haven't met your daily study goal",
-        "Focus mode" to "Pause all notifications during focus time"
+        "Daily goal" to "Alert if you haven't met your daily study goal"
     )
     defaults.forEach { (title, subtitle) ->
         NotificationSettingItem(
@@ -361,5 +356,36 @@ fun NotificationSettingItem(
                 )
             )
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun SettingsScreenPreview() {
+    MaterialTheme {
+        SettingsContent(
+            displayName = "Student",
+            photoUrl = null,
+            isSignedIn = false,
+            syncStatus = "IDLE",
+            isSyncEnabled = false,
+            reminderSettings = listOf(
+                ReminderSetting(ReminderType.TASK, true),
+                ReminderSetting(ReminderType.EXAM, true),
+                ReminderSetting(ReminderType.DAILY_HABIT, true),
+                ReminderSetting(ReminderType.MISSED_TASK, true),
+                ReminderSetting(ReminderType.DAILY_GOAL, true)
+            ),
+            snackbarHostState = SnackbarHostState(),
+            onBack = {},
+            onStatsClick = {},
+            onAchievementsClick = {},
+            onEditProfileClick = {},
+            onToggleReminder = {},
+            onSignIn = {},
+            onSignOut = {},
+            onToggleSync = {},
+            onSyncNow = {}
+        )
     }
 }

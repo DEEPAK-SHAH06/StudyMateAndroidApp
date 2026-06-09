@@ -2,6 +2,7 @@ package com.example.studymateandroidapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.studymateandroidapp.data.local.PreferenceManager
 import com.example.studymateandroidapp.data.model.StudySession
 import com.example.studymateandroidapp.data.repository.SessionRepository
 import kotlinx.coroutines.Job
@@ -17,7 +18,8 @@ import java.time.LocalDateTime
  * Manages the Pomodoro timer and stopwatch logic.
  */
 class TimerViewmodel(
-    private val sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository,
+    private val preferenceManager: PreferenceManager
 ) : ViewModel() {
 
     enum class TimerMode { POMODORO, STOPWATCH }
@@ -82,6 +84,8 @@ class TimerViewmodel(
     fun startTimer() {
         if (_uiState.value.isRunning) return
         _uiState.update { it.copy(isRunning = true) }
+        viewModelScope.launch { preferenceManager.setTimerRunning(true) }
+        
         if (startTime == null || _uiState.value.mode == TimerMode.POMODORO) {
             startTime = LocalDateTime.now()
         }
@@ -115,7 +119,8 @@ class TimerViewmodel(
         timerJob?.cancel()
         timerJob = null
         _uiState.update { it.copy(isRunning = false) }
-        
+        viewModelScope.launch { preferenceManager.setTimerRunning(false) }
+
         if (_uiState.value.mode == TimerMode.STOPWATCH && _uiState.value.timeLeftSeconds > 0) {
             saveSession()
         }
@@ -130,6 +135,7 @@ class TimerViewmodel(
                 timeLeftSeconds = if (it.mode == TimerMode.POMODORO) getPhaseDuration(it.phase) else 0 
             ) 
         }
+        viewModelScope.launch { preferenceManager.setTimerRunning(false) }
         startTime = null
     }
 

@@ -28,14 +28,16 @@ class ExamViewmodel(
     fun addExam(exam: Exam) {
         viewModelScope.launch {
             val id = repository.insert(exam)
-            val examLocalDate = Instant.ofEpochMilli(exam.examDate)
+            val ldt = Instant.ofEpochMilli(exam.examDate)
                 .atZone(ZoneId.systemDefault())
-                .toLocalDate()
+                .toLocalDateTime()
             
             reminderScheduler.scheduleExamReminders(
                 examId = id,
                 title = exam.title,
-                examDate = examLocalDate
+                subject = exam.subject,
+                examDateTime = ldt,
+                isTimeSet = exam.isTimeSet
             )
         }
     }
@@ -43,14 +45,16 @@ class ExamViewmodel(
     fun updateExam(exam: Exam) {
         viewModelScope.launch {
             repository.update(exam)
-            val examLocalDate = Instant.ofEpochMilli(exam.examDate)
+            val ldt = Instant.ofEpochMilli(exam.examDate)
                 .atZone(ZoneId.systemDefault())
-                .toLocalDate()
+                .toLocalDateTime()
             
             reminderScheduler.scheduleExamReminders(
                 examId = exam.id,
                 title = exam.title,
-                examDate = examLocalDate
+                subject = exam.subject,
+                examDateTime = ldt,
+                isTimeSet = exam.isTimeSet
             )
         }
     }

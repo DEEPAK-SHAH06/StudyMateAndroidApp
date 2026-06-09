@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.onEach
 import java.time.LocalTime
 import java.time.Instant
 import java.time.ZoneId
+import java.time.LocalDateTime
 
 class NotificationRepository(
     private val context: Context,
@@ -31,17 +32,11 @@ class NotificationRepository(
             Log.d(TAG, "allSettings emitted ${settings.size} reminder settings")
         }
 
-    suspend fun isFocusModeEnabled(): Boolean {
-        val settings = reminderDao.getAllSettings().first()
-        return settings.find { it.type == ReminderType.FOCUS_MODE }?.isEnabled ?: false
-    }
-
     suspend fun updateSetting(setting: ReminderSetting) {
         Log.d(TAG, "updateSetting requested: type=${setting.type}, enabled=${setting.isEnabled}")
         try {
             val updatedSetting = setting.copy(lastUpdated = System.currentTimeMillis())
             reminderDao.upsertSetting(updatedSetting)
-            Log.d(TAG, "Room upsert complete: type=${updatedSetting.type}, enabled=${updatedSetting.isEnabled}")
 
             if (updatedSetting.isEnabled) {
                 scheduleReminderType(updatedSetting)
@@ -50,12 +45,12 @@ class NotificationRepository(
             }
             updatePeriodicWorker()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to update reminder setting: type=${setting.type}", e)
-            throw e
+            Log.e(TAG, "Failed to update reminder setting", e)
         }
     }
 
     suspend fun rescheduleAll() {
+        Log.d(TAG, "Rescheduling all enabled reminders")
         val settings = reminderDao.getAllSettings().first()
 
         settings.forEach { setting ->
@@ -70,93 +65,65 @@ class NotificationRepository(
 
     suspend fun initializeDefaults() {
         val defaults = listOf(
-            ReminderSetting(ReminderType.TASK, isEnabled = true, scheduledTime = LocalTime.of(9, 0)),
-            ReminderSetting(ReminderType.EXAM, isEnabled = true, daysBefore = 1),
-            ReminderSetting(ReminderType.DAILY_HABIT, isEnabled = true, scheduledTime = LocalTime.of(8, 0)),
-            ReminderSetting(ReminderType.MISSED_TASK, isEnabled = true, scheduledTime = LocalTime.of(21, 0)),
-            ReminderSetting(ReminderType.DAILY_GOAL, isEnabled = true, scheduledTime = LocalTime.of(20, 0)),
-            ReminderSetting(ReminderType.FOCUS_MODE, isEnabled = false)
+            ReminderSetting(ReminderType.TASK, isEnabled = true),
+            ReminderSetting(ReminderType.EXAM, isEnabled = true),
+            ReminderSetting(ReminderType.DAILY_HABIT, isEnabled = true),
+            ReminderSetting(ReminderType.MISSED_TASK, isEnabled = true),
+            ReminderSetting(ReminderType.DAILY_GOAL, isEnabled = true)
         )
-        val beforeCount = reminderDao.getAllSettings().first().size
-        Log.d(TAG, "initializeDefaults called; existing settings count=$beforeCount")
         reminderDao.insertDefaultSettings(defaults)
-        val settings = reminderDao.getAllSettings().first()
-        Log.d(TAG, "initializeDefaults complete; settings count=${settings.size}")
         rescheduleAll()
     }
 
     private suspend fun scheduleReminderType(setting: ReminderSetting) {
         when (setting.type) {
-            ReminderType.TASK -> scheduleTaskReminders(setting)
-            ReminderType.EXAM -> scheduleExamReminders(setting)
-            ReminderType.DAILY_HABIT,
-            ReminderType.MISSED_TASK,
-            ReminderType.DAILY_GOAL,
-            ReminderType.FOCUS_MODE -> Unit
+            ReminderType.TASK -> scheduleTaskReminders()
+            ReminderType.EXAM -> scheduleExamReminders()
+            else -> { /* Handled by WorkManager */ }
         }
     }
 
     private suspend fun cancelReminderType(type: ReminderType) {
-        val notificationManager =
-            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         when (type) {
             ReminderType.TASK -> {
-                taskDao.getAllTasksList().forEach { task ->
-                    scheduler.cancelTaskReminder(task.id)
-                    notificationManager.cancel(NotificationHelper.TASK_NOTIFICATION_BASE + task.id.toInt())
+                taskDao.getAllTasksList().forEach { 
+                    scheduler.cancelTaskReminders(it.id)
+                    manager.cancel(NotificationHelper.TASK_NOTIFICATION_BASE + it.id.toInt())
                 }
             }
             ReminderType.EXAM -> {
-                examDao.getAllExams().first().forEach { exam ->
-                    scheduler.cancelExamReminders(exam.id)
-                    notificationManager.cancel(NotificationHelper.EXAM_NOTIFICATION_BASE + exam.id.toInt())
+                examDao.getAllExams().first().forEach { 
+                    scheduler.cancelExamReminders(it.id)
+                    manager.cancel(NotificationHelper.EXAM_NOTIFICATION_BASE + it.id.toInt())
                 }
             }
-            ReminderType.DAILY_HABIT ->
-                notificationManager.cancel(NotificationHelper.DAILY_REMINDER_ID)
-            ReminderType.MISSED_TASK ->
-                notificationManager.cancel(NotificationHelper.MISSED_TASK_ID)
-            ReminderType.DAILY_GOAL ->
-                notificationManager.cancel(NotificationHelper.DAILY_GOAL_ID)
-            ReminderType.FOCUS_MODE -> Unit
+            ReminderType.DAILY_HABIT -> manager.cancel(NotificationHelper.DAILY_REMINDER_ID)
+            ReminderType.MISSED_TASK -> manager.cancel(NotificationHelper.MISSED_TASK_ID)
+            ReminderType.DAILY_GOAL -> manager.cancel(NotificationHelper.DAILY_GOAL_ID)
         }
     }
 
-    private suspend fun scheduleTaskReminders(setting: ReminderSetting) {
-        val reminderTime = setting.scheduledTime ?: LocalTime.of(9, 0)
+    private suspend fun scheduleTaskReminders() {
         taskDao.getPendingTasks().first().forEach { task ->
-            task.dueDate?.let { dueDate ->
-                scheduler.scheduleTaskReminder(task.id, task.title, dueDate, reminderTime)
+            if (task.dueDate != null && task.dueTime != null) {
+                scheduler.scheduleTaskReminders(task.id, task.title, task.dueDate, task.dueTime)
             }
         }
     }
 
-    private suspend fun scheduleExamReminders(setting: ReminderSetting) {
-        val configuredDays = setting.daysBefore
-        val daysBefore = listOf(configuredDays ?: 1, 3).distinct()
+    private suspend fun scheduleExamReminders() {
         examDao.getAllExams().first().forEach { exam ->
-            val examDate = Instant.ofEpochMilli(exam.examDate)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate()
-            scheduler.scheduleExamReminders(exam.id, exam.title, examDate, daysBefore)
+            val ldt = Instant.ofEpochMilli(exam.examDate).atZone(ZoneId.systemDefault()).toLocalDateTime()
+            scheduler.scheduleExamReminders(exam.id, exam.title, exam.subject, ldt, exam.isTimeSet)
         }
     }
 
     private suspend fun updatePeriodicWorker(settings: List<ReminderSetting>? = null) {
         val currentSettings = settings ?: reminderDao.getAllSettings().first()
-        val periodicTypes = setOf(
-            ReminderType.DAILY_HABIT,
-            ReminderType.MISSED_TASK,
-            ReminderType.DAILY_GOAL
-        )
-        if (currentSettings.any { it.type in periodicTypes && it.isEnabled }) {
-            Log.d(TAG, "Periodic notification worker enabled")
-            NotificationWorker.enqueue(context)
-        } else {
-            Log.d(TAG, "Periodic notification worker disabled")
-            NotificationWorker.cancel(context)
-        }
+        // Always enqueue for windows (Morning/EOD) if app is active
+        NotificationWorker.enqueue(context)
+        Log.d(TAG, "Periodic worker enqueued/updated")
     }
 
     companion object {

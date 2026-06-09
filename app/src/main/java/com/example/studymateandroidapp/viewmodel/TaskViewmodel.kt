@@ -22,12 +22,12 @@ class TaskViewmodel(
     fun addTask(task: Task) {
         viewModelScope.launch {
             val id = repository.insert(task)
-            if (task.dueDate != null) {
-                reminderScheduler.scheduleTaskReminder(
+            if (task.dueDate != null && task.dueTime != null) {
+                reminderScheduler.scheduleTaskReminders(
                     taskId = id,
                     title = task.title,
                     dueDate = task.dueDate,
-                    reminderTime = task.dueTime ?: java.time.LocalTime.of(9, 0)
+                    dueTime = task.dueTime
                 )
             }
         }
@@ -36,15 +36,15 @@ class TaskViewmodel(
     fun updateTask(task: Task) {
         viewModelScope.launch {
             repository.update(task)
-            if (task.dueDate != null) {
-                reminderScheduler.scheduleTaskReminder(
+            if (task.dueDate != null && task.dueTime != null) {
+                reminderScheduler.scheduleTaskReminders(
                     taskId = task.id,
                     title = task.title,
                     dueDate = task.dueDate,
-                    reminderTime = task.dueTime ?: java.time.LocalTime.of(9, 0)
+                    dueTime = task.dueTime
                 )
             } else {
-                reminderScheduler.cancelTaskReminder(task.id)
+                reminderScheduler.cancelTaskReminders(task.id)
             }
         }
     }
@@ -52,7 +52,7 @@ class TaskViewmodel(
     fun deleteTask(task: Task) {
         viewModelScope.launch {
             repository.delete(task)
-            reminderScheduler.cancelTaskReminder(task.id)
+            reminderScheduler.cancelTaskReminders(task.id)
         }
     }
 

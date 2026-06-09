@@ -73,7 +73,10 @@ object ViewModelFactory : ViewModelProvider.Factory {
 
             // ── Timer ──────────────────────────────────────────────
             modelClass.isAssignableFrom(TimerViewmodel::class.java) ->
-                TimerViewmodel(SessionRepository(db.sessionDao())) as T
+                TimerViewmodel(
+                    sessionRepository = SessionRepository(db.sessionDao()),
+                    preferenceManager = PreferenceManager(application)
+                ) as T
 
             // ── Motivation / Reflection / Achievements ─────────────
             modelClass.isAssignableFrom(MotivationViewModel::class.java) ->
