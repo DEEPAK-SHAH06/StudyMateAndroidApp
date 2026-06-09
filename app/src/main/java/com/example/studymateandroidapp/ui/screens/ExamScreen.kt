@@ -119,7 +119,7 @@ fun ExamContent(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(exams) { exam ->
+                items(exams, key = { it.id }) { exam ->
                     ExamCard(
                         exam = exam,
                         onClick = { onExamClick(exam.id) },

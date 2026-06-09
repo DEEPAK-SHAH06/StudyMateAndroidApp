@@ -1,5 +1,9 @@
 package com.example.studymateandroidapp.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,33 +37,9 @@ fun ExamDetailScreen(
     onStartStudy: (Long) -> Unit,
     onBack: () -> Unit
 ) {
-    val examWithDetails by viewModel.getExamWithDetails(examId).collectAsState()
-
-    examWithDetails?.let { details ->
-        ExamDetailContent(
-            details = details,
-            onEdit = { onNavigateToEdit(examId) },
-            onAddNote = { onNavigateToNotes(examId) },
-            onAddFlashcard = { onNavigateToFlashcards(examId) },
-            onStartStudy = { onStartStudy(examId) },
-            onBack = onBack
-        )
-    } ?: Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
-fun ExamDetailContent(
-    details: ExamWithDetails,
-    onEdit: () -> Unit,
-    onAddNote: () -> Unit,
-    onAddFlashcard: () -> Unit,
-    onStartStudy: () -> Unit,
-    onBack: () -> Unit
-) {
-    val dateStr = LocalDate.ofEpochDay(details.exam.examDate / (24 * 60 * 60 * 1000))
-        .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"))
+    val examWithDetails by remember(examId) { 
+        viewModel.getExamWithDetails(examId) 
+    }.collectAsState(initial = null)
 
     Scaffold(
         topBar = {
@@ -67,76 +47,117 @@ fun ExamDetailContent(
                 title = "Exam Details",
                 onBack = onBack,
                 actions = {
-                    IconButton(onClick = onEdit) {
+                    IconButton(onClick = { onNavigateToEdit(examId) }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit")
                     }
                 }
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onStartStudy,
-                icon = { Icon(Icons.Default.Timer, contentDescription = null) },
-                text = { Text("Start Study Session") },
-                containerColor = Color.Black,
-                contentColor = Color.White
-            )
+            if (examWithDetails != null) {
+                ExtendedFloatingActionButton(
+                    onClick = { onStartStudy(examId) },
+                    icon = { Icon(Icons.Default.Timer, contentDescription = null) },
+                    text = { Text("Start Study Session") },
+                    containerColor = Color.Black,
+                    contentColor = Color.White
+                )
+            }
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            contentPadding = PaddingValues(bottom = 80.dp)
-        ) {
-            item {
-                Spacer(Modifier.height(8.dp))
-                
-                // Header Info
-                Text(text = details.exam.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text(text = details.exam.subject, style = MaterialTheme.typography.titleMedium, color = Color.Gray)
-                
-                Spacer(Modifier.height(16.dp))
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = dateStr, style = MaterialTheme.typography.bodyLarge)
-                }
-            }
-
-            // Quick Stats
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    DetailStatCard("Notes", details.notes.size.toString(), Icons.Default.Description, Modifier.weight(1f))
-                    DetailStatCard("Flashcards", details.flashcards.size.toString(), Icons.Default.Style, Modifier.weight(1f))
-                }
-            }
-
-            // Notes Preview
-            item {
-                SectionHeaderWithAction("Notes", onAddNote)
-            }
-            if (details.notes.isEmpty()) {
-                item { Text("No notes linked to this exam.", color = Color.Gray) }
+        AnimatedContent(
+            targetState = examWithDetails,
+            transitionSpec = {
+                fadeIn().togetherWith(fadeOut())
+            },
+            label = "ExamDetailContentTransition"
+        ) { details ->
+            if (details != null) {
+                ExamDetailContent(
+                    details = details,
+                    paddingValues = padding,
+                    onAddNote = { onNavigateToNotes(examId) },
+                    onAddFlashcard = { onNavigateToFlashcards(examId) }
+                )
             } else {
-                items(details.notes.take(3)) { note ->
-                    NotePreviewItem(note)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.Black)
                 }
             }
+        }
+    }
+}
 
-            // Flashcards Preview
-            item {
-                SectionHeaderWithAction("Flashcards", onAddFlashcard)
+@Composable
+fun ExamDetailContent(
+    details: ExamWithDetails,
+    paddingValues: PaddingValues,
+    onAddNote: () -> Unit,
+    onAddFlashcard: () -> Unit
+) {
+    val dateStr = remember(details.exam.examDate) {
+        LocalDate.ofEpochDay(details.exam.examDate / (24 * 60 * 60 * 1000))
+            .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"))
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = paddingValues.calculateTopPadding())
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
+        contentPadding = PaddingValues(bottom = 100.dp)
+    ) {
+        item {
+            Spacer(Modifier.height(8.dp))
+            
+            // Header Info
+            Text(text = details.exam.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(text = details.exam.subject, style = MaterialTheme.typography.titleMedium, color = Color.Gray)
+            
+            Spacer(Modifier.height(16.dp))
+            
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(text = dateStr, style = MaterialTheme.typography.bodyLarge)
             }
-            if (details.flashcards.isEmpty()) {
-                item { Text("No flashcards linked to this exam.", color = Color.Gray) }
-            } else {
-                items(details.flashcards.take(3)) { card ->
-                    FlashcardPreviewItem(card)
-                }
+        }
+
+        // Quick Stats
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                DetailStatCard("Notes", details.notes.size.toString(), Icons.Default.Description, Modifier.weight(1f))
+                DetailStatCard("Flashcards", details.flashcards.size.toString(), Icons.Default.Style, Modifier.weight(1f))
+            }
+        }
+
+        // Notes Preview
+        item {
+            SectionHeaderWithAction("Notes", onAddNote)
+        }
+        if (details.notes.isEmpty()) {
+            item { Text("No notes linked to this exam.", color = Color.Gray) }
+        } else {
+            items(details.notes.take(3), key = { it.id }) { note ->
+                NotePreviewItem(note)
+            }
+        }
+
+        // Flashcards Preview
+        item {
+            SectionHeaderWithAction("Flashcards", onAddFlashcard)
+        }
+        if (details.flashcards.isEmpty()) {
+            item { Text("No flashcards linked to this exam.", color = Color.Gray) }
+        } else {
+            items(details.flashcards.take(3), key = { it.id }) { card ->
+                FlashcardPreviewItem(card)
             }
         }
     }
