@@ -1,6 +1,7 @@
 package com.example.studymateandroidapp.ui.components
 
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -49,6 +50,7 @@ fun StudyMateTopBar(
         },
 
         actions = actions,
+        windowInsets = WindowInsets(0, 0, 0, 0),
 
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface

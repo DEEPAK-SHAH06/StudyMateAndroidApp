@@ -130,7 +130,7 @@ private fun DashboardContent(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             StudyMateTopBar(
-                title = "StudyMate",
+                title = "",
                 onBack = null,
                 actions = {
                     IconButton(onClick = onNavigateToAchievements) {
@@ -147,12 +147,12 @@ private fun DashboardContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 24.dp)
+            contentPadding = PaddingValues(start = 28.dp, end = 28.dp, bottom = 28.dp)
         ) {
             // ── 1. Profile Header ────────────────────────────
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Surface(
@@ -188,7 +188,7 @@ private fun DashboardContent(
                         )
                     }
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(16.dp))
             }
 
             // ── 2. Daily Inspiration Quote ──────────────────
