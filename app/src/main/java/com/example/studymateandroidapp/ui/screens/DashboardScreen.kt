@@ -141,6 +141,15 @@ private fun DashboardContent(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToCalendar,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(Icons.Default.CalendarMonth, contentDescription = "Calendar")
+            }
         }
     ) { paddingValues ->
         LazyColumn(
