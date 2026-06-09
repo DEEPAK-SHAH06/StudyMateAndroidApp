@@ -124,7 +124,7 @@ fun TaskContent(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 28.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
