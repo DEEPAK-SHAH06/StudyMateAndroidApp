@@ -22,8 +22,7 @@ class ExamViewmodel(
     val allExams: StateFlow<List<Exam>> = repository.allExams
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun getExamWithDetails(id: Long): StateFlow<ExamWithDetails?> = repository.getExamWithDetails(id)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    fun getExamWithDetails(id: Long) = repository.getExamWithDetails(id)
 
     fun addExam(exam: Exam) {
         viewModelScope.launch {

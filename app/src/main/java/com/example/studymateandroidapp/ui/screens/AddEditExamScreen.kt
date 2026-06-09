@@ -38,7 +38,7 @@ fun AddEditExamScreen(
     var initialTime by remember { mutableStateOf(LocalTime.of(9, 0)) }
 
     if (examId != null) {
-        val examState by viewModel.getExamWithDetails(examId).collectAsState()
+        val examState by viewModel.getExamWithDetails(examId).collectAsState(initial = null)
         LaunchedEffect(examState) {
             examState?.exam?.let {
                 initialTitle = it.title
