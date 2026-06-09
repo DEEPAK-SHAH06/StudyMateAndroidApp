@@ -13,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -449,6 +448,10 @@ fun SettingsScreenPreview() {
             isSignedIn = false,
             syncStatus = "IDLE",
             isSyncEnabled = false,
+
+            themeMode = 0,
+            isAppLockEnabled = false,
+
             reminderSettings = listOf(
                 ReminderSetting(ReminderType.TASK, true),
                 ReminderSetting(ReminderType.EXAM, true),
@@ -456,12 +459,18 @@ fun SettingsScreenPreview() {
                 ReminderSetting(ReminderType.MISSED_TASK, true),
                 ReminderSetting(ReminderType.DAILY_GOAL, true)
             ),
+
             snackbarHostState = SnackbarHostState(),
+
             onBack = {},
             onStatsClick = {},
             onAchievementsClick = {},
             onEditProfileClick = {},
+
             onToggleReminder = {},
+            onThemeChange = {},
+            onToggleAppLock = {},
+
             onSignIn = {},
             onSignOut = {},
             onToggleSync = {},
