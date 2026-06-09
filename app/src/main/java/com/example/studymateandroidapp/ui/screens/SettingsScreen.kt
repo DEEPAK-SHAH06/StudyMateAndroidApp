@@ -31,12 +31,15 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onNavigateToStats: () -> Unit,
     onNavigateToAchievements: () -> Unit,
-    onNavigateToEditProfile: () -> Unit
+    onNavigateToEditProfile: () -> Unit,
+    onNavigateToLogin: () -> Unit
 ) {
     val settings by viewModel.settings.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
     val isSyncEnabled by viewModel.isSyncEnabled.collectAsState()
+    val themeMode by viewModel.themeMode.collectAsState()
+    val isAppLockEnabled by viewModel.isAppLockEnabled.collectAsState()
     val profileState by viewModel.profileState.collectAsState()
     
     // Explicitly collecting uiError
@@ -63,6 +66,8 @@ fun SettingsScreen(
         isSignedIn          = isSignedIn,
         syncStatus          = syncStatus,
         isSyncEnabled       = isSyncEnabled,
+        themeMode           = themeMode,
+        isAppLockEnabled    = isAppLockEnabled,
         reminderSettings    = settings,
         snackbarHostState   = snackbarHostState,
         onBack              = onBack,
@@ -70,9 +75,11 @@ fun SettingsScreen(
         onAchievementsClick = onNavigateToAchievements,
         onEditProfileClick  = onNavigateToEditProfile,
         onToggleReminder    = { viewModel.toggleReminder(it) },
+        onThemeChange       = { viewModel.setThemeMode(it) },
+        onToggleAppLock     = { viewModel.setAppLockEnabled(it) },
         onSignIn            = { 
-            (context as? android.app.Activity)?.let { activity ->
-                viewModel.signInWithGoogle(activity) 
+            if (!isSignedIn) {
+                onNavigateToLogin()
             }
         },
         onSignOut           = { viewModel.signOut() },
@@ -88,6 +95,8 @@ fun SettingsContent(
     isSignedIn: Boolean,
     syncStatus: String,
     isSyncEnabled: Boolean,
+    themeMode: Int,
+    isAppLockEnabled: Boolean,
     reminderSettings: List<ReminderSetting>,
     snackbarHostState: SnackbarHostState,
     onBack: (() -> Unit)?,
@@ -95,6 +104,8 @@ fun SettingsContent(
     onAchievementsClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onToggleReminder: (ReminderSetting) -> Unit,
+    onThemeChange: (Int) -> Unit,
+    onToggleAppLock: (Boolean) -> Unit,
     onSignIn: () -> Unit,
     onSignOut: () -> Unit,
     onToggleSync: (Boolean) -> Unit,
@@ -121,7 +132,7 @@ fun SettingsContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
@@ -135,7 +146,7 @@ fun SettingsContent(
                 Surface(
                     modifier = Modifier.size(120.dp),
                     shape = CircleShape,
-                    color = Color.LightGray
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     if (photoUrl != null) {
                         AsyncImage(
@@ -149,7 +160,7 @@ fun SettingsContent(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
                             modifier = Modifier.padding(24.dp),
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -159,7 +170,8 @@ fun SettingsContent(
                 Text(
                     text = displayName,
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -168,21 +180,22 @@ fun SettingsContent(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFFF5F5F5)
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Sync, contentDescription = null, tint = Color.Gray)
+                            Icon(Icons.Default.Sync, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = if (isSignedIn) "Cloud Sync" else "Not Signed In",
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = if (isSignedIn) "Sync Status: $syncStatus" else "Sign in to keep your data safe",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                 )
                             }
                             if (isSignedIn) {
@@ -190,17 +203,17 @@ fun SettingsContent(
                                     checked = isSyncEnabled,
                                     onCheckedChange = onToggleSync,
                                     colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = Color.Black
+                                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
                                     )
                                 )
                             } else {
                                 Button(
                                     onClick = onSignIn,
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                     shape = RoundedCornerShape(8.dp)
                                 ) {
-                                    Text("Sign In", fontSize = 12.sp)
+                                    Text("Sign In", fontSize = 12.sp, color = MaterialTheme.colorScheme.onPrimary)
                                 }
                             }
                         }
@@ -211,19 +224,20 @@ fun SettingsContent(
                                 OutlinedButton(
                                     onClick = onSignOut,
                                     shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                                 ) {
-                                    Text("Sign Out", fontSize = 12.sp)
+                                    Text("Sign Out", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                                 }
                                 if (isSyncEnabled) {
                                     Button(
                                         onClick = onSyncNow,
                                         shape = RoundedCornerShape(8.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                         modifier = Modifier.weight(1f),
                                         enabled = syncStatus != "SYNCING"
                                     ) {
-                                        Text("Sync Now", fontSize = 12.sp)
+                                        Text("Sync Now", fontSize = 12.sp, color = MaterialTheme.colorScheme.onPrimary)
                                     }
                                 }
                             }
@@ -236,23 +250,89 @@ fun SettingsContent(
                 Button(
                     onClick = onEditProfileClick,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onPrimary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Edit Your Profile")
+                    Text("Edit Your Profile", color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
+
+            // ── Appearance ─────────────────────────────
+            Text(
+                "Appearance",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = themeMode == 0, onClick = { onThemeChange(0) })
+                        Text("System Default", color = MaterialTheme.colorScheme.onSurface)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = themeMode == 1, onClick = { onThemeChange(1) })
+                        Text("Light Mode", color = MaterialTheme.colorScheme.onSurface)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = themeMode == 2, onClick = { onThemeChange(2) })
+                        Text("Dark Mode", color = MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── Security ─────────────────────────────
+            Text(
+                "Security",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Biometric Lock", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Require biometric scan to open app", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                    }
+                    Switch(
+                        checked = isAppLockEnabled,
+                        onCheckedChange = onToggleAppLock,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.primary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // ── Notifications ─────────────────────────────
             Text(
                 "Notifications",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -336,7 +416,7 @@ fun NotificationSettingItem(
             .padding(vertical = 4.dp)
             .fillMaxWidth(),
         shape  = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, Color(0xFFEEEEEE))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -344,15 +424,15 @@ fun NotificationSettingItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             }
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor  = Color.White,
-                    checkedTrackColor  = Color.Black
+                    checkedThumbColor  = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor  = MaterialTheme.colorScheme.primaryContainer
                 )
             )
         }

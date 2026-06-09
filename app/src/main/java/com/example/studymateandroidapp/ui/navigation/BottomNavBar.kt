@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.studymateandroidapp.ui.theme.*
 
 /**
  * Bottom navigation bar composable.
@@ -31,7 +30,7 @@ fun BottomNavBar(
 
     NavigationBar(
         modifier = modifier,
-        containerColor = BackgroundWhite,
+        containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp // tonal layering, no shadow
     ) {
         Screen.bottomNavItems.forEach { screen ->
@@ -65,11 +64,11 @@ fun BottomNavBar(
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = PureBlack,
-                    selectedTextColor = PureBlack,
-                    unselectedIconColor = TextGray,
-                    unselectedTextColor = TextGray,
-                    indicatorColor = SoftGray
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer
                 )
             )
         }

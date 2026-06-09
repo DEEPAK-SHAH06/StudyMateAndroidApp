@@ -14,8 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.studymateandroidapp.ui.theme.BackgroundWhite
-import com.example.studymateandroidapp.ui.theme.PureBlack
 
 /**
  * Shared top app bar used throughout the app.
@@ -34,7 +32,7 @@ fun StudyMateTopBar(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = PureBlack
+                color = MaterialTheme.colorScheme.onSurface
             )
         },
 
@@ -44,7 +42,7 @@ fun StudyMateTopBar(
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Back",
-                        tint = PureBlack
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -53,7 +51,7 @@ fun StudyMateTopBar(
         actions = actions,
 
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = BackgroundWhite
+            containerColor = MaterialTheme.colorScheme.surface
         ),
 
         modifier = modifier

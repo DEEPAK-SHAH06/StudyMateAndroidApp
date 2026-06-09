@@ -239,7 +239,8 @@ fun AppNavHost(
                 onBack = { navController.popBackStack() },
                 onNavigateToStats = { navController.navigate(Screen.Statistics.route) },
                 onNavigateToAchievements = { navController.navigate(Screen.Achievements.route) },
-                onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) }
+                onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
+                onNavigateToLogin = { navController.navigate(Screen.Login.route) }
             )
         }
 
@@ -334,6 +335,42 @@ fun AppNavHost(
             AchievementsScreen(
                 viewModel = vm,
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // ── Authentication ────────────────────────────
+        composable(Screen.Login.route) {
+            val vm: AuthViewModel = viewModel(factory = ViewModelFactory)
+            LoginScreen(
+                viewModel = vm,
+                onNavigateToRegister = { navController.navigate(Screen.Register.route) },
+                onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) },
+                onLoginSuccess = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Register.route) {
+            val vm: AuthViewModel = viewModel(factory = ViewModelFactory)
+            RegisterScreen(
+                viewModel = vm,
+                onNavigateToLogin = { navController.popBackStack() },
+                onRegisterSuccess = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Register.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.ForgotPassword.route) {
+            val vm: AuthViewModel = viewModel(factory = ViewModelFactory)
+            ForgotPasswordScreen(
+                viewModel = vm,
+                onNavigateToLogin = { navController.popBackStack() }
             )
         }
     }

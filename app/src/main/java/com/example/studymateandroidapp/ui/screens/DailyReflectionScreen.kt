@@ -1,6 +1,7 @@
 package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,7 +30,6 @@ import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.DailyReflection
 import com.example.studymateandroidapp.ui.components.AppCard
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
-import com.example.studymateandroidapp.ui.theme.*
 import com.example.studymateandroidapp.viewmodel.MotivationViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -93,25 +93,25 @@ fun DailyReflectionContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(BackgroundWhite)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // ── Tabs ──────────────────────────────────────
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor   = BackgroundWhite
+                containerColor   = MaterialTheme.colorScheme.surface
             ) {
                 Tab(
                     selected = selectedTab == 0,
                     onClick  = { selectedTab = 0 },
                     text = {
-                        Text("Today", color = if (selectedTab == 0) PureBlack else TextGray)
+                        Text("Today", color = if (selectedTab == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick  = { selectedTab = 1 },
                     text = {
-                        Text("History", color = if (selectedTab == 1) PureBlack else TextGray)
+                        Text("History", color = if (selectedTab == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 )
             }
@@ -176,11 +176,12 @@ private fun TodayTab(
                         Text(
                             today.format(DateTimeFormatter.ofPattern("EEEE")),
                             style      = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color      = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             today.format(DateTimeFormatter.ofPattern("MMMM d, yyyy")),
-                            color = SoftRed
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                     Icon(
@@ -195,7 +196,7 @@ private fun TodayTab(
 
         // Mood picker
         item {
-            Text("How are you feeling?", fontWeight = FontWeight.Bold)
+            Text("How are you feeling?", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(12.dp))
             Row(
                 modifier              = Modifier.fillMaxWidth(),
@@ -213,7 +214,7 @@ private fun TodayTab(
 
         // Study notes
         item {
-            Text("What did you study today?", fontWeight = FontWeight.Bold)
+            Text("What did you study today?", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value         = content,
@@ -222,13 +223,17 @@ private fun TodayTab(
                     .fillMaxWidth()
                     .height(150.dp),
                 placeholder   = { Text("Write freely... what went well, what you learned, any questions?") },
-                shape         = RoundedCornerShape(16.dp)
+                shape         = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                )
             )
         }
 
         // Study highlight
         item {
-            Text("⭐ Study highlight of the day", fontWeight = FontWeight.Bold)
+            Text("⭐ Study highlight of the day", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value         = highlight,
@@ -236,7 +241,11 @@ private fun TodayTab(
                 modifier      = Modifier.fillMaxWidth(),
                 placeholder   = { Text("e.g. Finally understood recursion!") },
                 singleLine    = true,
-                shape         = RoundedCornerShape(12.dp)
+                shape         = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                )
             )
         }
 
@@ -247,15 +256,16 @@ private fun TodayTab(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PureBlack),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape  = RoundedCornerShape(14.dp)
             ) {
                 Icon(
                     painter            = painterResource(R.drawable.save),
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
                 Spacer(Modifier.width(8.dp))
-                Text(if (alreadySaved) "Update Reflection" else "Save Reflection")
+                Text(if (alreadySaved) "Update Reflection" else "Save Reflection", color = MaterialTheme.colorScheme.onPrimary)
             }
             Spacer(Modifier.height(32.dp))
         }
@@ -278,8 +288,8 @@ private fun HistoryTab(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("🌱", fontSize = 48.sp)
                 Spacer(Modifier.height(12.dp))
-                Text("No reflections yet", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text("Start journaling today!", style = MaterialTheme.typography.bodyMedium, color = TextGray)
+                Text("No reflections yet", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Text("Start journaling today!", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         return
@@ -313,10 +323,10 @@ fun MoodEmoji(
         modifier = Modifier
             .size(50.dp)
             .clip(CircleShape)
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .border(
                 width  = 2.dp,
-                color  = if (isSelected) PureBlack else Color.LightGray,
+                color  = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 shape  = CircleShape
             )
             .clickable { onClick() },
@@ -338,7 +348,11 @@ fun ReflectionHistoryCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 4.dp),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -350,21 +364,22 @@ fun ReflectionHistoryCard(
                     Text(
                         date.format(DateTimeFormatter.ofPattern("EEEE")),
                         fontSize   = 15.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color      = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         date.format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
                         fontSize = 10.sp,
-                        color    = TextGray
+                        color    = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(reflection.mood, fontSize = 24.sp)
                     IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit reflection")
+                        Icon(Icons.Default.Edit, contentDescription = "Edit reflection", tint = MaterialTheme.colorScheme.onSurface)
                     }
                     IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete reflection")
+                        Icon(Icons.Default.Delete, contentDescription = "Delete reflection", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -374,7 +389,8 @@ fun ReflectionHistoryCard(
                 Text(
                     reflection.content,
                     style    = MaterialTheme.typography.bodyMedium,
-                    maxLines = 3
+                    maxLines = 3,
+                    color    = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -384,7 +400,7 @@ fun ReflectionHistoryCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFFFF9C4))
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -393,7 +409,7 @@ fun ReflectionHistoryCard(
                         Text(
                             reflection.studyHighlight,
                             style      = MaterialTheme.typography.labelMedium,
-                            color      = Color(0xFF5D4037),
+                            color      = MaterialTheme.colorScheme.onPrimaryContainer,
                             fontWeight = FontWeight.SemiBold
                         )
                     }

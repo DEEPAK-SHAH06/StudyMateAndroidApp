@@ -15,7 +15,7 @@ object BiometricHelper {
     }
 
     fun promptBiometricAuth(
-        activity: androidx.appcompat.app.AppCompatActivity,
+        activity: androidx.fragment.app.FragmentActivity,
         title: String,
         subtitle: String,
         onSuccess: () -> Unit,

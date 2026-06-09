@@ -58,6 +58,20 @@ class SettingViewmodel(
             initialValue = false
         )
 
+    val themeMode: StateFlow<Int> = preferenceManager.themeMode
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 0
+        )
+
+    val isAppLockEnabled: StateFlow<Boolean> = preferenceManager.isAppLockEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false
+        )
+
     private val _uiError = MutableStateFlow<String?>(null)
     val uiError = _uiError.asStateFlow()
 
@@ -71,6 +85,18 @@ class SettingViewmodel(
         }
         observeLocalProfile()
         syncWithFirebase()
+    }
+
+    fun setThemeMode(mode: Int) {
+        viewModelScope.launch {
+            preferenceManager.setThemeMode(mode)
+        }
+    }
+
+    fun setAppLockEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferenceManager.setAppLockEnabled(enabled)
+        }
     }
 
     private fun observeLocalProfile() {
