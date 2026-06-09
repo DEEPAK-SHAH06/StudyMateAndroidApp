@@ -31,7 +31,8 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onNavigateToStats: () -> Unit,
     onNavigateToAchievements: () -> Unit,
-    onNavigateToEditProfile: () -> Unit
+    onNavigateToEditProfile: () -> Unit,
+    onNavigateToLogin: () -> Unit
 ) {
     val settings by viewModel.settings.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
@@ -77,8 +78,8 @@ fun SettingsScreen(
         onThemeChange       = { viewModel.setThemeMode(it) },
         onToggleAppLock     = { viewModel.setAppLockEnabled(it) },
         onSignIn            = { 
-            (context as? android.app.Activity)?.let { activity ->
-                viewModel.signInWithGoogle(activity) 
+            if (!isSignedIn) {
+                onNavigateToLogin()
             }
         },
         onSignOut           = { viewModel.signOut() },

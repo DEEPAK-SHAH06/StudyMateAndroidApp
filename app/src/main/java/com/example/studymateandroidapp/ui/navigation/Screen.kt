@@ -89,6 +89,11 @@ sealed class Screen(
     data object Achievements : Screen("achievements", "Achievements", Icons.Default.EmojiEvents)
     data object Splash : Screen("splash", "Splash")
 
+    // ── Authentication destinations ─────────────────────
+    data object Login : Screen("login", "Login")
+    data object Register : Screen("register", "Register")
+    data object ForgotPassword : Screen("forgot_password", "Forgot Password")
+
     companion object {
         /** Destinations shown in the bottom navigation bar. */
         val bottomNavItems = listOf(Dashboard, Tasks, Exams, StudyTimer, Settings)

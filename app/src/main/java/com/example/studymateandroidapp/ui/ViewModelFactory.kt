@@ -119,6 +119,13 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(AchievementViewmodel::class.java) ->
                 AchievementViewmodel() as T
 
+            // ── Authentication ─────────────────────────────────────
+            modelClass.isAssignableFrom(AuthViewModel::class.java) ->
+                AuthViewModel(
+                    authRepository = AuthRepository(application),
+                    syncManager = com.example.studymateandroidapp.utils.sync.SyncManager(application)
+                ) as T
+
             else -> throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
         }
     }

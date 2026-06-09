@@ -77,6 +77,47 @@ class AuthRepository(val context: Context) {
         }
     }
 
+    /**
+     * Authenticates a user using email and password.
+     */
+    suspend fun signInWithEmail(email: String, password: String): Result<Unit> {
+        if (!isNetworkAvailable()) return Result.failure(Exception("No internet connection"))
+        return try {
+            auth.signInWithEmailAndPassword(email, password).await()
+            _currentUser.value = auth.currentUser
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Registers a new user with email and password.
+     */
+    suspend fun signUpWithEmail(email: String, password: String): Result<Unit> {
+        if (!isNetworkAvailable()) return Result.failure(Exception("No internet connection"))
+        return try {
+            auth.createUserWithEmailAndPassword(email, password).await()
+            _currentUser.value = auth.currentUser
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Sends a password reset email.
+     */
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        if (!isNetworkAvailable()) return Result.failure(Exception("No internet connection"))
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     fun signOut() {
         auth.signOut()
         _currentUser.value = null
