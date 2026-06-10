@@ -35,35 +35,33 @@ class FlashcardViewmodel(
 
             studyProgressRepository.getProgressByExamId(examId)
                 .take(1)
-                .collect 
-            { current ->
-                val progress = current ?: StudyProgress(examId = examId)
+                .collect { current ->
+                    val progress = current ?: StudyProgress(examId = examId)
 
-                val newFlashcardMastery =
-                    if (progress.flashcardMastery == 0f)
-                        performance
-                    else
-                        (progress.flashcardMastery + performance) / 2f
+                    val newFlashcardMastery =
+                        if (progress.flashcardMastery == 0f)
+                            performance
+                        else
+                            (progress.flashcardMastery + performance) / 2f
 
-                val timePoints =
-                    (progress.totalStudyTime.toFloat() /
-                            (5 * 60 * 60 * 1000))
-                        .coerceAtMost(1f) * 0.3f
+                    val timePoints =
+                        (progress.totalStudyTime.toFloat() /
+                                (5 * 60 * 60 * 1000))
+                            .coerceAtMost(1f) * 0.3f
 
-                val performancePoints = newFlashcardMastery * 0.7f
+                    val performancePoints = newFlashcardMastery * 0.7f
 
-                val newPercentage =
-                    (timePoints + performancePoints)
-                        .coerceIn(0f, 1f)
+                    val newPercentage =
+                        (timePoints + performancePoints).coerceIn(0f, 1f)
 
-                studyProgressRepository.updateProgress(
-                    progress.copy(
-                        flashcardMastery = newFlashcardMastery,
-                        completionPercentage = newPercentage,
-                        lastStudiedTimestamp = System.currentTimeMillis()
+                    studyProgressRepository.updateProgress(
+                        progress.copy(
+                            flashcardMastery = newFlashcardMastery,
+                            completionPercentage = newPercentage,
+                            lastStudiedTimestamp = System.currentTimeMillis()
+                        )
                     )
-                )
-            }
+                }
         }
     }
 
