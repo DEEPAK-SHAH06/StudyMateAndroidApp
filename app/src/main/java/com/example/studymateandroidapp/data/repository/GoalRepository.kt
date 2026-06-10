@@ -6,24 +6,26 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 class GoalRepository(private val goalDao: GoalDao) {
-    val allGoals: Flow<List<Goal>> = goalDao.getAllGoals()
-    val completedGoalCount: Flow<Int> = goalDao.getCompletedGoalCount()
 
-    suspend fun insert(goal: Goal) {
-        goalDao.insert(goal)
-    }
+    fun getAllGoals(): Flow<List<Goal>> = goalDao.getAllGoals()
 
-    fun getOverdueCount(date: LocalDate): Flow<Int> =
-        goalDao.getOverdueCount(date)
+    fun getGoalById(id: Long): Flow<Goal?> = goalDao.getGoalById(id)
 
-    suspend fun update(goal: Goal) {
-        goalDao.update(goal)
-    }
+    fun getActiveGoals(): Flow<List<Goal>> = goalDao.getActiveGoals()
 
-    suspend fun delete(goal: Goal) {
-        goalDao.delete(goal)
-    }
+    fun getGoalsForExam(examId: Long): Flow<List<Goal>> = goalDao.getGoalsForExam(examId)
 
-    fun completedGoalCount(): Flow<Int> =
-        goalDao.getCompletedGoalCount()
+    suspend fun insert(goal: Goal): Long = goalDao.insert(goal)
+
+    suspend fun update(goal: Goal) = goalDao.update(goal)
+
+    suspend fun updateProgress(id: Long, value: Int) = goalDao.updateProgress(id, value)
+
+    suspend fun delete(goal: Goal) = goalDao.delete(goal)
+
+    suspend fun deleteById(id: Long) = goalDao.deleteById(id)
+
+    fun getCompletedGoalCount(): Flow<Int> = goalDao.getCompletedGoalCount()
+
+    fun getOverdueCount(date: LocalDate): Flow<Int> = goalDao.getOverdueCount(date)
 }

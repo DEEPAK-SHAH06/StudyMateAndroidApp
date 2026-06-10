@@ -230,6 +230,31 @@ fun AppNavHost(
             val vm: GoalViewmodel = viewModel(factory = ViewModelFactory)
             GoalScreen(
                 viewModel = vm,
+                onNavigateToAddGoal = { navController.navigate(Screen.AddGoal.route) },
+                onNavigateToEditGoal = { goalId ->
+                    navController.navigate(Screen.EditGoal.createRoute(goalId))
+                },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AddGoal.route) {
+            val vm: GoalViewmodel = viewModel(factory = ViewModelFactory)
+            AddEditGoalScreen(
+                viewModel = vm,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.EditGoal.route,
+            arguments = listOf(navArgument("goalId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val goalId = backStackEntry.arguments?.getLong("goalId") ?: return@composable
+            val vm: GoalViewmodel = viewModel(factory = ViewModelFactory)
+            AddEditGoalScreen(
+                goalId = goalId,
+                viewModel = vm,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

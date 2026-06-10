@@ -57,6 +57,9 @@ sealed class Screen(
     }
     data object Goals : Screen("goals", "Goals")
     data object AddGoal : Screen("add_goal", "Add Goal")
+    data object EditGoal : Screen("edit_goal/{goalId}", "Edit Goal") {
+        fun createRoute(goalId: Long) = "edit_goal/$goalId"
+    }
     data object AddNote : Screen("add_note?noteId={noteId}&examId={examId}", "Add Note") {
         fun createRoute(noteId: Long? = null, examId: Long? = null): String {
             return when {
