@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /**
- * Loads real data from Room via StatisticsRepository.
+ * Loads real data from Room via StatisticsRepository with second-level precision.
  */
 class StatisticsViewmodel(
     private val repository: StatisticsRepository
@@ -24,11 +24,10 @@ class StatisticsViewmodel(
         val totalTasks: Int = 0,
         val completedTasks: Int = 0,
         val taskCompletionRate: Int = 0,
-        val totalStudyMinutes: Int = 0,
-        val formattedStudyTime: String = "0h 0m",
+        val todayStudySeconds: Int = 0,
         val completedGoals: Int = 0,
-        val todayStudyMinutes: Int = 0,
-        val weekStudyMinutes: Int = 0,
+        val thisWeekStudySeconds: Int = 0,
+        val weeklyAverageSubtitle: String = "Avg: 0s/day",
         val dailyChartData: List<DailyChartPoint> = emptyList(),
         val isLoading: Boolean = true,
         val errorMessage: String? = null
@@ -36,7 +35,7 @@ class StatisticsViewmodel(
 
     data class DailyChartPoint(
         val label: String,   // "Mon", "Tue" …
-        val minutes: Int,
+        val seconds: Int,    // Use seconds for exact scaling
         val date: LocalDate
     )
 
@@ -45,8 +44,8 @@ class StatisticsViewmodel(
 
     init {
         loadOverviewStats()
-        loadTodayMinutes()
-        loadWeekMinutes()
+        loadTodaySeconds()
+        loadThisWeekSeconds()
         loadDailyChart()
     }
 
@@ -66,8 +65,6 @@ class StatisticsViewmodel(
                             totalTasks        = stats.totalTasks,
                             completedTasks    = stats.completedTasks,
                             taskCompletionRate = stats.taskCompletionRate,
-                            totalStudyMinutes = stats.totalStudyMinutes,
-                            formattedStudyTime = stats.formattedStudyTime,
                             completedGoals    = stats.completedGoals,
                             isLoading         = false
                         )
@@ -76,22 +73,29 @@ class StatisticsViewmodel(
         }
     }
 
-    private fun loadTodayMinutes() {
+    private fun loadTodaySeconds() {
         viewModelScope.launch {
-            repository.getTodayStudyMinutes()
+            repository.getTodayStudySeconds()
                 .catch { /* silent */ }
-                .collect { minutes ->
-                    _uiState.update { it.copy(todayStudyMinutes = minutes) }
+                .collect { seconds ->
+                    _uiState.update { it.copy(todayStudySeconds = seconds) }
                 }
         }
     }
 
-    private fun loadWeekMinutes() {
+    private fun loadThisWeekSeconds() {
         viewModelScope.launch {
-            repository.getThisWeekStudyMinutes()
+            repository.getThisWeekStudySeconds()
                 .catch { /* silent */ }
-                .collect { minutes ->
-                    _uiState.update { it.copy(weekStudyMinutes = minutes) }
+                .collect { seconds ->
+                    val avgSeconds = seconds / 7
+                    val formattedAvg = StatisticsRepository.formatDuration(avgSeconds)
+                    _uiState.update { 
+                        it.copy(
+                            thisWeekStudySeconds = seconds,
+                            weeklyAverageSubtitle = "Avg: $formattedAvg/day"
+                        ) 
+                    }
                 }
         }
     }
@@ -107,7 +111,7 @@ class StatisticsViewmodel(
                                 .take(3)
                                 .lowercase()
                                 .replaceFirstChar { it.uppercase() },
-                            minutes = data.studyMinutes,
+                            seconds = data.studySeconds,
                             date    = data.date
                         )
                     }

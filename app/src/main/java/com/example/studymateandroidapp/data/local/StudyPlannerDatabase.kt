@@ -97,14 +97,23 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                 """)
                 
                 // Copy data, converting minutes to seconds
-                // We CAST timestamps to INTEGER just in case they were stored as strings in legacy versions
+                // Use strftime('%s', ...) to correctly convert ISO strings to epoch seconds.
+                // If it's already a numeric string, CAST handles it.
                 db.execSQL("""
                     INSERT INTO study_sessions_new (
                         id, taskId, examId, subject, startTime, endTime, 
                         durationSeconds, isCompleted, notes, userId, serverId, lastUpdated
                     )
                     SELECT 
-                        id, taskId, examId, subject, CAST(startTime AS INTEGER), CAST(endTime AS INTEGER), 
+                        id, taskId, examId, subject, 
+                        CASE 
+                            WHEN startTime GLOB '[0-9]*' THEN CAST(startTime AS INTEGER)
+                            ELSE CAST(strftime('%s', startTime) AS INTEGER)
+                        END,
+                        CASE 
+                            WHEN endTime GLOB '[0-9]*' THEN CAST(endTime AS INTEGER)
+                            ELSE CAST(strftime('%s', endTime) AS INTEGER)
+                        END,
                         durationMinutes * 60, 0, notes, userId, serverId, lastUpdated
                     FROM study_sessions
                 """)
