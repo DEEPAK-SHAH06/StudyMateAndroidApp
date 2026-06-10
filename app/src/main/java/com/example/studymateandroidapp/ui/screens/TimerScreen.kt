@@ -61,7 +61,7 @@ fun TimerContent(
     Scaffold(
         topBar = {
             StudyMateTopBar(
-                title = "Study Timer",
+                title = "Study Timer :",
                 actions = {
                     IconButton(onClick = { /* TODO */ }) {
                         Icon(painter = painterResource(id = R.drawable.statistics), contentDescription = "Stats")
@@ -74,7 +74,7 @@ fun TimerContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 28.dp),
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
             item {

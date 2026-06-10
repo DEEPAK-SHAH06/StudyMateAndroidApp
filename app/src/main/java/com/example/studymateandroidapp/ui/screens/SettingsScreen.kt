@@ -114,7 +114,7 @@ fun SettingsContent(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             StudyMateTopBar(
-                title = "Settings",
+                title = "",
                 onBack = null,
                 actions = {
                     IconButton(onClick = onAchievementsClick) {
@@ -133,7 +133,7 @@ fun SettingsContent(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 28.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 

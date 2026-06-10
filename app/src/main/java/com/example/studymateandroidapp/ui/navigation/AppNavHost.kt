@@ -85,6 +85,9 @@ fun AppNavHost(
             TaskScreen(
                 viewModel = vm,
                 onNavigateToAddTask = { navController.navigate(Screen.AddTask.route) },
+                onNavigateToStats = { navController.navigate(Screen.Statistics.route) },
+                onNavigateToAchievements = { navController.navigate(Screen.Achievements.route) },
+
                 onNavigateToEditTask = { taskId ->
                     navController.navigate(Screen.EditTask.createRoute(taskId))
                 }

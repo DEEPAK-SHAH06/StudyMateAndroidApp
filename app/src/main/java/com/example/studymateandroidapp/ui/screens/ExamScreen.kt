@@ -69,12 +69,7 @@ fun ExamContent(
     Scaffold(
         topBar = {
             StudyMateTopBar(
-                title = "Exams",
-                actions = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(painter = painterResource(id = R.drawable.statistics), contentDescription = "Stats")
-                    }
-                }
+                title = "Exams :",
             )
         },
         floatingActionButton = {
@@ -92,7 +87,7 @@ fun ExamContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 28.dp)
         ) {
             Box(
                 modifier = Modifier

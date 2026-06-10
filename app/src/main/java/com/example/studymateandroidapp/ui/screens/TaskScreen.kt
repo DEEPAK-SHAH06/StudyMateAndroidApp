@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Timer
@@ -43,6 +45,8 @@ import java.time.format.DateTimeFormatter
 fun TaskScreen(
     viewModel: TaskViewmodel,
     onNavigateToAddTask: () -> Unit,
+    onNavigateToStats: () -> Unit,
+    onNavigateToAchievements: () -> Unit,
     onNavigateToEditTask: (Long) -> Unit
 ) {
     val tasks by viewModel.allTasks.collectAsState()
@@ -50,6 +54,8 @@ fun TaskScreen(
     TaskContent(
         tasks = tasks,
         onAddTask = onNavigateToAddTask,
+        onStatsClick        = onNavigateToStats,
+        onAchievementsClick = onNavigateToAchievements,
         onTaskClick = onNavigateToEditTask,
         onToggleTask = { task ->
             val isCompleted = !task.isCompleted
@@ -66,6 +72,8 @@ fun TaskScreen(
 fun TaskContent(
     tasks: List<Task>,
     onAddTask: () -> Unit,
+    onStatsClick: () -> Unit,
+    onAchievementsClick: () -> Unit,
     onTaskClick: (Long) -> Unit,
     onToggleTask: (Task) -> Unit
 ) {
@@ -100,10 +108,13 @@ fun TaskContent(
     Scaffold(
         topBar = {
             StudyMateTopBar(
-                title = "My Tasks",
+                title = "",
                 actions = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(painter = painterResource(id = R.drawable.statistics), contentDescription = "Stats")
+                    IconButton(onClick = onAchievementsClick) {
+                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements")
+                    }
+                    IconButton(onClick = onStatsClick) {
+                        Icon(Icons.Default.BarChart, contentDescription = "Statistics")
                     }
                 }
             )
@@ -124,16 +135,24 @@ fun TaskContent(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
-                .padding(horizontal = 28.dp)
+                .padding(28.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = "Manage your study load intentionally.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                "My Tasks",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                fontSize = 26.sp
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(3.dp))
+            Text(
+                "Manage your study load with intentionality.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.Gray,
+                fontSize = 12.sp
+            )
+            Spacer(Modifier.height(18.dp))
 
             SearchBar(query = searchQuery, onQueryChange = { searchQuery = it })
 
@@ -155,9 +174,9 @@ fun TaskContent(
                 else -> "All Tasks •"
             }
             val sectionSubtitle = "${filteredTasks.size} TASKS"
-            
+
             SectionHeader(title = sectionTitle, subtitle = sectionSubtitle)
-            
+
             Spacer(modifier = Modifier.height(12.dp))
 
             filteredTasks.forEach { task ->
@@ -413,6 +432,8 @@ fun TaskScreenPreview() {
             tasks = mockTasks,
             onAddTask = {},
             onTaskClick = {},
+            onStatsClick = {},
+            onAchievementsClick = {},
             onToggleTask = {}
         )
     }
