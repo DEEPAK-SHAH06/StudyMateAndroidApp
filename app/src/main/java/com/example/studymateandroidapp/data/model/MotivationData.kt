@@ -60,7 +60,11 @@ enum class AchievementType {
     FIRST_FLASHCARD,
     FIRST_REFLECTION,
     POMODORO_MASTER,      // Complete 10 full pomodoros
-    POMODORO_LEGEND       // Complete 50 full pomodoros
+    POMODORO_LEGEND,       // Complete 50 full pomodoros
+    STREAK_3_DAY,         // First Spark
+    STREAK_7_DAY,         // Consistent Learner
+    STREAK_30_DAY,        // Study Warrior
+    STREAK_100_DAY        // Unstoppable
 }
 
 /**

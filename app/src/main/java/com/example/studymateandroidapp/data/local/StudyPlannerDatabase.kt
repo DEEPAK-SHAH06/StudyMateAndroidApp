@@ -9,6 +9,7 @@ import com.example.studymateandroidapp.data.model.Achievement
 import com.example.studymateandroidapp.data.model.DailyReflection
 import com.example.studymateandroidapp.data.model.Exam
 import com.example.studymateandroidapp.data.model.Flashcard
+import com.example.studymateandroidapp.data.model.FlashcardReview
 import com.example.studymateandroidapp.data.model.Goal
 import com.example.studymateandroidapp.data.model.Note
 import com.example.studymateandroidapp.data.model.StudySession
@@ -35,9 +36,10 @@ import java.io.File
 @Database(
     entities = [
         Exam::class, Task::class, Goal::class, StudySession::class, Note::class,
-        Flashcard::class, ReminderSetting::class, Achievement::class, DailyReflection::class
+        Flashcard::class, ReminderSetting::class, Achievement::class, DailyReflection::class,
+        FlashcardReview::class
     ],
-    version = 13,
+    version = 14,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -131,6 +133,20 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_13_14 = object : androidx.room.migration.Migration(13, 14) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                // Add flashcard_reviews table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS flashcard_reviews (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        date INTEGER NOT NULL,
+                        cardsReviewed INTEGER NOT NULL,
+                        timestamp INTEGER NOT NULL
+                    )
+                """)
+            }
+        }
+
         @Volatile
         private var INSTANCE: StudyPlannerDatabase? = null
 
@@ -162,8 +178,8 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                             File(dbFile.path + "-wal").delete()
                         }
                         prefs.edit().putInt("database_version", 12).apply()
-                    } else if (currentStoredVersion < 12) {
-                        prefs.edit().putInt("database_version", 12).apply()
+                    } else if (currentStoredVersion < 14) {
+                        prefs.edit().putInt("database_version", 14).apply()
                     }
 
                     val factory = SupportOpenHelperFactory(DatabaseKeyHelper.getDatabaseKey(context), object : net.zetetic.database.sqlcipher.SQLiteDatabaseHook {
@@ -180,7 +196,7 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                         DATABASE_NAME
                     )
                         .openHelperFactory(factory)
-                        .addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
+                        .addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14)
                         .fallbackToDestructiveMigration()
                         .fallbackToDestructiveMigrationOnDowngrade()
                         .build()

@@ -15,7 +15,8 @@ import java.time.temporal.TemporalAdjusters
 class StatisticsRepository(
     private val taskRepository: TaskRepository,
     private val sessionRepository: SessionRepository,
-    private val goalRepository: GoalRepository
+    private val goalRepository: GoalRepository,
+    private val motivationRepository: MotivationRepository
 ) {
 
     // ── Aggregate model ───────────────────────────────────
@@ -88,6 +89,9 @@ class StatisticsRepository(
             .atStartOfDay()
         return sessionRepository.getStudySecondsSince(weekStart)
     }
+
+    fun getStreak(): Flow<Int> = motivationRepository.getStreak()
+    fun getBestStreak(): Flow<Int> = motivationRepository.getBestStreak()
 
     fun getDailyStudyData(days: Int = 7): Flow<List<DailyStudyData>> {
         val today = LocalDate.now()

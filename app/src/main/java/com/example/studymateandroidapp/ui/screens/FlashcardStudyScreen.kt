@@ -35,14 +35,16 @@ fun FlashcardStudyScreen(
 
     FlashcardStudyContent(
         cards = examCards,
-        onBack = onNavigateBack
+        onBack = onNavigateBack,
+        onFinish = { count -> viewModel.completeReviewSession(count) }
     )
 }
 
 @Composable
 fun FlashcardStudyContent(
     cards: List<Flashcard>,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onFinish: (Int) -> Unit
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
     var isFlipped by remember { mutableStateOf(false) }
@@ -104,6 +106,7 @@ fun FlashcardStudyContent(
                                     isFlipped = false
                                 } else {
                                     isFinished = true
+                                    onFinish(cards.size)
                                 }
                             }
                         )
@@ -250,7 +253,8 @@ fun FlashcardStudyPreview() {
     MaterialTheme {
         FlashcardStudyContent(
             cards = listOf(Flashcard(id = 1, question = "Question", answer = "Answer", examId = 1)),
-            onBack = {}
+            onBack = {},
+            onFinish = {}
         )
     }
 }

@@ -197,7 +197,7 @@ class TimerViewmodel(
 
         viewModelScope.launch {
             sessionRepository.insert(session)
-            motivationRepository.checkAndUnlockAchievements()
+            motivationRepository.recordStudyActivity()
         }
     }
 

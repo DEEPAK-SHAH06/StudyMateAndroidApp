@@ -67,6 +67,7 @@ fun DashboardScreen(
         userName = uiState.userName,
         userBio = uiState.userBio,
         userPhotoUrl = uiState.userPhotoUrl,
+        currentStreak = uiState.currentStreak,
         todayTasks = uiState.todayTasks,
         pendingTaskCount = uiState.pendingTaskCount,
         todayStudyFormatted = uiState.todayStudyFormatted,
@@ -98,6 +99,7 @@ private fun DashboardContent(
     userName: String,
     userBio: String,
     userPhotoUrl: String?,
+    currentStreak: Int,
     todayTasks: List<Task>,
     pendingTaskCount: Int,
     todayStudyFormatted: String,
@@ -201,6 +203,14 @@ private fun DashboardContent(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
+                        if (currentStreak > 0) {
+                            Text(
+                                text = "🔥 $currentStreak Day Streak",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                         Text(
                             text = userBio,
                             style = MaterialTheme.typography.bodyMedium,
@@ -388,6 +398,7 @@ private fun DashboardPreview() {
             userName = "John",
             userBio = "Software Engineer",
             userPhotoUrl = null,
+            currentStreak = 5,
             todayTasks = listOf(Task(id = 1, title = "Mock Task", priority = Priority.HIGH)),
             pendingTaskCount = 1,
             todayStudyFormatted = "2h 30m",

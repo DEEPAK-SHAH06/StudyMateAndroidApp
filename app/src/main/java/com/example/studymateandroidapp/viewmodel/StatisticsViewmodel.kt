@@ -27,6 +27,8 @@ class StatisticsViewmodel(
         val todayStudySeconds: Int = 0,
         val completedGoals: Int = 0,
         val thisWeekStudySeconds: Int = 0,
+        val currentStreak: Int = 0,
+        val bestStreak: Int = 0,
         val weeklyAverageSubtitle: String = "Avg: 0s/day",
         val dailyChartData: List<DailyChartPoint> = emptyList(),
         val isLoading: Boolean = true,
@@ -46,6 +48,7 @@ class StatisticsViewmodel(
         loadOverviewStats()
         loadTodaySeconds()
         loadThisWeekSeconds()
+        loadStreaks()
         loadDailyChart()
     }
 
@@ -97,6 +100,19 @@ class StatisticsViewmodel(
                         ) 
                     }
                 }
+        }
+    }
+
+    private fun loadStreaks() {
+        viewModelScope.launch {
+            repository.getStreak().collect { streak ->
+                _uiState.update { it.copy(currentStreak = streak) }
+            }
+        }
+        viewModelScope.launch {
+            repository.getBestStreak().collect { best ->
+                _uiState.update { it.copy(bestStreak = best) }
+            }
         }
     }
 

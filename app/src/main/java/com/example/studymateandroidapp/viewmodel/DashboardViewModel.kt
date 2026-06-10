@@ -116,6 +116,9 @@ class DashboardViewModel(
                     status = if (completed) com.example.studymateandroidapp.data.model.TaskStatus.COMPLETED else com.example.studymateandroidapp.data.model.TaskStatus.TODO,
                     completedAt = if (completed) LocalDate.now() else null
                 ))
+                if (completed) {
+                    motivationRepository.recordStudyActivity()
+                }
             }
         }
     }
