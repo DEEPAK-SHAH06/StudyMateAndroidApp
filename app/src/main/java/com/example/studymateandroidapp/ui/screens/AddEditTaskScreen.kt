@@ -12,10 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.Task
+import com.example.studymateandroidapp.ui.components.DateTimeFieldSelector
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.TaskViewmodel
 import java.time.LocalDate
@@ -108,29 +112,10 @@ fun AddEditTaskScreen(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 val context = androidx.compose.ui.platform.LocalContext.current
                 
-                OutlinedTextField(
+                DateTimeFieldSelector(
+                    label = "Due Date",
                     value = dueDate.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
-                    onValueChange = {},
-                    label = { Text("Due Date") },
-                    readOnly = true,
-                    leadingIcon = { 
-                        IconButton(onClick = {
-                            val calendar = java.util.Calendar.getInstance()
-                            android.app.DatePickerDialog(
-                                context,
-                                { _, year, month, dayOfMonth ->
-                                    dueDate = LocalDate.of(year, month + 1, dayOfMonth)
-                                },
-                                dueDate.year,
-                                dueDate.monthValue - 1,
-                                dueDate.dayOfMonth
-                            ).show()
-                        }) {
-                            Icon(Icons.Default.CalendarMonth, contentDescription = null)
-                        }
-                    },
-                    modifier = Modifier.weight(1f).clickable {
-                        val calendar = java.util.Calendar.getInstance()
+                    onClick = {
                         android.app.DatePickerDialog(
                             context,
                             { _, year, month, dayOfMonth ->
@@ -141,31 +126,14 @@ fun AddEditTaskScreen(
                             dueDate.dayOfMonth
                         ).show()
                     },
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = true
+                    leadingIcon = { Icon(painter = painterResource(id = R.drawable.calendar), contentDescription = null, modifier = Modifier.size(20.dp)) },
+                    modifier = Modifier.weight(1f)
                 )
 
-                OutlinedTextField(
+                DateTimeFieldSelector(
+                    label = "Due Time",
                     value = dueTime.format(DateTimeFormatter.ofPattern("hh:mm a")),
-                    onValueChange = {},
-                    label = { Text("Due Time") },
-                    readOnly = true,
-                    leadingIcon = { 
-                        IconButton(onClick = {
-                            android.app.TimePickerDialog(
-                                context,
-                                { _, hourOfDay, minute ->
-                                    dueTime = LocalTime.of(hourOfDay, minute)
-                                },
-                                dueTime.hour,
-                                dueTime.minute,
-                                false
-                            ).show()
-                        }) {
-                            Icon(Icons.Default.Timer, contentDescription = null)
-                        }
-                    },
-                    modifier = Modifier.weight(1f).clickable {
+                    onClick = {
                         android.app.TimePickerDialog(
                             context,
                             { _, hourOfDay, minute ->
@@ -176,8 +144,8 @@ fun AddEditTaskScreen(
                             false
                         ).show()
                     },
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = true
+                    leadingIcon = { Icon(painter = painterResource(id = R.drawable.time), contentDescription = null, modifier = Modifier.size(20.dp)) },
+                    modifier = Modifier.weight(1f)
                 )
             }
 

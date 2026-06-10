@@ -1,7 +1,6 @@
 package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Exam
-import com.example.studymateandroidapp.data.model.relations.ExamWithDetails
+import com.example.studymateandroidapp.ui.components.DateTimeFieldSelector
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.ExamViewmodel
 import java.time.Instant
@@ -136,27 +135,10 @@ fun AddEditExamContent(
             )
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedTextField(
+                DateTimeFieldSelector(
+                    label = "Exam Date",
                     value = examDate.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
-                    onValueChange = {},
-                    label = { Text("Exam Date") },
-                    readOnly = true,
-                    leadingIcon = { 
-                        IconButton(onClick = {
-                            android.app.DatePickerDialog(
-                                context,
-                                { _, year, month, dayOfMonth ->
-                                    examDate = LocalDate.of(year, month + 1, dayOfMonth)
-                                },
-                                examDate.year,
-                                examDate.monthValue - 1,
-                                examDate.dayOfMonth
-                            ).show()
-                        }) {
-                            Icon(painter = painterResource(id = R.drawable.date), contentDescription = null, modifier = Modifier.size(20.dp))
-                        }
-                    },
-                    modifier = Modifier.weight(1f).clickable {
+                    onClick = {
                         android.app.DatePickerDialog(
                             context,
                             { _, year, month, dayOfMonth ->
@@ -167,30 +149,14 @@ fun AddEditExamContent(
                             examDate.dayOfMonth
                         ).show()
                     },
-                    shape = RoundedCornerShape(12.dp)
+                    leadingIcon = { Icon(painter = painterResource(id = R.drawable.calendar), contentDescription = null, modifier = Modifier.size(20.dp)) },
+                    modifier = Modifier.weight(1f)
                 )
 
-                OutlinedTextField(
+                DateTimeFieldSelector(
+                    label = "Time",
                     value = examTime.format(DateTimeFormatter.ofPattern("hh:mm a")),
-                    onValueChange = {},
-                    label = { Text("Time") },
-                    readOnly = true,
-                    leadingIcon = { 
-                        IconButton(onClick = {
-                            android.app.TimePickerDialog(
-                                context,
-                                { _, hourOfDay, minute ->
-                                    examTime = LocalTime.of(hourOfDay, minute)
-                                },
-                                examTime.hour,
-                                examTime.minute,
-                                false
-                            ).show()
-                        }) {
-                            Icon(painter = painterResource(id = R.drawable.time), contentDescription = null, modifier = Modifier.size(20.dp))
-                        }
-                    },
-                    modifier = Modifier.weight(1f).clickable {
+                    onClick = {
                         android.app.TimePickerDialog(
                             context,
                             { _, hourOfDay, minute ->
@@ -201,7 +167,8 @@ fun AddEditExamContent(
                             false
                         ).show()
                     },
-                    shape = RoundedCornerShape(12.dp)
+                    leadingIcon = { Icon(painter = painterResource(id = R.drawable.time), contentDescription = null, modifier = Modifier.size(20.dp)) },
+                    modifier = Modifier.weight(1f)
                 )
             }
 
@@ -241,7 +208,6 @@ fun AddEditExamContent(
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
