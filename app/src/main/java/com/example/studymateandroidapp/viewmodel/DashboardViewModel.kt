@@ -36,6 +36,7 @@ class DashboardViewModel(
         val todayDate: String = "",
         val userName: String = "",
         val userBio: String = "",
+        val userPhotoUrl: String? = null,
 
         // Tasks
         val todayTasks: List<Task> = emptyList(),
@@ -245,6 +246,11 @@ class DashboardViewModel(
         viewModelScope.launch {
             preferenceManager.userBio.collect { bio ->
                 _uiState.update { it.copy(userBio = bio) }
+            }
+        }
+        viewModelScope.launch {
+            preferenceManager.userPhotoUri.collect { uri ->
+                _uiState.update { it.copy(userPhotoUrl = uri) }
             }
         }
     }

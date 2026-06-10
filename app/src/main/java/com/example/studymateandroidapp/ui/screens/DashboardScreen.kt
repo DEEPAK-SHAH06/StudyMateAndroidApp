@@ -66,6 +66,7 @@ fun DashboardScreen(
         greeting = uiState.greeting,
         userName = uiState.userName,
         userBio = uiState.userBio,
+        userPhotoUrl = uiState.userPhotoUrl,
         todayTasks = uiState.todayTasks,
         pendingTaskCount = uiState.pendingTaskCount,
         todayStudyFormatted = uiState.todayStudyFormatted,
@@ -96,6 +97,7 @@ private fun DashboardContent(
     greeting: String,
     userName: String,
     userBio: String,
+    userPhotoUrl: String?,
     todayTasks: List<Task>,
     pendingTaskCount: Int,
     todayStudyFormatted: String,
@@ -169,12 +171,21 @@ private fun DashboardContent(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.padding(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (userPhotoUrl != null) {
+                            AsyncImage(
+                                model = userPhotoUrl,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier.padding(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                     Spacer(Modifier.width(16.dp))
                     Column {
@@ -376,6 +387,7 @@ private fun DashboardPreview() {
             greeting = "Good Morning",
             userName = "John",
             userBio = "Software Engineer",
+            userPhotoUrl = null,
             todayTasks = listOf(Task(id = 1, title = "Mock Task", priority = Priority.HIGH)),
             pendingTaskCount = 1,
             todayStudyFormatted = "2h 30m",
