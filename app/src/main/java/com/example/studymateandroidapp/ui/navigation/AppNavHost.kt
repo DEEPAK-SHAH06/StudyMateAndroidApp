@@ -20,6 +20,8 @@ fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val sharedTimerVm: TimerViewmodel = viewModel(factory = ViewModelFactory)
+
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route,
@@ -41,11 +43,35 @@ fun AppNavHost(
             val vm: DashboardViewModel = viewModel(factory = ViewModelFactory)
             DashboardScreen(
                 viewModel = vm,
-                onNavigateToTasks = { navController.navigate(Screen.Tasks.route) },
-                onNavigateToTimer = { navController.navigate(Screen.StudyTimer.route) },
-                onNavigateToExams = { navController.navigate(Screen.Exams.route) },
+                onNavigateToTasks = { 
+                    navController.navigate(Screen.Tasks.route) {
+                        popUpTo(Screen.Dashboard.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onNavigateToTimer = { 
+                    navController.navigate("study_timer") {
+                        popUpTo(Screen.Dashboard.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onNavigateToExams = { 
+                    navController.navigate("exams") {
+                        popUpTo(Screen.Dashboard.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
                 onNavigateToGoals = { navController.navigate(Screen.Goals.route) },
-                onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
+                onNavigateToSettings = { 
+                    navController.navigate("settings") {
+                        popUpTo(Screen.Dashboard.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
                 onNavigateToStats = { navController.navigate(Screen.Statistics.route) },
                 onNavigateToCalendar = { navController.navigate(Screen.Calendar.route) },
                 onNavigateToReflection = { navController.navigate(Screen.DailyReflection.route) },
@@ -59,6 +85,9 @@ fun AppNavHost(
             TaskScreen(
                 viewModel = vm,
                 onNavigateToAddTask = { navController.navigate(Screen.AddTask.route) },
+                onNavigateToStats = { navController.navigate(Screen.Statistics.route) },
+                onNavigateToAchievements = { navController.navigate(Screen.Achievements.route) },
+
                 onNavigateToEditTask = { taskId ->
                     navController.navigate(Screen.EditTask.createRoute(taskId))
                 }
@@ -68,8 +97,10 @@ fun AppNavHost(
         // ── Add/Edit Task ─────────────────────────────
         composable(Screen.AddTask.route) {
             val vm: TaskViewmodel = viewModel(factory = ViewModelFactory)
-            // Note: AddEditTaskScreen doesn't exist yet, using TaskScreen as placeholder or will create it
-            // For now, let's assume TaskScreen can handle add/edit or I'll create the missing screens
+            AddEditTaskScreen(
+                viewModel = vm,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(
@@ -78,7 +109,11 @@ fun AppNavHost(
         ) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getLong("taskId") ?: return@composable
             val vm: TaskViewmodel = viewModel(factory = ViewModelFactory)
-            // Placeholder for Edit Task
+            AddEditTaskScreen(
+                taskId = taskId,
+                viewModel = vm,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         // ── Study Timer ───────────────────────────────
@@ -91,9 +126,13 @@ fun AppNavHost(
                 }
             )
         ) { backStackEntry ->
-            val examId = backStackEntry.arguments?.getLong("examId")?.takeIf { it != -1L }
-            val vm: TimerViewmodel = viewModel(factory = ViewModelFactory)
-            TimerScreen(viewModel = vm, examId = examId)
+            val examIdArg = backStackEntry.arguments?.getLong("examId")?.takeIf { it != -1L }
+            
+            androidx.compose.runtime.LaunchedEffect(examIdArg) {
+                sharedTimerVm.setExamId(examIdArg)
+            }
+            
+            TimerScreen(viewModel = sharedTimerVm, examId = examIdArg)
         }
 
         // ── Statistics ────────────────────────────────
@@ -109,10 +148,14 @@ fun AppNavHost(
                 viewModel = vm,
                 onNavigateToAddExam = { navController.navigate(Screen.AddExam.route) },
                 onNavigateToEditExam = { examId ->
-                    navController.navigate(Screen.EditExam.createRoute(examId))
+                    navController.navigate(Screen.ExamDetail.createRoute(examId))
                 },
                 onStartStudy = { examId ->
-                    navController.navigate(Screen.StudyTimer.createRoute(examId))
+                    navController.navigate(Screen.StudyTimer.createRoute(examId)) {
+                        popUpTo(Screen.Dashboard.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 },
                 onNavigateToNotes = { examId ->
                     navController.navigate(Screen.Notes.createRoute(examId))
@@ -120,6 +163,29 @@ fun AppNavHost(
                 onNavigateToFlashcards = { examId ->
                     navController.navigate(Screen.Flashcards.createRoute(examId))
                 }
+            )
+        }
+
+        composable(
+            route = Screen.ExamDetail.route,
+            arguments = listOf(navArgument("examId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val examId = backStackEntry.arguments?.getLong("examId") ?: return@composable
+            val vm: ExamViewmodel = viewModel(factory = ViewModelFactory)
+            ExamDetailScreen(
+                examId = examId,
+                viewModel = vm,
+                onNavigateToEdit = { id -> navController.navigate(Screen.EditExam.createRoute(id)) },
+                onNavigateToNotes = { id -> navController.navigate(Screen.Notes.createRoute(id)) },
+                onNavigateToFlashcards = { id -> navController.navigate(Screen.Flashcards.createRoute(id)) },
+                onStartStudy = { id -> 
+                    navController.navigate(Screen.StudyTimer.createRoute(id)) {
+                        popUpTo(Screen.Dashboard.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -176,7 +242,8 @@ fun AppNavHost(
                 onBack = { navController.popBackStack() },
                 onNavigateToStats = { navController.navigate(Screen.Statistics.route) },
                 onNavigateToAchievements = { navController.navigate(Screen.Achievements.route) },
-                onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) }
+                onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
+                onNavigateToLogin = { navController.navigate(Screen.Login.route) }
             )
         }
 
@@ -271,6 +338,42 @@ fun AppNavHost(
             AchievementsScreen(
                 viewModel = vm,
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // ── Authentication ────────────────────────────
+        composable(Screen.Login.route) {
+            val vm: AuthViewModel = viewModel(factory = ViewModelFactory)
+            LoginScreen(
+                viewModel = vm,
+                onNavigateToRegister = { navController.navigate(Screen.Register.route) },
+                onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) },
+                onLoginSuccess = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Register.route) {
+            val vm: AuthViewModel = viewModel(factory = ViewModelFactory)
+            RegisterScreen(
+                viewModel = vm,
+                onNavigateToLogin = { navController.popBackStack() },
+                onRegisterSuccess = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Register.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.ForgotPassword.route) {
+            val vm: AuthViewModel = viewModel(factory = ViewModelFactory)
+            ForgotPasswordScreen(
+                viewModel = vm,
+                onNavigateToLogin = { navController.popBackStack() }
             )
         }
     }

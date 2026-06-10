@@ -1,24 +1,30 @@
 package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Exam
+import com.example.studymateandroidapp.data.model.relations.ExamWithDetails
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.ExamViewmodel
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun AddEditExamScreen(
@@ -26,15 +32,40 @@ fun AddEditExamScreen(
     viewModel: ExamViewmodel,
     onNavigateBack: () -> Unit
 ) {
-    // In a real app, if examId is not null, load the exam from ViewModel
+    var initialTitle by remember { mutableStateOf("") }
+    var initialSubject by remember { mutableStateOf("") }
+    var initialDate by remember { mutableStateOf(LocalDate.now()) }
+    var initialTime by remember { mutableStateOf(LocalTime.of(9, 0)) }
+
+    if (examId != null) {
+        val examState by viewModel.getExamWithDetails(examId).collectAsState(initial = null)
+        LaunchedEffect(examState) {
+            examState?.exam?.let {
+                initialTitle = it.title
+                initialSubject = it.subject
+                val dt = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.examDate), ZoneId.systemDefault())
+                initialDate = dt.toLocalDate()
+                initialTime = dt.toLocalTime()
+            }
+        }
+    }
+
     AddEditExamContent(
         isEdit = examId != null,
+        initialTitle = initialTitle,
+        initialSubject = initialSubject,
+        initialDate = initialDate,
+        initialTime = initialTime,
         onBack = onNavigateBack,
-        onSave = { title, subject ->
+        onSave = { title, subject, date, time ->
+            val examDate = LocalDateTime.of(date, time)
+                .atZone(ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli()
             if (examId == null) {
-                viewModel.addExam(Exam(title = title, subject = subject, examDate = System.currentTimeMillis()))
+                viewModel.addExam(Exam(title = title, subject = subject, examDate = examDate, isTimeSet = true))
             } else {
-                viewModel.updateExam(Exam(id = examId, title = title, subject = subject, examDate = System.currentTimeMillis()))
+                viewModel.updateExam(Exam(id = examId, title = title, subject = subject, examDate = examDate, isTimeSet = true))
             }
             onNavigateBack()
         }
@@ -44,13 +75,21 @@ fun AddEditExamScreen(
 @Composable
 fun AddEditExamContent(
     isEdit: Boolean,
+    initialTitle: String = "",
+    initialSubject: String = "",
+    initialDate: LocalDate = LocalDate.now(),
+    initialTime: LocalTime = LocalTime.of(9, 0),
     onBack: () -> Unit,
-    onSave: (String, String) -> Unit
+    onSave: (String, String, LocalDate, LocalTime) -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var subject by remember { mutableStateOf("") }
+    var title by remember(initialTitle) { mutableStateOf(initialTitle) }
+    var subject by remember(initialSubject) { mutableStateOf(initialSubject) }
+    var examDate by remember(initialDate) { mutableStateOf(initialDate) }
+    var examTime by remember(initialTime) { mutableStateOf(initialTime) }
     var location by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     Scaffold(
         topBar = {
@@ -96,6 +135,76 @@ fun AddEditExamContent(
                 shape = RoundedCornerShape(12.dp)
             )
 
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                OutlinedTextField(
+                    value = examDate.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
+                    onValueChange = {},
+                    label = { Text("Exam Date") },
+                    readOnly = true,
+                    leadingIcon = { 
+                        IconButton(onClick = {
+                            android.app.DatePickerDialog(
+                                context,
+                                { _, year, month, dayOfMonth ->
+                                    examDate = LocalDate.of(year, month + 1, dayOfMonth)
+                                },
+                                examDate.year,
+                                examDate.monthValue - 1,
+                                examDate.dayOfMonth
+                            ).show()
+                        }) {
+                            Icon(painter = painterResource(id = R.drawable.date), contentDescription = null, modifier = Modifier.size(20.dp))
+                        }
+                    },
+                    modifier = Modifier.weight(1f).clickable {
+                        android.app.DatePickerDialog(
+                            context,
+                            { _, year, month, dayOfMonth ->
+                                examDate = LocalDate.of(year, month + 1, dayOfMonth)
+                            },
+                            examDate.year,
+                            examDate.monthValue - 1,
+                            examDate.dayOfMonth
+                        ).show()
+                    },
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                OutlinedTextField(
+                    value = examTime.format(DateTimeFormatter.ofPattern("hh:mm a")),
+                    onValueChange = {},
+                    label = { Text("Time") },
+                    readOnly = true,
+                    leadingIcon = { 
+                        IconButton(onClick = {
+                            android.app.TimePickerDialog(
+                                context,
+                                { _, hourOfDay, minute ->
+                                    examTime = LocalTime.of(hourOfDay, minute)
+                                },
+                                examTime.hour,
+                                examTime.minute,
+                                false
+                            ).show()
+                        }) {
+                            Icon(painter = painterResource(id = R.drawable.time), contentDescription = null, modifier = Modifier.size(20.dp))
+                        }
+                    },
+                    modifier = Modifier.weight(1f).clickable {
+                        android.app.TimePickerDialog(
+                            context,
+                            { _, hourOfDay, minute ->
+                                examTime = LocalTime.of(hourOfDay, minute)
+                            },
+                            examTime.hour,
+                            examTime.minute,
+                            false
+                        ).show()
+                    },
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+
             OutlinedTextField(
                 value = location,
                 onValueChange = { location = it },
@@ -120,7 +229,7 @@ fun AddEditExamContent(
             Spacer(Modifier.height(16.dp))
 
             Button(
-                onClick = { if (title.isNotBlank() && subject.isNotBlank()) onSave(title, subject) },
+                onClick = { if (title.isNotBlank() && subject.isNotBlank()) onSave(title, subject, examDate, examTime) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
@@ -133,10 +242,11 @@ fun AddEditExamContent(
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun AddExamPreview() {
     MaterialTheme {
-        AddEditExamContent(isEdit = false, onBack = {}, onSave = { _, _ -> })
+        AddEditExamContent(isEdit = false, onBack = {}, onSave = { _, _, _, _ -> })
     }
 }

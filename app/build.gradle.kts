@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
+    id("org.jetbrains.kotlin.plugin.compose")
     alias(libs.plugins.google.gms.google.services)
     // id("com.google.gms.google-services")
 }
@@ -41,9 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.10"
+        viewBinding = true
     }
     packaging {
         resources {
@@ -58,6 +57,8 @@ android {
 dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
+    implementation("com.google.firebase:firebase-storage-ktx")
+    implementation(libs.kotlinx.coroutines.play.services)
     val composeBom = platform("androidx.compose:compose-bom:2024.04.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)
@@ -98,7 +99,7 @@ dependencies {
     implementation("com.google.firebase:firebase-common")
     implementation("com.google.firebase:firebase-firestore")
 
-    // Add other Firebase products as needed
+    // Add other Firebase products as neededg
     // Google Sign-In & Credentials Manager
     implementation("androidx.credentials:credentials:1.2.1")
     implementation("androidx.credentials:credentials-play-services-auth:1.2.1")
@@ -106,6 +107,10 @@ dependencies {
 
     // Preferences
     implementation("androidx.datastore:datastore-preferences:1.1.2")
+    // Jetpack Glance
+    val glanceVersion = "1.1.1"
+    implementation("androidx.glance:glance-appwidget:$glanceVersion")
+    implementation("androidx.glance:glance-material3:$glanceVersion")
 
 
 

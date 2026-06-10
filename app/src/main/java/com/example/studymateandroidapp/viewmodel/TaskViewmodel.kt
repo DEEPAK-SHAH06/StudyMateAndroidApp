@@ -9,26 +9,52 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class TaskViewmodel(private val repository: TaskRepository) : ViewModel() {
+import com.example.studymateandroidapp.utils.notification.ReminderScheduler
+
+class TaskViewmodel(
+    private val repository: TaskRepository,
+    private val reminderScheduler: ReminderScheduler
+) : ViewModel() {
 
     val allTasks: StateFlow<List<Task>> = repository.allTasks
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun addTask(task: Task) {
         viewModelScope.launch {
-            repository.insert(task)
+            val id = repository.insert(task)
+            if (task.dueDate != null && task.dueTime != null) {
+                reminderScheduler.scheduleTaskReminders(
+                    taskId = id,
+                    title = task.title,
+                    dueDate = task.dueDate,
+                    dueTime = task.dueTime
+                )
+            }
         }
     }
 
     fun updateTask(task: Task) {
         viewModelScope.launch {
             repository.update(task)
+            if (task.dueDate != null && task.dueTime != null) {
+                reminderScheduler.scheduleTaskReminders(
+                    taskId = task.id,
+                    title = task.title,
+                    dueDate = task.dueDate,
+                    dueTime = task.dueTime
+                )
+            } else {
+                reminderScheduler.cancelTaskReminders(task.id)
+            }
         }
     }
 
     fun deleteTask(task: Task) {
         viewModelScope.launch {
             repository.delete(task)
+            reminderScheduler.cancelTaskReminders(task.id)
         }
     }
+
+    suspend fun getTaskById(id: Long): Task? = repository.getTaskById(id)
 }

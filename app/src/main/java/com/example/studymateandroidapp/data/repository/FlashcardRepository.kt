@@ -7,6 +7,12 @@ import kotlinx.coroutines.flow.Flow
 class FlashcardRepository(private val flashcardDao: FlashcardDao) {
     val allFlashcards: Flow<List<Flashcard>> = flashcardDao.getAllFlashcards()
 
+    fun getFlashcardsByExamId(examId: Long): Flow<List<Flashcard>> =
+        flashcardDao.getFlashcardsByExamId(examId)
+
+    suspend fun getFlashcardById(id: Long): Flashcard? =
+        flashcardDao.getFlashcardById(id)
+
     suspend fun insert(flashcard: Flashcard) {
         flashcardDao.insert(flashcard)
     }

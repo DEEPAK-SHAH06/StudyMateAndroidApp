@@ -27,8 +27,9 @@ class MotivationViewModel(
         val celebrationMessage: String = "",
         val todayReflection: DailyReflection? = null,
         val reflectionContent: String = "",
-        val reflectionMood: String = "😊",
+        val reflectionMood: String = "\uD83D\uDE0A",
         val reflectionHighlight: String = "",
+        val editingReflection: DailyReflection? = null,
         val showReflectionPrompt: Boolean = false,
         val isReflectionSaved: Boolean = false
     )
@@ -46,6 +47,15 @@ class MotivationViewModel(
         loadDailyQuote()
         loadTodayReflection()
         checkShowReflectionPrompt()
+        observeStreak()
+    }
+
+    private fun observeStreak() {
+        viewModelScope.launch {
+            repository.getStreak().collect { streak ->
+                _uiState.update { it.copy(currentStreak = streak) }
+            }
+        }
     }
 
     private fun loadDailyQuote() {
@@ -61,8 +71,9 @@ class MotivationViewModel(
                 it.copy(
                     todayReflection = reflection,
                     reflectionContent = reflection?.content ?: "",
-                    reflectionMood = reflection?.mood ?: "😊",
-                    reflectionHighlight = reflection?.studyHighlight ?: ""
+                    reflectionMood = reflection?.mood ?: "\uD83D\uDE0A",
+                    reflectionHighlight = reflection?.studyHighlight ?: "",
+                    editingReflection = null
                 )
             }
         }
@@ -70,7 +81,6 @@ class MotivationViewModel(
 
     private fun checkShowReflectionPrompt() {
         val hour = java.time.LocalTime.now().hour
-        // Show reflection prompt in the evening (after 5 PM) if not yet done
         _uiState.update { it.copy(showReflectionPrompt = hour >= 17) }
     }
 
@@ -82,7 +92,7 @@ class MotivationViewModel(
                     it.copy(
                         newAchievements = newOnes,
                         showCelebration = true,
-                        celebrationMessage = "🏆 New Achievement Unlocked: ${newOnes.first().title}!"
+                        celebrationMessage = "New Achievement Unlocked: ${newOnes.first().title}!"
                     )
                 }
             }
@@ -105,24 +115,66 @@ class MotivationViewModel(
         viewModelScope.launch {
             val state = _uiState.value
             val today = LocalDate.now()
+            val editingReflection = state.editingReflection
             val reflection = DailyReflection(
-                id = state.todayReflection?.id ?: 0,
-                date = today.toEpochDay(),
+                id = editingReflection?.id ?: state.todayReflection?.id ?: 0,
+                date = editingReflection?.date ?: today.toEpochDay(),
                 content = state.reflectionContent,
                 mood = state.reflectionMood,
                 studyHighlight = state.reflectionHighlight
             )
+
             repository.saveReflection(reflection)
+
+            val savedToday = reflection.date == today.toEpochDay()
             _uiState.update {
                 it.copy(
-                    todayReflection = reflection,
+                    todayReflection = if (savedToday) reflection else it.todayReflection,
+                    editingReflection = null,
                     isReflectionSaved = true,
                     showCelebration = true,
-                    celebrationMessage = "✍️ Reflection saved! Great self-awareness!"
+                    celebrationMessage = "Reflection saved!"
                 )
             }
-            // Check achievements after saving reflection
             checkAndUnlockAchievements()
+        }
+    }
+
+    fun editReflection(reflection: DailyReflection) {
+        _uiState.update {
+            it.copy(
+                editingReflection = reflection,
+                reflectionContent = reflection.content,
+                reflectionMood = reflection.mood,
+                reflectionHighlight = reflection.studyHighlight
+            )
+        }
+    }
+
+    fun deleteReflection(reflection: DailyReflection) {
+        viewModelScope.launch {
+            repository.deleteReflection(reflection)
+            val today = LocalDate.now().toEpochDay()
+            _uiState.update {
+                if (reflection.date == today) {
+                    it.copy(
+                        todayReflection = null,
+                        editingReflection = null,
+                        reflectionContent = "",
+                        reflectionMood = "\uD83D\uDE0A",
+                        reflectionHighlight = ""
+                    )
+                } else if (it.editingReflection?.id == reflection.id) {
+                    it.copy(
+                        editingReflection = null,
+                        reflectionContent = it.todayReflection?.content ?: "",
+                        reflectionMood = it.todayReflection?.mood ?: "\uD83D\uDE0A",
+                        reflectionHighlight = it.todayReflection?.studyHighlight ?: ""
+                    )
+                } else {
+                    it
+                }
+            }
         }
     }
 

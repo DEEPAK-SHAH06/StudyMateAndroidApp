@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.StudyMateAndroidApp" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.StudyMateAndroidApp" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="appWidgetRadius">16dp</item>
+        <item name="appWidgetInnerRadius">8dp</item>
+    </style>
 </resources>

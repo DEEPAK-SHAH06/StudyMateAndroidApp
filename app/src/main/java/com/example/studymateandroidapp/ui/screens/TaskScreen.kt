@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Timer
@@ -28,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.Task
@@ -42,6 +45,8 @@ import java.time.format.DateTimeFormatter
 fun TaskScreen(
     viewModel: TaskViewmodel,
     onNavigateToAddTask: () -> Unit,
+    onNavigateToStats: () -> Unit,
+    onNavigateToAchievements: () -> Unit,
     onNavigateToEditTask: (Long) -> Unit
 ) {
     val tasks by viewModel.allTasks.collectAsState()
@@ -49,9 +54,16 @@ fun TaskScreen(
     TaskContent(
         tasks = tasks,
         onAddTask = onNavigateToAddTask,
+        onStatsClick        = onNavigateToStats,
+        onAchievementsClick = onNavigateToAchievements,
         onTaskClick = onNavigateToEditTask,
         onToggleTask = { task ->
-            viewModel.updateTask(task.copy(isCompleted = !task.isCompleted))
+            val isCompleted = !task.isCompleted
+            viewModel.updateTask(task.copy(
+                isCompleted = isCompleted,
+                status = if (isCompleted) TaskStatus.COMPLETED else TaskStatus.TODO,
+                completedAt = if (isCompleted) LocalDate.now() else null
+            ))
         }
     )
 }
@@ -60,6 +72,8 @@ fun TaskScreen(
 fun TaskContent(
     tasks: List<Task>,
     onAddTask: () -> Unit,
+    onStatsClick: () -> Unit,
+    onAchievementsClick: () -> Unit,
     onTaskClick: (Long) -> Unit,
     onToggleTask: (Task) -> Unit
 ) {
@@ -67,13 +81,40 @@ fun TaskContent(
     val filters = listOf("Pending", "Completed", "Overdue")
     var selectedFilter by remember { mutableStateOf(filters[0]) }
 
+    val filteredTasks = remember(tasks, searchQuery, selectedFilter) {
+        tasks.filter { task ->
+            val matchesQuery = task.title.contains(searchQuery, ignoreCase = true) ||
+                    (task.subjectTag?.contains(searchQuery, ignoreCase = true) == true)
+            
+            val matchesFilter = when (selectedFilter) {
+                "Pending" -> !task.isCompleted && !task.isOverdue
+                "Completed" -> task.isCompleted
+                "Overdue" -> task.isOverdue
+                else -> true
+            }
+            matchesQuery && matchesFilter
+        }
+    }
+
+    val highPriorityTask = remember(tasks) {
+        tasks.filter { !it.isCompleted && !it.isOverdue && it.priority == Priority.HIGH }
+            .minByOrNull { it.dueDate ?: LocalDate.MAX }
+    }
+
+    val overdueTask = remember(tasks) {
+        tasks.find { it.isOverdue }
+    }
+
     Scaffold(
         topBar = {
             StudyMateTopBar(
-                title = "My Tasks",
+                title = "",
                 actions = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(painter = painterResource(id = R.drawable.statistics), contentDescription = "Stats")
+                    IconButton(onClick = onAchievementsClick) {
+                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements")
+                    }
+                    IconButton(onClick = onStatsClick) {
+                        Icon(Icons.Default.BarChart, contentDescription = "Statistics")
                     }
                 }
             )
@@ -81,8 +122,8 @@ fun TaskContent(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddTask,
-                containerColor = Color.Black,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Task")
@@ -93,16 +134,25 @@ fun TaskContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp)
+                .background(MaterialTheme.colorScheme.background)
+                .padding(28.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = "Manage your study load intentionally.",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+                "My Tasks",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                fontSize = 26.sp
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(3.dp))
+            Text(
+                "Manage your study load with intentionality.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.Gray,
+                fontSize = 12.sp
+            )
+            Spacer(Modifier.height(18.dp))
 
             SearchBar(query = searchQuery, onQueryChange = { searchQuery = it })
 
@@ -116,12 +166,20 @@ fun TaskContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Section: Today
-            SectionHeader(title = "Today •", subtitle = "${tasks.count { !it.isCompleted }} TASKS REMAINING")
-            
+            // Section: List
+            val sectionTitle = when(selectedFilter) {
+                "Pending" -> "Pending •"
+                "Completed" -> "Completed •"
+                "Overdue" -> "Overdue •"
+                else -> "All Tasks •"
+            }
+            val sectionSubtitle = "${filteredTasks.size} TASKS"
+
+            SectionHeader(title = sectionTitle, subtitle = sectionSubtitle)
+
             Spacer(modifier = Modifier.height(12.dp))
 
-            tasks.filter { !it.isCompleted }.forEach { task ->
+            filteredTasks.forEach { task ->
                 TaskItemView(
                     task = task,
                     onToggle = { onToggleTask(task) },
@@ -130,23 +188,27 @@ fun TaskContent(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            if (tasks.none { !it.isCompleted }) {
-                Text(
-                    text = "No pending tasks for today!",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    color = Color.Gray
-                )
+            if (filteredTasks.isEmpty()) {
+                Box(Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "No tasks found.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            PriorityTaskCard()
+            if (highPriorityTask != null) {
+                PriorityTaskCard(highPriorityTask)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OverdueMilestoneCard()
+            if (overdueTask != null) {
+                OverdueMilestoneCard(overdueTask)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             Spacer(modifier = Modifier.height(80.dp)) // Space for FAB
         }
@@ -160,15 +222,17 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         value = query,
         onValueChange = onQueryChange,
         modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Search tasks, subjects...") },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+        placeholder = { Text("Search tasks, subjects...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         shape = RoundedCornerShape(12.dp),
         singleLine = true,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFF2F2F2),
-            unfocusedContainerColor = Color(0xFFF2F2F2),
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     )
 }
@@ -187,12 +251,12 @@ fun FilterChips(filters: List<String>, selectedFilter: String, onFilterSelected:
                     .height(36.dp)
                     .clickable { onFilterSelected(filter) },
                 shape = RoundedCornerShape(18.dp),
-                color = if (isSelected) Color.Black else Color(0xFFF2F2F2)
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = filter,
-                        color = if (isSelected) Color.White else Color.Black,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -208,9 +272,9 @@ fun SectionHeader(title: String, subtitle: String) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
         if (subtitle.isNotEmpty()) {
-            Text(text = subtitle, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text(text = subtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
         }
     }
 }
@@ -222,8 +286,8 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        color = Color(0xFFF8F8F8),
-        border = BorderStroke(1.dp, Color(0xFFEEEEEE))
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -232,7 +296,7 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit) {
             Checkbox(
                 checked = task.isCompleted,
                 onCheckedChange = { onToggle() },
-                colors = CheckboxDefaults.colors(checkedColor = Color.Black)
+                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
             )
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -244,39 +308,49 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textDecoration = if (task.isCompleted) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     task.subjectTag?.let { tag ->
                         Surface(
                             shape = RoundedCornerShape(4.dp),
-                            color = Color.Black.copy(alpha = 0.1f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
                         ) {
                             Text(
                                 text = tag,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Icon(Icons.Default.Timer, contentDescription = null, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = task.dueTime?.format(DateTimeFormatter.ofPattern("h:mm a")) ?: "No time",
-                        style = MaterialTheme.typography.labelSmall
-                    )
                 }
             }
-
-            Icon(Icons.Default.MoreVert, contentDescription = null)
         }
     }
 }
+//                                fontWeight = FontWeight.Bold
+//                            )
+//                        }
+//                        Spacer(modifier = Modifier.width(8.dp))
+//                    }
+//                    Icon(Icons.Default.Timer, contentDescription = null, modifier = Modifier.size(14.dp))
+//                    Spacer(modifier = Modifier.width(4.dp))
+//                    Text(
+//                        text = task.dueTime?.format(DateTimeFormatter.ofPattern("h:mm a")) ?: "No time",
+//                        style = MaterialTheme.typography.labelSmall
+//                    )
+//                }
+//            }
+//
+//            Icon(Icons.Default.MoreVert, contentDescription = null)
+//        }
+//    }
+//}
 
 @Composable
-fun PriorityTaskCard() {
+fun PriorityTaskCard(task: Task) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -298,28 +372,30 @@ fun PriorityTaskCard() {
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Final Exam Review:\nNeuroscience",
+                    text = task.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Focus on synaptic plasticity and memory formation modules.",
+                    text = task.description.ifBlank { "Focus on this critical task today." },
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray
+                    color = Color.DarkGray,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             Image(
                 painter = painterResource(id = R.drawable.review),
                 contentDescription = null,
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(80.dp)
             )
         }
     }
 }
 
 @Composable
-fun OverdueMilestoneCard() {
+fun OverdueMilestoneCard(task: Task) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -333,7 +409,7 @@ fun OverdueMilestoneCard() {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "Overdue Milestone", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(text = "Organic Chemistry Lab Report - 2 days past due.", style = MaterialTheme.typography.bodySmall)
+                Text(text = "${task.title} - Overdue!", style = MaterialTheme.typography.bodySmall)
             }
             Image(
                 painter = painterResource(id = R.drawable.overdue),
@@ -356,6 +432,8 @@ fun TaskScreenPreview() {
             tasks = mockTasks,
             onAddTask = {},
             onTaskClick = {},
+            onStatsClick = {},
+            onAchievementsClick = {},
             onToggleTask = {}
         )
     }

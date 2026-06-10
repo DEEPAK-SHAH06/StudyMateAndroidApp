@@ -2,12 +2,7 @@ package com.example.studymateandroidapp.data.local
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -25,7 +20,11 @@ class PreferenceManager(private val context: Context) {
         val SYNC_STATUS = stringPreferencesKey("sync_status") // "IDLE", "SYNCING", "ERROR"
         val LAST_SYNC_TIME = longPreferencesKey("last_sync_time")
         val USER_NAME = stringPreferencesKey("user_name")
+        val USER_PHOTO_URI = stringPreferencesKey("user_photo_uri")
         val USER_BIO = stringPreferencesKey("user_bio")
+        val IS_SYNC_ENABLED = booleanPreferencesKey("is_sync_enabled")
+        val IS_TIMER_RUNNING = booleanPreferencesKey("is_timer_running")
+        val LAST_DAILY_HABIT_REMINDER_DATE = stringPreferencesKey("last_daily_habit_reminder_date")
     }
 
     val themeMode: Flow<Int> = context.dataStore.data
@@ -50,12 +49,32 @@ class PreferenceManager(private val context: Context) {
 
     val userName: Flow<String> = context.dataStore.data
         .map { preferences ->
-            preferences[USER_NAME] ?: "Anastasia"
+            preferences[USER_NAME] ?: "Guest"
+        }
+
+    val userPhotoUri: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[USER_PHOTO_URI]
         }
 
     val userBio: Flow<String> = context.dataStore.data
         .map { preferences ->
             preferences[USER_BIO] ?: "Ready for your deep work session?"
+        }
+
+    val isSyncEnabled: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[IS_SYNC_ENABLED] ?: false
+        }
+
+    val isTimerRunning: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[IS_TIMER_RUNNING] ?: false
+        }
+
+    val lastDailyHabitReminderDate: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[LAST_DAILY_HABIT_REMINDER_DATE]
         }
 
     suspend fun setThemeMode(mode: Int) {
@@ -83,9 +102,37 @@ class PreferenceManager(private val context: Context) {
         }
     }
 
+    suspend fun setUserPhotoUri(uri: String?) {
+        context.dataStore.edit { preferences ->
+            if (uri != null) {
+                preferences[USER_PHOTO_URI] = uri
+            } else {
+                preferences.remove(USER_PHOTO_URI)
+            }
+        }
+    }
+
     suspend fun setUserBio(bio: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_BIO] = bio
+        }
+    }
+
+    suspend fun setSyncEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[IS_SYNC_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setTimerRunning(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[IS_TIMER_RUNNING] = enabled
+        }
+    }
+
+    suspend fun setLastDailyHabitReminderDate(date: String) {
+        context.dataStore.edit { preferences ->
+            preferences[LAST_DAILY_HABIT_REMINDER_DATE] = date
         }
     }
 }

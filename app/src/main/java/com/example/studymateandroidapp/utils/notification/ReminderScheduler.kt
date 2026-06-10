@@ -9,147 +9,140 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import android.util.Log
 
 /**
  * Schedules and cancels exact-time reminders via [AlarmManager].
  *
- * Used for:
- * - **Task reminders**: fires at a specific time before the task's due date
- * - **Exam notifications**: fires 1 day and 3 days before the exam date
- *
- * ## Alarm ID Strategy
- * Each alarm needs a unique [PendingIntent] request code:
- * - Task reminders:  `1_000_000 + taskId`
- * - Exam (1-day):    `2_000_000 + examId`
- * - Exam (3-day):    `3_000_000 + examId`
- *
- * This prevents collisions across notification types.
- *
- * ## Android 12+ Exact Alarm Permission
- * Starting API 31, `SCHEDULE_EXACT_ALARM` must be declared in the manifest
- * and the user may need to grant it. This class checks [canScheduleExactAlarms]
- * before scheduling and falls back to inexact alarms if denied.
+ * Implements a Multi-Stage Reminder Strategy:
+ * - Tasks: -1h, -15m, 0, +5m (Overdue)
+ * - Exams: -3d, -1d, Day-of @ 8AM, -1h, -15m
  */
 class ReminderScheduler(private val context: Context) {
 
     private val alarmManager: AlarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
+    private val TAG = "ReminderScheduler"
+
     // ── Task Reminders ────────────────────────────────────
 
-    /**
-     * Schedule a reminder for a task at a specific date & time.
-     *
-     * @param taskId    Unique task identifier
-     * @param title     Task title (shown in notification)
-     * @param dueDate   The task's due date
-     * @param reminderTime  When to fire the reminder (e.g. 9:00 AM on due date)
-     */
-    fun scheduleTaskReminder(
+    fun scheduleTaskReminders(
         taskId: Long,
         title: String,
         dueDate: LocalDate,
-        reminderTime: LocalTime = LocalTime.of(9, 0) // default: 9 AM on due date
+        dueTime: LocalTime
     ) {
-        val triggerDateTime = LocalDateTime.of(dueDate, reminderTime)
-        val triggerMillis = triggerDateTime
-            .atZone(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
+        val target = LocalDateTime.of(dueDate, dueTime)
+        Log.d(TAG, "Scheduling multi-stage reminders for Task $taskId: $title at $target")
 
-        // Don't schedule if the time is already past
-        if (triggerMillis <= System.currentTimeMillis()) return
+        // 1. One Hour Before
+        scheduleTaskStage(taskId, title, target.minusHours(1), "is due in 1 hour", STAGE_TASK_1H)
 
-        val requestCode = TASK_REQUEST_CODE_BASE + taskId.toInt()
-        val pendingIntent = createPendingIntent(
-            requestCode = requestCode,
-            type = ReminderReceiver.TYPE_TASK,
-            entityId = taskId,
-            title = title,
-            message = "Due today"
-        )
+        // 2. 15 Minutes Before
+        scheduleTaskStage(taskId, title, target.minusMinutes(15), "is due in 15 minutes...", STAGE_TASK_15M)
 
-        scheduleExactAlarm(triggerMillis, pendingIntent)
+        // 3. At Due Time
+        scheduleTaskStage(taskId, title, target, "is due now!", STAGE_TASK_DUE, isCritical = true)
+
+        // 4. 5 Minutes After (Overdue)
+        scheduleTaskStage(taskId, title, target.plusMinutes(5), "You missed your $title :(", STAGE_TASK_OVERDUE, isCritical = true, action = ReminderReceiver.ACTION_MARK_OVERDUE)
     }
 
-    /** Cancel a previously scheduled task reminder. */
-    fun cancelTaskReminder(taskId: Long) {
-        val requestCode = TASK_REQUEST_CODE_BASE + taskId.toInt()
+    private fun scheduleTaskStage(
+        taskId: Long,
+        title: String,
+        triggerTime: LocalDateTime,
+        message: String,
+        stageOffset: Int,
+        isCritical: Boolean = false,
+        action: String? = null
+    ) {
+        val triggerMillis = triggerTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        
+        if (triggerMillis <= System.currentTimeMillis()) {
+            Log.d(TAG, "Smart Skip: Task $taskId stage $stageOffset is in the past ($triggerTime)")
+            return
+        }
+
+        val requestCode = BASE_TASK + stageOffset + taskId.toInt()
         val pendingIntent = createPendingIntent(
             requestCode = requestCode,
             type = ReminderReceiver.TYPE_TASK,
             entityId = taskId,
-            title = "",
-            message = ""
+            title = if (isCritical) title else "Task Due Soon",
+            message = if (isCritical) message else "$title $message",
+            action = action
         )
-        alarmManager.cancel(pendingIntent)
+
+        scheduleExactAlarm(triggerMillis, pendingIntent, "Task $taskId Stage $stageOffset")
+    }
+
+    fun cancelTaskReminders(taskId: Long) {
+        Log.d(TAG, "Cancelling all reminders for task $taskId")
+        listOf(STAGE_TASK_1H, STAGE_TASK_15M, STAGE_TASK_DUE, STAGE_TASK_OVERDUE).forEach { stage ->
+            val requestCode = BASE_TASK + stage + taskId.toInt()
+            alarmManager.cancel(createEmptyPendingIntent(requestCode))
+        }
     }
 
     // ── Exam Notifications ────────────────────────────────
 
-    /**
-     * Schedule exam reminders for specific days before the exam.
-     *
-     * @param examId       Unique exam identifier
-     * @param title        Exam title
-     * @param examDate     Date of the exam
-     * @param daysBefore   List of days before the exam to fire a reminder
-     */
     fun scheduleExamReminders(
         examId: Long,
         title: String,
-        examDate: LocalDate,
-        daysBefore: List<Int> = listOf(1, 3)
+        subject: String,
+        examDateTime: LocalDateTime,
+        isTimeSet: Boolean
     ) {
-        daysBefore.forEach { days ->
-            val message = when (days) {
-                0 -> "today"
-                1 -> "tomorrow"
-                else -> "in $days days"
-            }
-            scheduleExamAlarm(
-                examId = examId,
-                title = title,
-                triggerDate = examDate.minusDays(days.toLong()),
-                message = message,
-                requestCodeBase = EXAM_BASE_CODE(days)
-            )
+        Log.d(TAG, "Scheduling multi-stage reminders for Exam $examId: $title ($subject) at $examDateTime")
+
+        // 1. 3 Days Before (8 AM)
+        val stage1Time = LocalDateTime.of(examDateTime.toLocalDate().minusDays(3), LocalTime.of(8, 0))
+        scheduleExamStage(examId, subject, stage1Time, "Your $subject exam is in 3 days.", STAGE_EXAM_3D)
+
+        // 2. 1 Day Before (8 AM)
+        val stage2Time = LocalDateTime.of(examDateTime.toLocalDate().minusDays(1), LocalTime.of(8, 0))
+        scheduleExamStage(examId, subject, stage2Time, "$subject exam is tomorrow. Time for the final preparation!", STAGE_EXAM_1D)
+
+        // 3. Morning of Exam (8 AM)
+        val stage3Time = LocalDateTime.of(examDateTime.toLocalDate(), LocalTime.of(8, 0))
+        scheduleExamStage(examId, subject, stage3Time, "Good luck! You've got $subject today.", STAGE_EXAM_MORNING, isCritical = true)
+
+        if (isTimeSet) {
+            // 4. One Hour Before
+            scheduleExamStage(examId, subject, examDateTime.minusHours(1), "Final Revision? $subject starts in 1 hour.", STAGE_EXAM_1H, isCritical = true)
+
+            // 5. 15 Minutes Before
+            scheduleExamStage(examId, subject, examDateTime.minusMinutes(15), "You've Got This! $subject starts in 15 minutes.", STAGE_EXAM_15M, isCritical = true)
         }
     }
 
-    /** Cancel all scheduled exam reminders for a given exam. */
-    fun cancelExamReminders(examId: Long) {
-        // Cancel for common "days before" (0, 1, 2, 3, 7)
-        listOf(0, 1, 2, 3, 7).forEach { days ->
-            val requestCode = EXAM_BASE_CODE(days) + examId.toInt()
-            val pendingIntent = createPendingIntent(
-                requestCode = requestCode,
-                type = ReminderReceiver.TYPE_EXAM,
-                entityId = examId,
-                title = "",
-                message = ""
-            )
-            alarmManager.cancel(pendingIntent)
-        }
-    }
-
-    // ── Private Helpers ───────────────────────────────────
-
-    private fun scheduleExamAlarm(
+    private fun scheduleExamStage(
         examId: Long,
-        title: String,
-        triggerDate: LocalDate,
+        subject: String,
+        triggerTime: LocalDateTime,
         message: String,
-        requestCodeBase: Int
+        stageOffset: Int,
+        isCritical: Boolean = false
     ) {
-        val triggerMillis = LocalDateTime.of(triggerDate, LocalTime.of(9, 0))
-            .atZone(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
+        val triggerMillis = triggerTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        
+        if (triggerMillis <= System.currentTimeMillis()) {
+            Log.d(TAG, "Smart Skip: Exam $examId stage $stageOffset is in the past ($triggerTime)")
+            return
+        }
 
-        if (triggerMillis <= System.currentTimeMillis()) return
+        val requestCode = BASE_EXAM + stageOffset + examId.toInt()
+        val title = when(stageOffset) {
+            STAGE_EXAM_3D -> "Exam Coming Up"
+            STAGE_EXAM_1D -> "Exam Tomorrow"
+            STAGE_EXAM_MORNING -> "Exam Day"
+            STAGE_EXAM_1H -> "Final Revision?"
+            STAGE_EXAM_15M -> "You've Got This!"
+            else -> "Exam Alert"
+        }
 
-        val requestCode = requestCodeBase + examId.toInt()
         val pendingIntent = createPendingIntent(
             requestCode = requestCode,
             type = ReminderReceiver.TYPE_EXAM,
@@ -158,35 +151,34 @@ class ReminderScheduler(private val context: Context) {
             message = message
         )
 
-        scheduleExactAlarm(triggerMillis, pendingIntent)
+        scheduleExactAlarm(triggerMillis, pendingIntent, "Exam $examId Stage $stageOffset")
     }
 
-    /**
-     * Schedule an exact alarm, with fallback to inexact on API 31+
-     * if the exact-alarm permission is not granted.
-     */
-    private fun scheduleExactAlarm(triggerMillis: Long, pendingIntent: PendingIntent) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerMillis,
-                    pendingIntent
-                )
+    fun cancelExamReminders(examId: Long) {
+        Log.d(TAG, "Cancelling all reminders for exam $examId")
+        listOf(STAGE_EXAM_3D, STAGE_EXAM_1D, STAGE_EXAM_MORNING, STAGE_EXAM_1H, STAGE_EXAM_15M).forEach { stage ->
+            val requestCode = BASE_EXAM + stage + examId.toInt()
+            alarmManager.cancel(createEmptyPendingIntent(requestCode))
+        }
+    }
+
+    // ── Private Helpers ───────────────────────────────────
+
+    private fun scheduleExactAlarm(triggerMillis: Long, pendingIntent: PendingIntent, tag: String) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    Log.d(TAG, "Scheduling EXACT alarm for $tag at $triggerMillis")
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
+                } else {
+                    Log.w(TAG, "Permission missing for EXACT alarm. Falling back for $tag")
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
+                }
             } else {
-                // Fallback: inexact alarm (may be delayed up to ~10 min)
-                alarmManager.setAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerMillis,
-                    pendingIntent
-                )
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
             }
-        } else {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                triggerMillis,
-                pendingIntent
-            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to schedule alarm for $tag", e)
         }
     }
 
@@ -195,13 +187,15 @@ class ReminderScheduler(private val context: Context) {
         type: String,
         entityId: Long,
         title: String,
-        message: String
+        message: String,
+        action: String? = null
     ): PendingIntent {
         val intent = Intent(context, ReminderReceiver::class.java).apply {
             putExtra(ReminderReceiver.EXTRA_TYPE, type)
             putExtra(ReminderReceiver.EXTRA_ENTITY_ID, entityId)
             putExtra(ReminderReceiver.EXTRA_TITLE, title)
             putExtra(ReminderReceiver.EXTRA_MESSAGE, message)
+            action?.let { this.action = it }
         }
         return PendingIntent.getBroadcast(
             context,
@@ -211,8 +205,32 @@ class ReminderScheduler(private val context: Context) {
         )
     }
 
+    private fun createEmptyPendingIntent(requestCode: Int): PendingIntent {
+        return PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            Intent(context, ReminderReceiver::class.java),
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        ) ?: PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            Intent(context, ReminderReceiver::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
     companion object {
-        private const val TASK_REQUEST_CODE_BASE = 1_000_000
-        private fun EXAM_BASE_CODE(daysBefore: Int) = 2_000_000 + (daysBefore * 100_000)
+        private const val BASE_TASK = 1_000_000
+        private const val STAGE_TASK_1H = 100_000
+        private const val STAGE_TASK_15M = 150_000
+        private const val STAGE_TASK_DUE = 0
+        private const val STAGE_TASK_OVERDUE = 50_000
+
+        private const val BASE_EXAM = 2_000_000
+        private const val STAGE_EXAM_3D = 300_000
+        private const val STAGE_EXAM_1D = 100_000
+        private const val STAGE_EXAM_MORNING = 0
+        private const val STAGE_EXAM_1H = 60_000
+        private const val STAGE_EXAM_15M = 15_000
     }
 }

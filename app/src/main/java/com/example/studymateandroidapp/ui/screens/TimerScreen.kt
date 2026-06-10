@@ -10,7 +10,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,36 +27,47 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studymateandroidapp.R
+import com.example.studymateandroidapp.data.model.StudySession
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.TimerViewmodel
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun TimerScreen(
     viewModel: TimerViewmodel,
     examId: Long? = null
 ) {
-    // For now, since ViewModel is empty, we use local state or placeholder
+    val uiState by viewModel.uiState.collectAsState()
+
     TimerContent(
-        examId = examId,
-        onStartSession = { /* TODO */ },
-        onStopSession = { /* TODO */ }
+        uiState = uiState,
+        onModeChange = { viewModel.setMode(it) },
+        onPhaseChange = { viewModel.setPhase(it) },
+        onTitleChange = { viewModel.updateStudyTitle(it) },
+        onStart = { viewModel.startTimer() },
+        onPause = { viewModel.pauseTimer() },
+        onResume = { viewModel.resumeTimer() },
+        onStopAndSave = { viewModel.stopAndSave() },
+        onReset = { viewModel.resetTimer() }
     )
 }
 
 @Composable
 fun TimerContent(
-    examId: Long? = null,
-    onStartSession: () -> Unit,
-    onStopSession: () -> Unit
+    uiState: TimerViewmodel.TimerUiState,
+    onModeChange: (TimerViewmodel.TimerMode) -> Unit,
+    onPhaseChange: (TimerViewmodel.PomodoroPhase) -> Unit,
+    onTitleChange: (String) -> Unit,
+    onStart: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
+    onStopAndSave: () -> Unit,
+    onReset: () -> Unit
 ) {
-    var timerMode by remember { mutableStateOf("Pomodoro") }
-    var subMode by remember { mutableStateOf("Work") }
-    var studyText by remember { mutableStateOf("") }
-
     Scaffold(
         topBar = {
             StudyMateTopBar(
-                title = "Study Timer",
+                title = "Study Timer :",
                 actions = {
                     IconButton(onClick = { /* TODO */ }) {
                         Icon(painter = painterResource(id = R.drawable.statistics), contentDescription = "Stats")
@@ -66,7 +80,7 @@ fun TimerContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 28.dp),
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
             item {
@@ -77,20 +91,20 @@ fun TimerContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(40.dp)
-                        .border(1.dp, Color.Black, RoundedCornerShape(20.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(20.dp))
                         .clip(RoundedCornerShape(20.dp))
                 ) {
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxSize()
-                            .background(if (timerMode == "Pomodoro") Color.Black else Color.Transparent)
-                            .clickable { timerMode = "Pomodoro" },
+                            .background(if (uiState.mode == TimerViewmodel.TimerMode.POMODORO) MaterialTheme.colorScheme.primary else Color.Transparent)
+                            .clickable(enabled = !uiState.isRunning && !uiState.isPaused) { onModeChange(TimerViewmodel.TimerMode.POMODORO) },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "Pomodoro",
-                            color = if (timerMode == "Pomodoro") Color.White else Color.Black,
+                            color = if (uiState.mode == TimerViewmodel.TimerMode.POMODORO) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -99,13 +113,13 @@ fun TimerContent(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxSize()
-                            .background(if (timerMode == "Stopwatch") Color.Black else Color.Transparent)
-                            .clickable { timerMode = "Stopwatch" },
+                            .background(if (uiState.mode == TimerViewmodel.TimerMode.STOPWATCH) MaterialTheme.colorScheme.primary else Color.Transparent)
+                            .clickable(enabled = !uiState.isRunning && !uiState.isPaused) { onModeChange(TimerViewmodel.TimerMode.STOPWATCH) },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "Stopwatch",
-                            color = if (timerMode == "Stopwatch") Color.White else Color.Black,
+                            color = if (uiState.mode == TimerViewmodel.TimerMode.STOPWATCH) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -115,13 +129,15 @@ fun TimerContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Work / Break / Long
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TimerModeChip("Work", isSelected = subMode == "Work", modifier = Modifier.weight(1f)) { subMode = "Work" }
-                    TimerModeChip("Break", isSelected = subMode == "Break", modifier = Modifier.weight(1f)) { subMode = "Break" }
-                    TimerModeChip("Long", isSelected = subMode == "Long", modifier = Modifier.weight(1f)) { subMode = "Long" }
+                if (uiState.mode == TimerViewmodel.TimerMode.POMODORO) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        TimerModeChip("Work", isSelected = uiState.phase == TimerViewmodel.PomodoroPhase.WORK, enabled = !uiState.isRunning && !uiState.isPaused, modifier = Modifier.weight(1f)) { onPhaseChange(TimerViewmodel.PomodoroPhase.WORK) }
+                        TimerModeChip("Break", isSelected = uiState.phase == TimerViewmodel.PomodoroPhase.BREAK, enabled = !uiState.isRunning && !uiState.isPaused, modifier = Modifier.weight(1f)) { onPhaseChange(TimerViewmodel.PomodoroPhase.BREAK) }
+                        TimerModeChip("Long", isSelected = uiState.phase == TimerViewmodel.PomodoroPhase.LONG_BREAK, enabled = !uiState.isRunning && !uiState.isPaused, modifier = Modifier.weight(1f)) { onPhaseChange(TimerViewmodel.PomodoroPhase.LONG_BREAK) }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -134,14 +150,16 @@ fun TimerContent(
                     Box(
                         modifier = Modifier
                             .size(240.dp)
-                            .border(8.dp, Color(0xFFF2F2F2), CircleShape),
+                            .border(8.dp, if (uiState.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
+                        val minutes = uiState.timeLeftSeconds / 60
+                        val seconds = uiState.timeLeftSeconds % 60
                         Text(
-                            text = "25:00",
+                            text = "%02d:%02d".format(minutes, seconds),
                             style = MaterialTheme.typography.displayMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
@@ -150,29 +168,84 @@ fun TimerContent(
 
                 // Input Field
                 OutlinedTextField(
-                    value = studyText,
-                    onValueChange = { studyText = it },
-                    placeholder = { Text("What are you studying?") },
+                    value = uiState.studyTitle,
+                    onValueChange = onTitleChange,
+                    placeholder = { Text("What are you studying?", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Black,
-                        unfocusedBorderColor = Color.LightGray
-                    )
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    enabled = !uiState.isRunning && !uiState.isPaused
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Start Session Button
-                Button(
-                    onClick = onStartSession,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                    shape = RoundedCornerShape(12.dp)
+                // Control Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Start Session", fontWeight = FontWeight.Bold)
+                    if (!uiState.isRunning && !uiState.isPaused) {
+                        // START
+                        Button(
+                            onClick = onStart,
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Start", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                        }
+                    } else if (uiState.isRunning) {
+                        // PAUSE
+                        Button(
+                            onClick = onPause,
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.Pause, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Pause", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondary)
+                        }
+                    } else {
+                        // RESUME
+                        Button(
+                            onClick = onResume,
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Resume", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                        }
+                    }
+
+                    if (uiState.isRunning || uiState.isPaused) {
+                        // STOP & SAVE
+                        IconButton(
+                            onClick = onStopAndSave,
+                            modifier = Modifier.size(56.dp).background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(12.dp))
+                        ) {
+                            Icon(Icons.Default.Save, contentDescription = "Stop & Save", tint = MaterialTheme.colorScheme.onErrorContainer)
+                        }
+                    }
+
+                    // RESET
+                    IconButton(
+                        onClick = onReset,
+                        modifier = Modifier.size(56.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                    ) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Reset", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -180,7 +253,7 @@ fun TimerContent(
                 // Today's Study Time Card
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = Color(0xFFF5F5F5),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(
@@ -190,12 +263,13 @@ fun TimerContent(
                         Icon(
                             painter = painterResource(id = R.drawable.today_time),
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
-                            Text("Today's Study Time", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-                            Text("1h 4m", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Text("Today's Study Time", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                            Text(formatDuration(uiState.totalSecondsWorkedToday), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -205,18 +279,19 @@ fun TimerContent(
                 Text(
                     text = "Recent Sessions",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            items(listOf(
-                Triple("Games", "3 min", "2024-04-11"),
-                Triple("Mr. David Moral", "6 min", "2024-04-09"),
-                Triple("Life more than", "8 min", "2024-04-08")
-            )) { session ->
-                RecentSessionItem(session.first, session.second, session.third)
+            items(uiState.recentSessions) { session ->
+                RecentSessionItem(
+                    title = session.subject,
+                    duration = formatDuration(session.durationSeconds),
+                    date = session.startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                )
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
@@ -224,12 +299,12 @@ fun TimerContent(
 }
 
 @Composable
-fun TimerModeChip(label: String, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun TimerModeChip(label: String, isSelected: Boolean, enabled: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Surface(
-        color = if (isSelected) Color.Black else Color.White,
+        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(12.dp),
-        border = if (isSelected) null else BorderStroke(1.dp, Color.LightGray),
-        modifier = modifier.clickable { onClick() }
+        border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        modifier = modifier.clickable(enabled = enabled) { onClick() }
     ) {
         Box(
             modifier = Modifier.padding(vertical = 8.dp),
@@ -237,7 +312,7 @@ fun TimerModeChip(label: String, isSelected: Boolean, modifier: Modifier = Modif
         ) {
             Text(
                 text = label,
-                color = if (isSelected) Color.White else Color.Black,
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.labelLarge
             )
         }
@@ -248,9 +323,9 @@ fun TimerModeChip(label: String, isSelected: Boolean, modifier: Modifier = Modif
 fun RecentSessionItem(title: String, duration: String, date: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = Color(0xFFF8F8F8),
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, Color(0xFFEEEEEE))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -258,11 +333,23 @@ fun RecentSessionItem(title: String, duration: String, date: String) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(text = title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-                Text(text = duration, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text(text = title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             }
-            Text(text = date, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text(text = duration, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         }
+    }
+}
+
+fun formatDuration(totalSeconds: Int): String {
+    val h = totalSeconds / 3600
+    val m = (totalSeconds % 3600) / 60
+    val s = totalSeconds % 60
+    
+    return when {
+        h > 0 -> "${h}h ${m}m ${s}s"
+        m > 0 -> "${m}m ${s}s"
+        else -> "${s}s"
     }
 }
 
@@ -271,8 +358,15 @@ fun RecentSessionItem(title: String, duration: String, date: String) {
 fun TimerPreview() {
     MaterialTheme {
         TimerContent(
-            onStartSession = {},
-            onStopSession = {}
+            uiState = TimerViewmodel.TimerUiState(),
+            onModeChange = {},
+            onPhaseChange = {},
+            onTitleChange = {},
+            onStart = {},
+            onPause = {},
+            onResume = {},
+            onStopAndSave = {},
+            onReset = {}
         )
     }
 }

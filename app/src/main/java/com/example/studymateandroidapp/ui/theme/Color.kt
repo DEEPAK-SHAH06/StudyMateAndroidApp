@@ -2,27 +2,35 @@ package com.example.studymateandroidapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary Palette
+// --- Professional Dark Theme Palette ---
+val DarkBackground = Color(0xFF121212)
+val DarkSurface = Color(0xFF1E1E1E)
+val DarkSurfaceVariant = Color(0xFF2C2C2C)
+val DarkPrimary = Color(0xFFBB86FC)
+val DarkSecondary = Color(0xFF03DAC6)
+val DarkOnBackground = Color(0xFFE1E1E1)
+val DarkOnSurface = Color(0xFFE1E1E1)
+val DarkOnPrimary = Color(0xFF000000)
+val DarkBorder = Color(0xFF333333)
+
+// --- Professional Light Theme Palette ---
+val LightBackground = Color(0xFFFFFFFF)
+val LightSurface = Color(0xFFFFFFFF)
+val LightSurfaceVariant = Color(0xFFF5F5F5)
+val LightPrimary = Color(0xFF000000)
+val LightSecondary = Color(0xFF009688)
+val LightOnBackground = Color(0xFF121212)
+val LightOnSurface = Color(0xFF121212)
+val LightOnPrimary = Color(0xFFFFFFFF)
+val LightBorder = Color(0xFFEEEEEE)
+
+// --- Shared Semantic Colors ---
+val ErrorRed = Color(0xFFCF6679)
+val SuccessGreen = Color(0xFF4CAF50)
+val WarningOrange = Color(0xFFFF9800)
+val InfoBlue = Color(0xFF2196F3)
+
+// --- Legacy / Specific Component Colors (to be phased out or used sparingly) ---
 val PrimaryIndigo = Color(0xFF3F51B5)
-val PrimaryDark = Color(0xFF303F9F)
-val PrimaryLight = Color(0xFFC5CAE9)
-
-// Accent Palette
 val TealAccent = Color(0xFF009688)
-val TealDark = Color(0xFF00796B)
-val TealLight = Color(0xFFB2DFDB)
-
-// Neutral Palette
-val SurfaceWhite = Color(0xFFFFFFFF)
-val SurfaceGray = Color(0xFFF5F5F5)
-val TextBlack = Color(0xFF212121)
 val TextGray = Color(0xFF757575)
-
-// Legacy colors (if needed for backward compatibility during transition)
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)

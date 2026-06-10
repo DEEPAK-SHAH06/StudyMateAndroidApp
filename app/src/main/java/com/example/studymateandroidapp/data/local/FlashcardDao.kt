@@ -9,6 +9,12 @@ interface FlashcardDao {
     @Query("SELECT * FROM flashcards")
     fun getAllFlashcards(): Flow<List<Flashcard>>
 
+    @Query("SELECT * FROM flashcards WHERE examId = :examId")
+    fun getFlashcardsByExamId(examId: Long): Flow<List<Flashcard>>
+
+    @Query("SELECT * FROM flashcards WHERE id = :id")
+    suspend fun getFlashcardById(id: Long): Flashcard?
+
     @Query("SELECT COUNT(*) FROM flashcards")
     fun getFlashcardCount(): Flow<Int>
 
@@ -20,4 +26,7 @@ interface FlashcardDao {
 
     @Delete
     suspend fun delete(flashcard: Flashcard)
+
+    @Query("SELECT * FROM flashcards")
+    suspend fun getAllFlashcardsList(): List<Flashcard>
 }

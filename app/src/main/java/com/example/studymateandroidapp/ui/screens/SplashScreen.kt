@@ -36,7 +36,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -54,13 +54,13 @@ fun SplashScreen(
                 text = "StudyMate",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             
             Spacer(modifier = Modifier.height(48.dp))
             
             CircularProgressIndicator(
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.primary,
                 strokeWidth = 4.dp
             )
         }

@@ -13,34 +13,45 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryLight,
-    secondary = TealLight,
-    tertiary = Pink80,
-    background = Color(0xFF121212),
-    surface = Color(0xFF121212),
-    onPrimary = Color.Black,
-    onSecondary = Color.Black,
-    onBackground = Color.White,
-    onSurface = Color.White
+    primary = DarkPrimary,
+    secondary = DarkSecondary,
+    tertiary = InfoBlue,
+    background = DarkBackground,
+    surface = DarkSurface,
+    onPrimary = DarkOnPrimary,
+    onSecondary = DarkOnPrimary,
+    onBackground = DarkOnBackground,
+    onSurface = DarkOnSurface,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = DarkOnSurface,
+    outline = DarkBorder,
+    error = ErrorRed
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color.Black, // Modern look uses black as primary
-    secondary = TealAccent,
+    primary = LightPrimary,
+    secondary = LightSecondary,
     tertiary = PrimaryIndigo,
-    background = Color.White,
-    surface = Color.White,
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onBackground = Color.Black,
-    onSurface = Color.Black,
-    surfaceVariant = Color(0xFFF5F5F5),
-    onSurfaceVariant = Color.Gray
+    background = LightBackground,
+    surface = LightSurface,
+    onPrimary = LightOnPrimary,
+    onSecondary = LightOnPrimary,
+    onBackground = LightOnBackground,
+    onSurface = LightOnSurface,
+    surfaceVariant = LightSurfaceVariant,
+    onSurfaceVariant = TextGray,
+    outline = LightBorder,
+    error = ErrorRed
 )
 
 @Composable
 fun StudyMateAndroidAppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: Int = 0, // 0: System, 1: Light, 2: Dark
+    darkTheme: Boolean = when (themeMode) {
+        1 -> false
+        2 -> true
+        else -> isSystemInDarkTheme()
+    },
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false, // Disable dynamic color to enforce our brand colors
     content: @Composable () -> Unit

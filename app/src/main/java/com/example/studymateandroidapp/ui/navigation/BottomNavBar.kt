@@ -19,6 +19,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
  * Highlights the current destination and navigates on tap,
  * restoring state and avoiding duplicate back-stack entries.
  */
+
 @Composable
 fun BottomNavBar(
     navController: NavController,
@@ -29,7 +30,7 @@ fun BottomNavBar(
 
     NavigationBar(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp // tonal layering, no shadow
     ) {
         Screen.bottomNavItems.forEach { screen ->
@@ -39,7 +40,8 @@ fun BottomNavBar(
                 selected = selected,
                 onClick = {
                     if (!selected) {
-                        navController.navigate(screen.route) {
+                        val route = if (screen is Screen.StudyTimer) "study_timer" else screen.route
+                        navController.navigate(route) {
                             // Pop up to the start destination to avoid stacking
                             popUpTo(Screen.Dashboard.route) { saveState = true }
                             launchSingleTop = true
@@ -66,7 +68,7 @@ fun BottomNavBar(
                     selectedTextColor = MaterialTheme.colorScheme.primary,
                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer
                 )
             )
         }

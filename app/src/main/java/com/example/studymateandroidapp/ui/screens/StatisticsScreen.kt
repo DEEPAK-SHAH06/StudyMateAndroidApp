@@ -1,138 +1,165 @@
 package com.example.studymateandroidapp.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.studymateandroidapp.R
+import com.example.studymateandroidapp.data.repository.StatisticsRepository
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.StatisticsViewmodel
+import com.example.studymateandroidapp.viewmodel.StatisticsViewmodel.DailyChartPoint
 
 @Composable
 fun StatisticsScreen(
     viewModel: StatisticsViewmodel,
     onBack: () -> Unit
 ) {
-    StatisticsContent(onBack = onBack)
+    val uiState by viewModel.uiState.collectAsState()
+
+    if (uiState.isLoading) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    StatisticsContent(
+        totalTasks         = uiState.totalTasks,
+        completedTasks     = uiState.completedTasks,
+        taskCompletionRate = uiState.taskCompletionRate,
+        todayStudySeconds  = uiState.todayStudySeconds,
+        completedGoals     = uiState.completedGoals,
+        thisWeekStudySeconds = uiState.thisWeekStudySeconds,
+        weeklyAverageSubtitle = uiState.weeklyAverageSubtitle,
+        dailyChartData     = uiState.dailyChartData,
+        onBack             = onBack
+    )
 }
 
 @Composable
 fun StatisticsContent(
+    totalTasks: Int,
+    completedTasks: Int,
+    taskCompletionRate: Int,
+    todayStudySeconds: Int,
+    completedGoals: Int,
+    thisWeekStudySeconds: Int,
+    weeklyAverageSubtitle: String,
+    dailyChartData: List<DailyChartPoint>,
     onBack: () -> Unit
 ) {
-    // Mock data for preview/now
-    val totalTasks = 8
-    val completedTasks = 4
-    val taskPercentage = 50
-    val todayStudy = "2h 5m"
-    val goalsMet = 2
-    val weeklyStudy = "14h 30m"
-    val averageStudy = "2h 4m/day"
-
-    val weeklyStudyMinutes = listOf(20, 45, 70, 10, 90, 30, 50)
-    val labels = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
-    val maxMinutes = weeklyStudyMinutes.maxOrNull() ?: 1
-
     Scaffold(
         topBar = {
-            StudyMateTopBar(
-                title = "Statistics",
-                onBack = onBack
-            )
+            StudyMateTopBar(title = "Statistics", onBack = onBack)
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color.White)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(8.dp))
 
+            // ── Row 1 ─────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    painter = painterResource(R.drawable.task_done),
-                    overview = "$completedTasks/$totalTasks",
-                    description = "Tasks Done",
-                    subdescription = "$taskPercentage%"
+                    icon     = Icons.Default.CheckCircle,
+                    label    = "Tasks Done",
+                    value    = "$completedTasks/$totalTasks",
+                    subtext  = "$taskCompletionRate%"
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    painter = painterResource(R.drawable.total),
-                    overview = todayStudy,
-                    description = "Today's Study",
-                    subdescription = ""
+                    icon     = Icons.Default.Timer,
+                    label    = "Study Today",
+                    value    = StatisticsRepository.formatDuration(todayStudySeconds),
+                    subtext  = "Keep it up!"
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
+            // ── Row 2 ─────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    painter = painterResource(R.drawable.task_done),
-                    overview = "$goalsMet",
-                    description = "Goals Met",
-                    subdescription = ""
+                    icon     = Icons.Default.EmojiEvents,
+                    label    = "Goals Met",
+                    value    = "$completedGoals",
+                    subtext  = null
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    painter = painterResource(R.drawable.total),
-                    overview = weeklyStudy,
-                    description = "This Week",
-                    subdescription = "Avg: $averageStudy"
+                    icon     = Icons.Default.TrendingUp,
+                    label    = "This Week",
+                    value    = StatisticsRepository.formatDuration(thisWeekStudySeconds),
+                    subtext  = weeklyAverageSubtitle
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
+            // ── Chart ─────────────────────────────────────
             Text(
                 "Weekly Overview",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                style      = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier   = Modifier.padding(top = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                color = Color.Black
-            ) {
-                Row(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
+            if (dailyChartData.isNotEmpty()) {
+                WeeklyBarChart(
+                    data     = dailyChartData,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                )
+            } else {
+                Surface(
+                    color    = MaterialTheme.colorScheme.surfaceVariant,
+                    shape    = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
                 ) {
-                    labels.forEachIndexed { index, label ->
-                        val fillHeight = (weeklyStudyMinutes[index] * 100) / maxMinutes
-                        WeeklyBar(fillHeight = fillHeight, label = label)
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            "Start studying to see your chart!",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(80.dp))
         }
     }
 }
@@ -140,47 +167,127 @@ fun StatisticsContent(
 @Composable
 fun StatCard(
     modifier: Modifier = Modifier,
-    painter: Painter,
-    overview: String,
-    description: String,
-    subdescription: String
+    icon: ImageVector,
+    label: String,
+    value: String,
+    subtext: String?
 ) {
-    Surface(
-        modifier = modifier.height(140.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF5F5F5)
+    Card(
+        modifier = modifier,
+        colors   = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Icon(painter = painter, contentDescription = null, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(overview, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text(description, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
-            if (subdescription.isNotEmpty()) {
-                Text(subdescription, color = Color.Red, style = MaterialTheme.typography.labelSmall)
+            Icon(
+                imageVector     = icon,
+                contentDescription = null,
+                tint            = MaterialTheme.colorScheme.primary,
+                modifier        = Modifier.size(22.dp)
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text       = value,
+                style      = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text  = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (subtext != null) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text       = subtext,
+                    style      = MaterialTheme.typography.labelSmall,
+                    color      = MaterialTheme.colorScheme.tertiary,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }
 }
 
+/** Gradient bar chart drawn with Canvas — no external chart library needed. */
 @Composable
-fun WeeklyBar(fillHeight: Int, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
+private fun WeeklyBarChart(
+    data: List<DailyChartPoint>,
+    modifier: Modifier = Modifier
+) {
+    val primaryColor          = MaterialTheme.colorScheme.primary
+    val primaryContainerColor = MaterialTheme.colorScheme.primaryContainer
+    val trackColor            = MaterialTheme.colorScheme.surfaceVariant
+    val labelColor            = MaterialTheme.colorScheme.onSurfaceVariant
+
+    Card(
+        modifier = modifier,
+        colors   = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
             modifier = Modifier
-                .width(24.dp)
-                .height(120.dp)
-                .background(Color.White.copy(alpha = 0.2f), shape = RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.BottomCenter
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            Box(
+            Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(fillHeight.dp)
-                    .background(Color.White, shape = RoundedCornerShape(12.dp))
-            )
+                    .weight(1f)
+            ) {
+                val maxSeconds = (data.maxOfOrNull { it.seconds } ?: 1).coerceAtLeast(1)
+                val barCount   = data.size
+                val spacing    = 12.dp.toPx()
+                val barWidth   = (size.width - (barCount - 1) * spacing) / barCount
+                val chartH     = size.height
+
+                data.forEachIndexed { index, point ->
+                    val x         = index * (barWidth + spacing)
+                    val barHeight = (point.seconds.toFloat() / maxSeconds) * chartH * 0.85f
+
+                    // Background track
+                    drawRoundRect(
+                        color       = trackColor,
+                        topLeft     = Offset(x, 0f),
+                        size        = Size(barWidth, chartH),
+                        cornerRadius = CornerRadius(8.dp.toPx())
+                    )
+
+                    // Filled bar with gradient
+                    if (barHeight > 0) {
+                        drawRoundRect(
+                            brush = Brush.verticalGradient(
+                                listOf(primaryColor, primaryContainerColor)
+                            ),
+                            topLeft      = Offset(x, chartH - barHeight),
+                            size         = Size(barWidth, barHeight),
+                            cornerRadius = CornerRadius(8.dp.toPx())
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            // Day labels below bars
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                data.forEach { point ->
+                    Text(
+                        text     = point.label,
+                        style    = MaterialTheme.typography.labelSmall,
+                        color    = labelColor,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(label, color = Color.White, fontSize = 10.sp)
     }
 }
 
@@ -188,6 +295,16 @@ fun WeeklyBar(fillHeight: Int, label: String) {
 @Composable
 fun StatisticsPreview() {
     MaterialTheme {
-        StatisticsContent(onBack = {})
+        StatisticsContent(
+            totalTasks         = 8,
+            completedTasks     = 4,
+            taskCompletionRate = 50,
+            todayStudySeconds  = 1800,
+            completedGoals     = 2,
+            thisWeekStudySeconds = 7200,
+            weeklyAverageSubtitle = "Avg: 17m 08s/day",
+            dailyChartData     = emptyList(),
+            onBack             = {}
+        )
     }
 }

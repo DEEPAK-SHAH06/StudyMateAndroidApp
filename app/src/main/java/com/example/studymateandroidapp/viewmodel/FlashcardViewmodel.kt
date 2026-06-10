@@ -14,6 +14,12 @@ class FlashcardViewmodel(private val repository: FlashcardRepository) : ViewMode
     val allFlashcards: StateFlow<List<Flashcard>> = repository.allFlashcards
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    fun getFlashcardsByExamId(examId: Long): StateFlow<List<Flashcard>> =
+        repository.getFlashcardsByExamId(examId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    suspend fun getFlashcardById(id: Long): Flashcard? = repository.getFlashcardById(id)
+
     fun addFlashcard(flashcard: Flashcard) {
         viewModelScope.launch {
             repository.insert(flashcard)
