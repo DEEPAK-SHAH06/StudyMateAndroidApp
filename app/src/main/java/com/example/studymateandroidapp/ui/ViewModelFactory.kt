@@ -35,6 +35,22 @@ object ViewModelFactory : ViewModelProvider.Factory {
         )
         val authRepo = AuthRepository(application)
         val prefManager = PreferenceManager(application)
+        val reminderScheduler = ReminderScheduler(application)
+
+        val notificationRepo = NotificationRepository(
+            context = application,
+            reminderDao = db.reminderDao(),
+            taskDao = db.taskDao(),
+            examDao = db.examDao(),
+            scheduler = reminderScheduler
+        )
+
+        val statisticsRepo = StatisticsRepository(
+            taskRepository       = taskRepo,
+            sessionRepository    = sessionRepo,
+            goalRepository       = goalRepo,
+            motivationRepository = motivationRepo
+        )
 
         return when {
             // ── Dashboard ──────────────────────────────────────────
@@ -54,7 +70,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
                 TaskViewmodel(
                     repository = taskRepo,
                     motivationRepository = motivationRepo,
-                    reminderScheduler = ReminderScheduler(application)
+                    reminderScheduler = reminderScheduler
                 ) as T
 
             // ── Exams ──────────────────────────────────────────────
@@ -62,7 +78,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
                 ExamViewmodel(
                     repository = examRepo,
                     studyProgressRepository = studyProgressRepo,
-                    reminderScheduler = ReminderScheduler(application)
+                    reminderScheduler = reminderScheduler
                 ) as T
 
             // ── Goals ──────────────────────────────────────────────
@@ -98,27 +114,14 @@ object ViewModelFactory : ViewModelProvider.Factory {
             // ── Settings ───────────────────────────────────────────
             modelClass.isAssignableFrom(SettingViewmodel::class.java) ->
                 SettingViewmodel(
-                    notificationRepository = NotificationRepository(
-                        context = application,
-                        reminderDao = db.reminderDao(),
-                        taskDao = db.taskDao(),
-                        examDao = db.examDao(),
-                        scheduler = ReminderScheduler(application)
-                    ),
+                    notificationRepository = notificationRepo,
                     authRepository    = authRepo,
                     preferenceManager = prefManager
                 ) as T
 
             // ── Statistics ─────────────────────────────────────────
             modelClass.isAssignableFrom(StatisticsViewmodel::class.java) ->
-                StatisticsViewmodel(
-                    StatisticsRepository(
-                        taskRepository       = taskRepo,
-                        sessionRepository    = sessionRepo,
-                        goalRepository       = goalRepo,
-                        motivationRepository = motivationRepo
-                    )
-                ) as T
+                StatisticsViewmodel(statisticsRepo) as T
 
             // ── Legacy stubs (keep until teammate screens are done) ─
             modelClass.isAssignableFrom(ReflectionViewmodel::class.java) ->

@@ -30,6 +30,9 @@ class FlashcardViewmodel(
 
     fun completeFlashcardSession(examId: Long, correctCount: Int, totalCount: Int) {
         viewModelScope.launch {
+            repository.completeReviewSession(totalCount)
+            motivationRepository.recordStudyActivity()
+
             val performance =
                 if (totalCount > 0) correctCount.toFloat() / totalCount else 0f
 
@@ -80,13 +83,6 @@ class FlashcardViewmodel(
     fun deleteFlashcard(flashcard: Flashcard) {
         viewModelScope.launch {
             repository.delete(flashcard)
-        }
-    }
-
-    fun completeReviewSession(cardsCount: Int) {
-        viewModelScope.launch {
-            repository.completeReviewSession(cardsCount)
-            motivationRepository.recordStudyActivity()
         }
     }
 }
