@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.studymateandroidapp.data.repository.StatisticsRepository
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.StatisticsViewmodel
 import com.example.studymateandroidapp.viewmodel.StatisticsViewmodel.DailyChartPoint
@@ -46,10 +48,10 @@ fun StatisticsScreen(
         totalTasks         = uiState.totalTasks,
         completedTasks     = uiState.completedTasks,
         taskCompletionRate = uiState.taskCompletionRate,
-        formattedStudyTime = uiState.formattedStudyTime,
+        todayStudySeconds  = uiState.todayStudySeconds,
         completedGoals     = uiState.completedGoals,
-        todayStudyMinutes  = uiState.todayStudyMinutes,
-        weekStudyMinutes   = uiState.weekStudyMinutes,
+        thisWeekStudySeconds = uiState.thisWeekStudySeconds,
+        weeklyAverageSubtitle = uiState.weeklyAverageSubtitle,
         dailyChartData     = uiState.dailyChartData,
         onBack             = onBack
     )
@@ -60,10 +62,10 @@ fun StatisticsContent(
     totalTasks: Int,
     completedTasks: Int,
     taskCompletionRate: Int,
-    formattedStudyTime: String,
+    todayStudySeconds: Int,
     completedGoals: Int,
-    todayStudyMinutes: Int,
-    weekStudyMinutes: Int,
+    thisWeekStudySeconds: Int,
+    weeklyAverageSubtitle: String,
     dailyChartData: List<DailyChartPoint>,
     onBack: () -> Unit
 ) {
@@ -97,9 +99,9 @@ fun StatisticsContent(
                 StatCard(
                     modifier = Modifier.weight(1f),
                     icon     = Icons.Default.Timer,
-                    label    = "Total Study",
-                    value    = formattedStudyTime,
-                    subtext  = null
+                    label    = "Study Today",
+                    value    = StatisticsRepository.formatDuration(todayStudySeconds),
+                    subtext  = "Keep it up!"
                 )
             }
 
@@ -119,8 +121,8 @@ fun StatisticsContent(
                     modifier = Modifier.weight(1f),
                     icon     = Icons.Default.TrendingUp,
                     label    = "This Week",
-                    value    = "${weekStudyMinutes / 60}h ${weekStudyMinutes % 60}m",
-                    subtext  = "Today: ${todayStudyMinutes}m"
+                    value    = StatisticsRepository.formatDuration(thisWeekStudySeconds),
+                    subtext  = weeklyAverageSubtitle
                 )
             }
 
@@ -236,7 +238,7 @@ private fun WeeklyBarChart(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                val maxMinutes = (data.maxOfOrNull { it.minutes } ?: 1).coerceAtLeast(1)
+                val maxSeconds = (data.maxOfOrNull { it.seconds } ?: 1).coerceAtLeast(1)
                 val barCount   = data.size
                 val spacing    = 12.dp.toPx()
                 val barWidth   = (size.width - (barCount - 1) * spacing) / barCount
@@ -244,7 +246,7 @@ private fun WeeklyBarChart(
 
                 data.forEachIndexed { index, point ->
                     val x         = index * (barWidth + spacing)
-                    val barHeight = (point.minutes.toFloat() / maxMinutes) * chartH * 0.85f
+                    val barHeight = (point.seconds.toFloat() / maxSeconds) * chartH * 0.85f
 
                     // Background track
                     drawRoundRect(
@@ -297,10 +299,10 @@ fun StatisticsPreview() {
             totalTasks         = 8,
             completedTasks     = 4,
             taskCompletionRate = 50,
-            formattedStudyTime = "2h 5m",
+            todayStudySeconds  = 1800,
             completedGoals     = 2,
-            todayStudyMinutes  = 30,
-            weekStudyMinutes   = 210,
+            thisWeekStudySeconds = 7200,
+            weeklyAverageSubtitle = "Avg: 17m 08s/day",
             dailyChartData     = emptyList(),
             onBack             = {}
         )

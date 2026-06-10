@@ -58,7 +58,9 @@ enum class AchievementType {
     FOURTEEN_DAY_STREAK,
     THIRTY_DAY_STREAK,
     FIRST_FLASHCARD,
-    FIRST_REFLECTION
+    FIRST_REFLECTION,
+    POMODORO_MASTER,      // Complete 10 full pomodoros
+    POMODORO_LEGEND       // Complete 50 full pomodoros
 }
 
 /**

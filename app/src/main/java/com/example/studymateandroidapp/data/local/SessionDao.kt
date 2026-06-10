@@ -49,25 +49,28 @@ interface SessionDao {
     // ── Statistics Queries ───────────────────────────────
 
     @Query("""
-        SELECT COALESCE(SUM(durationMinutes), 0)
+        SELECT COALESCE(SUM(durationSeconds), 0)
         FROM study_sessions
     """)
-    fun getTotalStudyMinutes(): Flow<Int>
+    fun getTotalStudySeconds(): Flow<Int>
 
     @Query("""
-        SELECT COALESCE(SUM(durationMinutes), 0)
+        SELECT COALESCE(SUM(durationSeconds), 0)
         FROM study_sessions
         WHERE startTime BETWEEN :startOfDay AND :endOfDay
     """)
-    fun getStudyMinutesForDay(
+    fun getStudySecondsForDay(
         startOfDay: LocalDateTime,
         endOfDay: LocalDateTime
     ): Flow<Int>
 
     @Query("""
-        SELECT COALESCE(SUM(durationMinutes), 0)
+        SELECT COALESCE(SUM(durationSeconds), 0)
         FROM study_sessions
         WHERE startTime >= :dateTime
     """)
-    fun getStudyMinutesSince(dateTime: LocalDateTime): Flow<Int>
+    fun getStudySecondsSince(dateTime: LocalDateTime): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM study_sessions WHERE isCompleted = 1")
+    fun getCompletedPomodoroCount(): Flow<Int>
 }

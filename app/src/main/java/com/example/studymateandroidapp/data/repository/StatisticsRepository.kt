@@ -3,6 +3,7 @@ package com.example.studymateandroidapp.data.repository
 import com.example.studymateandroidapp.data.model.GoalStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
@@ -10,8 +11,6 @@ import java.time.temporal.TemporalAdjusters
 /**
  * Cross-cutting repository that aggregates task, session and goal data
  * to power the Statistics screen.
- *
- * Does NOT own a DAO — composes data from other repositories.
  */
 class StatisticsRepository(
     private val taskRepository: TaskRepository,
@@ -25,7 +24,7 @@ class StatisticsRepository(
         val totalTasks: Int,
         val completedTasks: Int,
         val overdueTasks: Int,
-        val totalStudyMinutes: Int,
+        val totalStudySeconds: Int,
         val completedGoals: Int,
         val overdueGoals: Int
     ) {
@@ -33,12 +32,17 @@ class StatisticsRepository(
             get() = if (totalTasks > 0) (completedTasks * 100) / totalTasks else 0
 
         val formattedStudyTime: String
-            get() = "${totalStudyMinutes / 60}h ${totalStudyMinutes % 60}m"
+            get() = formatDuration(totalStudySeconds)
     }
 
     data class DailyStudyData(
         val date: LocalDate,
-        val studyMinutes: Int
+        val studySeconds: Int
+    )
+
+    data class BestStudyDay(
+        val date: LocalDate,
+        val seconds: Int
     )
 
     // ── Flows ─────────────────────────────────────────────
@@ -51,14 +55,14 @@ class StatisticsRepository(
             taskRepository.getTotalCount(),
             taskRepository.getCompletedCount(),
             taskRepository.getOverdueCount(today, now),
-            sessionRepository.getTotalStudyMinutes(),
+            sessionRepository.getTotalStudySeconds(),
             goalRepository.allGoals,
             goalRepository.getOverdueCount(today)
         ) { args: Array<Any> ->
             val total = args[0] as Int
             val completed = args[1] as Int
             val overdueTasks = args[2] as Int
-            val minutes = args[3] as Int
+            val seconds = args[3] as Int
             val goals = args[4] as List<com.example.studymateandroidapp.data.model.Goal>
             val overdueGoals = args[5] as Int
             
@@ -68,35 +72,61 @@ class StatisticsRepository(
                 totalTasks        = total,
                 completedTasks    = completed,
                 overdueTasks      = overdueTasks,
-                totalStudyMinutes = minutes,
+                totalStudySeconds = seconds,
                 completedGoals    = completedGoalsCount,
                 overdueGoals      = overdueGoals
             )
         }
     }
 
-    fun getTodayStudyMinutes(): Flow<Int> =
-        sessionRepository.getStudyMinutesForDate(LocalDate.now())
+    fun getTodayStudySeconds(): Flow<Int> =
+        sessionRepository.getStudySecondsForDate(LocalDate.now())
 
-    fun getThisWeekStudyMinutes(): Flow<Int> {
+    fun getThisWeekStudySeconds(): Flow<Int> {
         val weekStart = LocalDate.now()
-            .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+            .with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
             .atStartOfDay()
-        return sessionRepository.getStudyMinutesSince(weekStart)
+        return sessionRepository.getStudySecondsSince(weekStart)
     }
 
     fun getDailyStudyData(days: Int = 7): Flow<List<DailyStudyData>> {
         val today = LocalDate.now()
         val flows = (0 until days).map { offset ->
-            sessionRepository.getStudyMinutesForDate(today.minusDays(offset.toLong()))
+            val date = today.minusDays(offset.toLong())
+            sessionRepository.getStudySecondsForDate(date).map { seconds ->
+                DailyStudyData(date, seconds)
+            }
         }
-        return combine(flows) { minutesArray ->
-            minutesArray.mapIndexed { index, minutes ->
-                DailyStudyData(
-                    date         = today.minusDays(index.toLong()),
-                    studyMinutes = minutes
-                )
-            }.reversed()
+        return combine(flows) { dailyDataArray ->
+            dailyDataArray.filterIsInstance<DailyStudyData>().reversed()
+        }
+    }
+
+    fun getBestStudyDayThisWeek(): Flow<BestStudyDay?> {
+        val weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
+        val flows = (0 until 7).map { offset ->
+            val date = weekStart.plusDays(offset.toLong())
+            sessionRepository.getStudySecondsForDate(date).map { seconds ->
+                BestStudyDay(date, seconds)
+            }
+        }
+        return combine(flows) { days ->
+            val daysList = days.filterIsInstance<BestStudyDay>()
+            daysList.maxByOrNull { it.seconds }?.takeIf { it.seconds > 0 }
+        }
+    }
+
+    companion object {
+        fun formatDuration(totalSeconds: Int): String {
+            val h = totalSeconds / 3600
+            val m = (totalSeconds % 3600) / 60
+            val s = totalSeconds % 60
+            
+            return when {
+                h > 0 -> "${h}h ${m}m ${s}s"
+                m > 0 -> "${m}m ${s}s"
+                else -> "${s}s"
+            }
         }
     }
 }
