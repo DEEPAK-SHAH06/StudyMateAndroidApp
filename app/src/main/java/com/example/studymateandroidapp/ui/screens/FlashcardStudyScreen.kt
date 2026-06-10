@@ -23,6 +23,7 @@ import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Flashcard
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.FlashcardViewmodel
+import kotlin.collections.filter
 
 @Composable
 fun FlashcardStudyScreen(
@@ -36,7 +37,9 @@ fun FlashcardStudyScreen(
     FlashcardStudyContent(
         cards = examCards,
         onBack = onNavigateBack,
-        onFinish = { count -> viewModel.completeReviewSession(count) }
+        onSessionComplete = { correct: Int, total: Int ->
+            viewModel.completeFlashcardSession(examId, correct, total)
+        }
     )
 }
 
@@ -44,9 +47,10 @@ fun FlashcardStudyScreen(
 fun FlashcardStudyContent(
     cards: List<Flashcard>,
     onBack: () -> Unit,
-    onFinish: (Int) -> Unit
+    onSessionComplete: (Int, Int) -> Unit
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
+    var correctCount by remember { mutableIntStateOf(0) }
     var isFlipped by remember { mutableStateOf(false) }
     var isFinished by remember { mutableStateOf(false) }
 
@@ -68,6 +72,7 @@ fun FlashcardStudyContent(
                 StudyFinishedView(
                     onRestart = {
                         currentIndex = 0
+                        correctCount = 0
                         isFlipped = false
                         isFinished = false
                     },
@@ -100,13 +105,24 @@ fun FlashcardStudyContent(
 
                     if (isFlipped) {
                         StudyControls(
-                            onNext = {
+                            onCorrect = {
+                                val newCorrect = correctCount + 1
+                                correctCount = newCorrect
                                 if (currentIndex < cards.size - 1) {
                                     currentIndex++
                                     isFlipped = false
                                 } else {
                                     isFinished = true
-                                    onFinish(cards.size)
+                                    onSessionComplete(newCorrect, cards.size)
+                                }
+                            },
+                            onIncorrect = {
+                                if (currentIndex < cards.size - 1) {
+                                    currentIndex++
+                                    isFlipped = false
+                                } else {
+                                    isFinished = true
+                                    onSessionComplete(correctCount, cards.size)
                                 }
                             }
                         )
@@ -176,14 +192,14 @@ fun FlashcardView(
 }
 
 @Composable
-fun StudyControls(onNext: () -> Unit) {
+fun StudyControls(onCorrect: () -> Unit, onIncorrect: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Button(
-            onClick = onNext,
+            onClick = onIncorrect,
             modifier = Modifier.weight(1f).height(56.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEEEEEE), contentColor = Color.Black)
@@ -192,7 +208,7 @@ fun StudyControls(onNext: () -> Unit) {
         }
 
         Button(
-            onClick = onNext,
+            onClick = onCorrect,
             modifier = Modifier.weight(1f).height(56.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White)
@@ -201,6 +217,7 @@ fun StudyControls(onNext: () -> Unit) {
         }
     }
 }
+
 
 @Composable
 fun StudyFinishedView(
@@ -254,7 +271,7 @@ fun FlashcardStudyPreview() {
         FlashcardStudyContent(
             cards = listOf(Flashcard(id = 1, question = "Question", answer = "Answer", examId = 1)),
             onBack = {},
-            onFinish = {}
+            onSessionComplete = { _, _ -> }
         )
     }
 }

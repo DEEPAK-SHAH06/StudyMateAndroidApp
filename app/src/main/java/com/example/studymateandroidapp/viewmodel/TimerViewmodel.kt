@@ -7,8 +7,10 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.local.PreferenceManager
+import com.example.studymateandroidapp.data.model.StudyProgress
 import com.example.studymateandroidapp.data.model.StudySession
 import com.example.studymateandroidapp.data.repository.SessionRepository
+import com.example.studymateandroidapp.data.repository.StudyProgressRepository
 import com.example.studymateandroidapp.data.repository.MotivationRepository
 import com.example.studymateandroidapp.utils.notification.NotificationHelper
 import kotlinx.coroutines.Job
@@ -16,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -25,6 +28,7 @@ import java.time.LocalDateTime
  */
 class TimerViewmodel(
     private val sessionRepository: SessionRepository,
+    private val studyProgressRepository: StudyProgressRepository,
     private val motivationRepository: MotivationRepository,
     private val preferenceManager: PreferenceManager,
     private val context: Context

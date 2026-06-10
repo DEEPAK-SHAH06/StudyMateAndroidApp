@@ -24,6 +24,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
         val goalRepo = GoalRepository(db.goalDao())
         val noteRepo = NoteRepository(db.noteDao())
         val flashcardRepo = FlashcardRepository(db.flashcardDao())
+        val studyProgressRepo = StudyProgressRepository(db.studyProgressDao())
         val motivationRepo = MotivationRepository(
             motivationDao = db.motivationDao(),
             taskDao       = db.taskDao(),
@@ -60,6 +61,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(ExamViewmodel::class.java) ->
                 ExamViewmodel(
                     repository = examRepo,
+                    studyProgressRepository = studyProgressRepo,
                     reminderScheduler = ReminderScheduler(application)
                 ) as T
 
@@ -73,15 +75,20 @@ object ViewModelFactory : ViewModelProvider.Factory {
 
             // ── Flashcards ─────────────────────────────────────────
             modelClass.isAssignableFrom(FlashcardViewmodel::class.java) ->
-                FlashcardViewmodel(flashcardRepo, motivationRepo) as T
+                FlashcardViewmodel(
+                    repository = flashcardRepo,
+                    motivationRepository = motivationRepo,
+                    studyProgressRepository = studyProgressRepo
+                ) as T
 
             // ── Timer ──────────────────────────────────────────────
             modelClass.isAssignableFrom(TimerViewmodel::class.java) ->
                 TimerViewmodel(
                     sessionRepository = sessionRepo,
+                    studyProgressRepository = studyProgressRepo,
                     motivationRepository = motivationRepo,
                     preferenceManager = prefManager,
-                    context           = application
+                    context = application
                 ) as T
 
             // ── Motivation / Reflection / Achievements ─────────────
