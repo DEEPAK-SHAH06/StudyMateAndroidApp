@@ -37,7 +37,8 @@ data class StudySession(
     val subject: String,
     val startTime: LocalDateTime,
     val endTime: LocalDateTime? = null,
-    val durationMinutes: Int = 0,
+    val durationSeconds: Int = 0,
+    val isCompleted: Boolean = false,
     val notes: String = "",
 
     // Sync metadata

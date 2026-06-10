@@ -37,7 +37,7 @@ import java.io.File
         Exam::class, Task::class, Goal::class, StudySession::class, Note::class,
         Flashcard::class, ReminderSetting::class, Achievement::class, DailyReflection::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -66,6 +66,59 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
             override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                 // Add isTimeSet column to exams table
                 db.execSQL("ALTER TABLE exams ADD COLUMN isTimeSet INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_12_13 = object : androidx.room.migration.Migration(12, 13) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                // Refactor study_sessions table: 
+                // 1. Rename durationMinutes to durationSeconds
+                // 2. Add isCompleted column
+                // 3. Ensure timestamps are INTEGER (per Converters)
+                
+                // Create new table with EXACT Room-generated schema
+                db.execSQL("""
+                    CREATE TABLE study_sessions_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        taskId INTEGER,
+                        examId INTEGER,
+                        subject TEXT NOT NULL,
+                        startTime INTEGER NOT NULL,
+                        endTime INTEGER,
+                        durationSeconds INTEGER NOT NULL DEFAULT 0,
+                        isCompleted INTEGER NOT NULL DEFAULT 0,
+                        notes TEXT NOT NULL DEFAULT '',
+                        userId TEXT,
+                        serverId TEXT,
+                        lastUpdated INTEGER NOT NULL,
+                        FOREIGN KEY(taskId) REFERENCES tasks(id) ON UPDATE NO ACTION ON DELETE SET NULL,
+                        FOREIGN KEY(examId) REFERENCES exams(id) ON UPDATE NO ACTION ON DELETE SET NULL
+                    )
+                """)
+                
+                // Copy data, converting minutes to seconds
+                // We CAST timestamps to INTEGER just in case they were stored as strings in legacy versions
+                db.execSQL("""
+                    INSERT INTO study_sessions_new (
+                        id, taskId, examId, subject, startTime, endTime, 
+                        durationSeconds, isCompleted, notes, userId, serverId, lastUpdated
+                    )
+                    SELECT 
+                        id, taskId, examId, subject, CAST(startTime AS INTEGER), CAST(endTime AS INTEGER), 
+                        durationMinutes * 60, 0, notes, userId, serverId, lastUpdated
+                    FROM study_sessions
+                """)
+                
+                // Drop old table and rename new one
+                db.execSQL("DROP TABLE study_sessions")
+                db.execSQL("ALTER TABLE study_sessions_new RENAME TO study_sessions")
+                
+                // Re-create indices exactly as Room expects
+                db.execSQL("CREATE INDEX index_study_sessions_taskId ON study_sessions(taskId)")
+                db.execSQL("CREATE INDEX index_study_sessions_examId ON study_sessions(examId)")
+                db.execSQL("CREATE INDEX index_study_sessions_startTime ON study_sessions(startTime)")
+                db.execSQL("CREATE INDEX index_study_sessions_userId ON study_sessions(userId)")
+                db.execSQL("CREATE INDEX index_study_sessions_serverId ON study_sessions(serverId)")
             }
         }
 
@@ -118,7 +171,7 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                         DATABASE_NAME
                     )
                         .openHelperFactory(factory)
-                        .addMigrations(MIGRATION_10_11, MIGRATION_11_12)
+                        .addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
                         .fallbackToDestructiveMigration()
                         .fallbackToDestructiveMigrationOnDowngrade()
                         .build()

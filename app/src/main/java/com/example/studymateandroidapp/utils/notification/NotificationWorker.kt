@@ -114,10 +114,11 @@ class NotificationWorker(
         // Requirement: User has not studied today
         val sessionDao = db.sessionDao()
         val today = LocalDate.now()
-        val minutes = sessionDao.getStudyMinutesForDay(
+        val seconds = sessionDao.getStudySecondsForDay(
             today.atStartOfDay(), 
             today.plusDays(1).atStartOfDay().minusNanos(1)
         ).first()
+        val minutes = seconds / 60
 
         if (minutes > 0) {
             Log.d(TAG, "DailyStudy: User studied today ($minutes min) -> skip")

@@ -185,10 +185,10 @@ class DashboardViewModel(
 
     private fun loadTodayStudyMinutes() {
         viewModelScope.launch {
-            sessionRepository.getStudyMinutesForDate(LocalDate.now())
+            sessionRepository.getStudySecondsForDate(LocalDate.now())
                 .catch { /* silently ignore */ }
-                .collect { minutes ->
-                    _uiState.update { it.copy(todayStudyMinutes = minutes) }
+                .collect { seconds ->
+                    _uiState.update { it.copy(todayStudyMinutes = seconds / 60) }
                 }
         }
     }

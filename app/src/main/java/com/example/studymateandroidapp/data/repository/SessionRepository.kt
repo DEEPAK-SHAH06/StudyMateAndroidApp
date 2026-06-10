@@ -40,15 +40,18 @@ class SessionRepository(private val sessionDao: SessionDao) {
 
     // ── Statistics (used by StatisticsRepository) ─────────
 
-    fun getTotalStudyMinutes(): Flow<Int> =
-        sessionDao.getTotalStudyMinutes()
+    fun getTotalStudySeconds(): Flow<Int> =
+        sessionDao.getTotalStudySeconds()
 
-    fun getStudyMinutesForDate(date: LocalDate): Flow<Int> =
-        sessionDao.getStudyMinutesForDay(
+    fun getStudySecondsForDate(date: LocalDate): Flow<Int> =
+        sessionDao.getStudySecondsForDay(
             startOfDay = date.atStartOfDay(),
             endOfDay   = date.atTime(LocalTime.MAX)
         )
 
-    fun getStudyMinutesSince(dateTime: LocalDateTime): Flow<Int> =
-        sessionDao.getStudyMinutesSince(dateTime)
+    fun getStudySecondsSince(dateTime: LocalDateTime): Flow<Int> =
+        sessionDao.getStudySecondsSince(dateTime)
+
+    fun getCompletedPomodoroCount(): Flow<Int> =
+        sessionDao.getCompletedPomodoroCount()
 }

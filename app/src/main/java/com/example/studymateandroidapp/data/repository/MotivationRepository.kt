@@ -132,6 +132,24 @@ class MotivationRepository(
             tryUnlock(AchievementType.FIVE_GOALS_COMPLETE, "Ambitious", "Completed 5 goals")?.let { newAchievements.add(it) }
         }
 
+        // Study Time achievements (Exact seconds)
+        val totalSeconds = sessionDao.getTotalStudySeconds().firstOrNull() ?: 0
+        if (totalSeconds >= 3600) { // 1 hour
+            tryUnlock(AchievementType.STUDY_HOUR, "Hour Power", "Studied for 1 hour")?.let { newAchievements.add(it) }
+        }
+        if (totalSeconds >= 36000) { // 10 hours
+            tryUnlock(AchievementType.STUDY_TEN_HOURS, "Marathon", "Studied for 10 hours")?.let { newAchievements.add(it) }
+        }
+
+        // Pomodoro Cycle achievements
+        val completedPomodoros = sessionDao.getCompletedPomodoroCount().firstOrNull() ?: 0
+        if (completedPomodoros >= 10) {
+            tryUnlock(AchievementType.POMODORO_MASTER, "Pomodoro Master", "Completed 10 full Pomodoro cycles")?.let { newAchievements.add(it) }
+        }
+        if (completedPomodoros >= 50) {
+            tryUnlock(AchievementType.POMODORO_LEGEND, "Pomodoro Legend", "Completed 50 full Pomodoro cycles")?.let { newAchievements.add(it) }
+        }
+
         // Flashcard achievements
         val flashcardCount = flashcardDao.getFlashcardCount().firstOrNull() ?: 0
         if (flashcardCount >= 1) {
@@ -144,7 +162,7 @@ class MotivationRepository(
             tryUnlock(AchievementType.FIRST_REFLECTION, "Self Aware", "Wrote your first daily reflection")?.let { newAchievements.add(it) }
         }
 
-        // Streak achievements - check consecutive days with completed tasks
+        // Streak achievements
         val streak = calculateStreak()
         if (streak >= 7) {
             tryUnlock(AchievementType.SEVEN_DAY_STREAK, "Week Warrior", "7-day study streak!")?.let { newAchievements.add(it) }
