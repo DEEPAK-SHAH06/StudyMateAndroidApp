@@ -100,9 +100,17 @@ fun ExamDetailContent(
     onAddNote: () -> Unit,
     onAddFlashcard: () -> Unit
 ) {
-    val dateStr = remember(details.exam.examDate) {
-        LocalDate.ofEpochDay(details.exam.examDate / (24 * 60 * 60 * 1000))
-            .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"))
+    val dateTime = remember(details.exam.examDate) {
+        java.time.LocalDateTime.ofInstant(
+            java.time.Instant.ofEpochMilli(details.exam.examDate),
+            java.time.ZoneId.systemDefault()
+        )
+    }
+    val dateStr = remember(dateTime) {
+        dateTime.format(java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy"))
+    }
+    val timeStr = remember(dateTime, details.exam.isTimeSet) {
+        if (details.exam.isTimeSet) dateTime.format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a")) else null
     }
 
     LazyColumn(
@@ -126,6 +134,10 @@ fun ExamDetailContent(
                 Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(text = dateStr, style = MaterialTheme.typography.bodyLarge)
+                if (timeStr != null) {
+                    Text(text = " • ", style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
+                    Text(text = timeStr, style = MaterialTheme.typography.bodyLarge)
+                }
             }
         }
 

@@ -31,6 +31,7 @@ import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.ExamViewmodel
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -110,19 +111,58 @@ fun ExamContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            val currentTime = System.currentTimeMillis()
+            val upcomingExams = exams.filter { it.examDate >= currentTime }.sortedBy { it.examDate }
+            val pastExams = exams.filter { it.examDate < currentTime }.sortedByDescending { it.examDate }
+
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(exams, key = { it.id }) { exam ->
-                    ExamCard(
-                        exam = exam,
-                        onClick = { onExamClick(exam.id) },
-                        onDelete = { onDeleteExam(exam) },
-                        onStudy = { onStartStudy(exam.id) },
-                        onNotes = { onNotesClick(exam.id) },
-                        onFlashcards = { onFlashcardsClick(exam.id) }
-                    )
+                if (upcomingExams.isEmpty()) {
+                    item {
+                        Text(
+                            text = "No upcoming exams. Stay prepared!",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                } else {
+                    items(upcomingExams, key = { it.id }) { exam ->
+                        ExamCard(
+                            exam = exam,
+                            onClick = { onExamClick(exam.id) },
+                            onDelete = { onDeleteExam(exam) },
+                            onStudy = { onStartStudy(exam.id) },
+                            onNotes = { onNotesClick(exam.id) },
+                            onFlashcards = { onFlashcardsClick(exam.id) }
+                        )
+                    }
+                }
+
+                if (pastExams.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = "Past Exams",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    items(pastExams, key = { it.id }) { exam ->
+                        ExamCard(
+                            exam = exam,
+                            isPast = true,
+                            onClick = { onExamClick(exam.id) },
+                            onDelete = { onDeleteExam(exam) },
+                            onStudy = { onStartStudy(exam.id) },
+                            onNotes = { onNotesClick(exam.id) },
+                            onFlashcards = { onFlashcardsClick(exam.id) }
+                        )
+                    }
                 }
             }
             
@@ -134,22 +174,24 @@ fun ExamContent(
 @Composable
 fun ExamCard(
     exam: Exam,
+    isPast: Boolean = false,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onStudy: () -> Unit,
     onNotes: () -> Unit,
     onFlashcards: () -> Unit
 ) {
-    val dateStr = LocalDate.ofEpochDay(exam.examDate / (24 * 60 * 60 * 1000))
-        .format(DateTimeFormatter.ofPattern("MMM dd, yyyy"))
+    val dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(exam.examDate), ZoneId.systemDefault())
+    val dateStr = dateTime.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"))
+    val timeStr = if (exam.isTimeSet) dateTime.format(DateTimeFormatter.ofPattern("hh:mm a")) else ""
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        color = Color(0xFFF2F2F2),
+        color = if (isPast) Color(0xFFF9F9F9) else Color(0xFFF2F2F2),
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f))
+        border = BorderStroke(1.dp, if (isPast) Color.LightGray.copy(alpha = 0.3f) else Color.LightGray.copy(alpha = 0.5f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -157,68 +199,83 @@ fun ExamCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.upcoming_exam),
+                    painter = painterResource(id = if (isPast) R.drawable.exam else R.drawable.upcoming_exam),
                     contentDescription = null,
                     modifier = Modifier.size(40.dp),
-                    tint = Color.Unspecified
+                    tint = if (isPast) Color.Gray else Color.Unspecified
                 )
 
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = exam.title, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = exam.title,
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (isPast) Color.Gray else Color.Black
+                    )
                     Text(text = exam.subject, style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
-                    Text(text = dateStr, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = dateStr, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                        if (timeStr.isNotEmpty()) {
+                            Text(text = " • ", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                            Text(text = timeStr, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                        }
+                    }
                 }
 
                 IconButton(onClick = onDelete) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete",
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
+                        tint = if (isPast) Color.LightGray else Color.DarkGray
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.6f))
-            Spacer(modifier = Modifier.height(12.dp))
+            if (!isPast) {
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.6f))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onNotes, modifier = Modifier.size(24.dp)) {
-                        Icon(painter = painterResource(id = R.drawable.notes), contentDescription = "Notes")
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    IconButton(onClick = onFlashcards, modifier = Modifier.size(24.dp)) {
-                        Icon(painter = painterResource(id = R.drawable.baseline_file_copy_24), contentDescription = "Flashcards")
-                    }
-                }
-
-                Button(
-                    onClick = onStudy,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.height(32.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.start),
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = Color.White
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Study", style = MaterialTheme.typography.labelLarge, color = Color.White)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = onNotes, modifier = Modifier.size(24.dp)) {
+                            Icon(painter = painterResource(id = R.drawable.notes), contentDescription = "Notes")
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        IconButton(onClick = onFlashcards, modifier = Modifier.size(24.dp)) {
+                            Icon(painter = painterResource(id = R.drawable.baseline_file_copy_24), contentDescription = "Flashcards")
+                        }
+                    }
+
+                    Button(
+                        onClick = onStudy,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.start),
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "Study", style = MaterialTheme.typography.labelLarge, color = Color.White)
+                    }
                 }
             }
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
