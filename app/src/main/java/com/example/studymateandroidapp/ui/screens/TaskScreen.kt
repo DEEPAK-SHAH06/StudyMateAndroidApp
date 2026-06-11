@@ -188,7 +188,7 @@ fun TaskContent(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            if (filteredTasks.isEmpty()) {
+            if (filteredTasks.isEmpty() && overdueTask == null) {
                 Box(Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
                     Text(
                         text = "No tasks found.",
