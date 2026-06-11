@@ -29,6 +29,7 @@ class StatisticsViewmodel(
         val thisWeekStudySeconds: Int = 0,
         val currentStreak: Int = 0,
         val bestStreak: Int = 0,
+        val weeklyStreakStatus: List<Boolean> = emptyList(),
         val weeklyAverageSubtitle: String = "Avg: 0s/day",
         val dailyChartData: List<DailyChartPoint> = emptyList(),
         val isLoading: Boolean = true,
@@ -112,6 +113,11 @@ class StatisticsViewmodel(
         viewModelScope.launch {
             repository.getBestStreak().collect { best ->
                 _uiState.update { it.copy(bestStreak = best) }
+            }
+        }
+        viewModelScope.launch {
+            repository.getWeeklyStreakStatus().collect { status ->
+                _uiState.update { it.copy(weeklyStreakStatus = status) }
             }
         }
     }

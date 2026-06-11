@@ -26,23 +26,28 @@ class MotivationRepository(
 ) {
     // ── Streak Logic ──────────────────────────────────────
 
-    fun getStreak(): Flow<Int> = combine(
-        taskDao.getCompletedDates(),
+    private fun getAllStudyDates(): Flow<Set<LocalDate>> = combine(
         sessionDao.getAllStartTimes().map { it.map { dt -> dt.toLocalDate() }.toSet() },
-        flashcardDao.getReviewDates()
-    ) { completedDates, studyDates, reviewDates ->
-        val allActivityDates = completedDates.toSet() + studyDates + reviewDates.toSet()
-        calculateStreakFromDates(allActivityDates)
+        flashcardDao.getReviewDates().map { it.toSet() }
+    ) { studyDates, reviewDates ->
+        studyDates + reviewDates
     }
 
-    fun getBestStreak(): Flow<Int> = combine(
-        taskDao.getCompletedDates(),
-        sessionDao.getAllStartTimes().map { it.map { dt -> dt.toLocalDate() }.toSet() },
-        flashcardDao.getReviewDates()
-    ) { completedDates, studyDates, reviewDates ->
-        val allActivityDates = (completedDates.toSet() + studyDates + reviewDates.toSet())
-            .sortedDescending()
-        calculateBestStreak(allActivityDates)
+    fun getStreak(): Flow<Int> = getAllStudyDates()
+        .map { calculateStreakFromDates(it) }
+
+    fun getBestStreak(): Flow<Int> = getAllStudyDates()
+        .map { it.sortedDescending() }
+        .map { calculateBestStreak(it) }
+
+    fun getWeeklyStreakStatus(): Flow<List<Boolean>> = getAllStudyDates().map { studyDates ->
+        val today = LocalDate.now()
+        // Sunday-to-Saturday window
+        val sunday = today.minusDays(today.dayOfWeek.value.toLong() % 7)
+        
+        (0..6).map { dayOffset ->
+            studyDates.contains(sunday.plusDays(dayOffset.toLong()))
+        }
     }
 
     private fun calculateStreakFromDates(dates: Set<LocalDate>): Int {
@@ -244,14 +249,13 @@ class MotivationRepository(
     }
 
     /**
-     * Calculate consecutive days with at least one completed task, study session, or flashcard review.
+     * Calculate consecutive days with at least one study session or flashcard review.
      * Counts backwards from today.
      */
     private suspend fun calculateCurrentStreak(): Int {
-        val completedDates = taskDao.getCompletedDates().firstOrNull() ?: emptyList()
         val studyDates = sessionDao.getAllStartTimes().firstOrNull()?.map { it.toLocalDate() } ?: emptyList()
         val reviewDates = flashcardDao.getReviewDates().firstOrNull() ?: emptyList()
-        val allDates = (completedDates + studyDates + reviewDates).toSet()
+        val allDates = (studyDates + reviewDates).toSet()
         
         return calculateStreakFromDates(allDates)
     }

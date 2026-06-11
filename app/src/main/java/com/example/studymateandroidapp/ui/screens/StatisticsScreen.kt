@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.data.repository.StatisticsRepository
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
+import com.example.studymateandroidapp.ui.components.StreakCard
 import com.example.studymateandroidapp.viewmodel.StatisticsViewmodel
 import com.example.studymateandroidapp.viewmodel.StatisticsViewmodel.DailyChartPoint
 import java.time.LocalDate
@@ -55,6 +56,7 @@ fun StatisticsScreen(
         thisWeekStudySeconds = uiState.thisWeekStudySeconds,
         currentStreak      = uiState.currentStreak,
         bestStreak         = uiState.bestStreak,
+        weeklyStreakStatus = uiState.weeklyStreakStatus,
         weeklyAverageSubtitle = uiState.weeklyAverageSubtitle,
         dailyChartData     = uiState.dailyChartData,
         onBack             = onBack
@@ -71,6 +73,7 @@ fun StatisticsContent(
     thisWeekStudySeconds: Int,
     currentStreak: Int,
     bestStreak: Int,
+    weeklyStreakStatus: List<Boolean>,
     weeklyAverageSubtitle: String,
     dailyChartData: List<DailyChartPoint>,
     onBack: () -> Unit
@@ -132,15 +135,6 @@ fun StatisticsContent(
                 )
             }
 
-            // ── Row 3 (Streak) ───────────────────────────
-            StatCard(
-                modifier = Modifier.fillMaxWidth(),
-                icon     = Icons.Default.LocalFireDepartment,
-                label    = "Study Streak",
-                value    = "🔥 $currentStreak Days",
-                subtext  = "Best: $bestStreak Days"
-            )
-
             // ── Chart ─────────────────────────────────────
             Text(
                 "Weekly Overview",
@@ -173,6 +167,21 @@ fun StatisticsContent(
                     }
                 }
             }
+
+            // ── Streak Section ────────────────────────────
+            Text(
+                "Study Habit",
+                style      = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier   = Modifier.padding(top = 8.dp)
+            )
+            
+            StreakCard(
+                streakCount = currentStreak,
+                bestStreak = bestStreak,
+                weeklyStatus = weeklyStreakStatus,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(Modifier.height(80.dp))
         }
@@ -319,6 +328,7 @@ fun StatisticsPreview() {
             thisWeekStudySeconds = 7200,
             currentStreak      = 5,
             bestStreak         = 12,
+            weeklyStreakStatus = listOf(true, true, true, false, true, true, true),
             weeklyAverageSubtitle = "Avg: 17m 08s/day",
             dailyChartData     = emptyList(),
             onBack             = {}

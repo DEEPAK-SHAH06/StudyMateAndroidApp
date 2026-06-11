@@ -92,6 +92,7 @@ class StatisticsRepository(
 
     fun getStreak(): Flow<Int> = motivationRepository.getStreak()
     fun getBestStreak(): Flow<Int> = motivationRepository.getBestStreak()
+    fun getWeeklyStreakStatus(): Flow<List<Boolean>> = motivationRepository.getWeeklyStreakStatus()
 
     fun getDailyStudyData(days: Int = 7): Flow<List<DailyStudyData>> {
         val today = LocalDate.now()
