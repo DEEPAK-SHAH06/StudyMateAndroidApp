@@ -160,6 +160,7 @@ private fun DashboardContent(
         ) {
             // ── 1. Profile Header ────────────────────────────
             item {
+                Spacer(Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
                     verticalAlignment = Alignment.CenterVertically

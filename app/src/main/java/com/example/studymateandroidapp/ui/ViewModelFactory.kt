@@ -49,14 +49,16 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(TaskViewmodel::class.java) ->
                 TaskViewmodel(
                     repository = TaskRepository(db.taskDao()),
-                    reminderScheduler = ReminderScheduler(application)
+                    reminderScheduler = ReminderScheduler(application),
+                    application = application
                 ) as T
 
             // ── Exams ──────────────────────────────────────────────
             modelClass.isAssignableFrom(ExamViewmodel::class.java) ->
                 ExamViewmodel(
                     repository = ExamRepository(db.examDao()),
-                    reminderScheduler = ReminderScheduler(application)
+                    reminderScheduler = ReminderScheduler(application),
+                    application = application
                 ) as T
 
             // ── Goals ──────────────────────────────────────────────
@@ -69,7 +71,10 @@ object ViewModelFactory : ViewModelProvider.Factory {
 
             // ── Flashcards ─────────────────────────────────────────
             modelClass.isAssignableFrom(FlashcardViewmodel::class.java) ->
-                FlashcardViewmodel(FlashcardRepository(db.flashcardDao())) as T
+                FlashcardViewmodel(
+                    repository = FlashcardRepository(db.flashcardDao()),
+                    application = application
+                ) as T
 
             // ── Timer ──────────────────────────────────────────────
             modelClass.isAssignableFrom(TimerViewmodel::class.java) ->

@@ -1,6 +1,7 @@
 package com.example.studymateandroidapp.ui.widget
 
 import android.content.Context
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -17,7 +18,9 @@ import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.LocalSize
 import androidx.compose.ui.unit.DpSize
+import androidx.glance.ButtonDefaults
 import androidx.glance.background
+import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -34,6 +37,13 @@ import androidx.glance.text.TextStyle
 import com.example.studymateandroidapp.data.local.StudyPlannerDatabase
 import com.example.studymateandroidapp.MainActivity
 import com.example.studymateandroidapp.data.model.Task
+import androidx.glance.Image
+import androidx.glance.ImageProvider
+import androidx.glance.ColorFilter
+import androidx.glance.appwidget.cornerRadius
+import androidx.glance.action.clickable
+import androidx.glance.layout.size
+import com.example.studymateandroidapp.R
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -97,7 +107,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(GlanceTheme.colors.surface)
+                .background(ColorProvider(day = Color.Black, night = Color.Black))
                 .padding(if (isSmall) 8.dp else 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -114,7 +124,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = if (isSmall) 14.sp else 16.sp,
-                            color = GlanceTheme.colors.onSurface
+                            color = ColorProvider(day = Color.White, night = Color.White)
                         ),
                         modifier = GlanceModifier.defaultWeight()
                     )
@@ -123,7 +133,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                             text = todayDate,
                             style = TextStyle(
                                 fontSize = 12.sp,
-                                color = GlanceTheme.colors.onSurfaceVariant
+                                color = ColorProvider(day = Color.LightGray, night = Color.LightGray)
                             )
                         )
                     }
@@ -141,14 +151,14 @@ class StudyPlannerWidget : GlanceAppWidget() {
                     style = TextStyle(
                         fontSize = if (isSmall) 12.sp else 13.sp, 
                         fontWeight = FontWeight.Medium,
-                        color = GlanceTheme.colors.primary
+                        color = ColorProvider(day = Color.Cyan, night = Color.Cyan)
                     )
                 )
                 Spacer(modifier = GlanceModifier.defaultWeight())
                 if (widgetSize.width > 120.dp) {
                     Text(
                         text = "$remainingTasks left",
-                        style = TextStyle(fontSize = 11.sp, color = GlanceTheme.colors.onSurfaceVariant)
+                        style = TextStyle(fontSize = 11.sp, color = ColorProvider(day = Color.LightGray, night = Color.LightGray))
                     )
                 }
             }
@@ -160,7 +170,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                 Box(
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .background(GlanceTheme.colors.secondaryContainer)
+                        .background(ColorProvider(day = Color.DarkGray, night = Color.DarkGray))
                         .padding(if (isSmall) 8.dp else 12.dp)
                 ) {
                     if (nextTask != null) {
@@ -170,7 +180,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = if (isSmall) 13.sp else 15.sp,
-                                    color = GlanceTheme.colors.onSecondaryContainer
+                                    color = ColorProvider(day = Color.White, night = Color.White)
                                 ),
                                 maxLines = 1
                             )
@@ -180,7 +190,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                                         text = nextTask.subjectTag ?: "Study",
                                         style = TextStyle(
                                             fontSize = 11.sp,
-                                            color = GlanceTheme.colors.onSecondaryContainer
+                                            color = ColorProvider(day = Color.LightGray, night = Color.LightGray)
                                         )
                                     )
                                 }
@@ -191,7 +201,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                             text = if (isSmall) "All done! 🎉" else "No more tasks today! 🎉",
                             style = TextStyle(
                                 fontSize = 13.sp,
-                                color = GlanceTheme.colors.onSecondaryContainer
+                                color = ColorProvider(day = Color.White, night = Color.White)
                             )
                         )
                     }
@@ -204,20 +214,41 @@ class StudyPlannerWidget : GlanceAppWidget() {
             if (widgetSize.height > 150.dp || (widgetSize.height > 70.dp && widgetSize.width > 150.dp)) {
                 Row(
                     modifier = GlanceModifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Button(
-                        text = if (isSmall) "Open" else "Open ",
-                        onClick = actionStartActivity<MainActivity>(),
-                        modifier = GlanceModifier.padding(horizontal = 1.dp)
-                    )
-                    Spacer(modifier = GlanceModifier.defaultWeight())
 
                     if (widgetSize.width > 180.dp) {
-                        Button(
-                            text = "Refresh",
-                            onClick = actionRunCallback<RefreshActionCallback>(),
-                            modifier = GlanceModifier.padding(horizontal = 1.dp)
+                        Box(
+                            modifier = GlanceModifier
+                                .size(36.dp)
+                                .background(ColorProvider(day = Color.Black, night = Color.Black))
+                                .cornerRadius(18.dp)
+                                .clickable(actionRunCallback<RefreshActionCallback>()),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                provider = ImageProvider(R.drawable.again),
+                                contentDescription = "Refresh",
+                                modifier = GlanceModifier.size(20.dp),
+                                colorFilter = ColorFilter.tint(ColorProvider(day = Color.White, night = Color.White))
+                            )
+                        }
+                    }
+                    Spacer(modifier = GlanceModifier.width(16.dp))
+                    Box(
+                        modifier = GlanceModifier
+                            .size(36.dp)
+                            .background(ColorProvider(day = Color.Black, night = Color.Black))
+                            .cornerRadius(18.dp)
+                            .clickable(actionStartActivity<MainActivity>()),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            provider = ImageProvider(R.drawable.outline_exit_to_app_24),
+                            contentDescription = "Open",
+                            modifier = GlanceModifier.size(20.dp),
+                            colorFilter = ColorFilter.tint(ColorProvider(day = Color.White, night = Color.White))
                         )
                     }
                 }

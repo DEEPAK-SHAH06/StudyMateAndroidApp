@@ -1,10 +1,12 @@
 package com.example.studymateandroidapp.viewmodel
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.model.Exam
 import com.example.studymateandroidapp.data.model.relations.ExamWithDetails
 import com.example.studymateandroidapp.data.repository.ExamRepository
+import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -16,7 +18,8 @@ import java.time.ZoneId
 
 class ExamViewmodel(
     private val repository: ExamRepository,
-    private val reminderScheduler: ReminderScheduler
+    private val reminderScheduler: ReminderScheduler,
+    private val application: Application
 ) : ViewModel() {
 
     val allExams: StateFlow<List<Exam>> = repository.allExams
@@ -38,6 +41,7 @@ class ExamViewmodel(
                 examDateTime = ldt,
                 isTimeSet = exam.isTimeSet
             )
+            WidgetUpdateHelper.updateAllWidgets(application)
         }
     }
 
@@ -55,6 +59,7 @@ class ExamViewmodel(
                 examDateTime = ldt,
                 isTimeSet = exam.isTimeSet
             )
+            WidgetUpdateHelper.updateAllWidgets(application)
         }
     }
 
@@ -62,6 +67,7 @@ class ExamViewmodel(
         viewModelScope.launch {
             repository.delete(exam)
             reminderScheduler.cancelExamReminders(exam.id)
+            WidgetUpdateHelper.updateAllWidgets(application)
         }
     }
 }
