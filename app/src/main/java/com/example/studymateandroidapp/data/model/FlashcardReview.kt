@@ -10,7 +10,9 @@ import java.time.LocalDate
 @Entity(tableName = "flashcard_reviews")
 data class FlashcardReview(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val examId: Long,
     val date: LocalDate = LocalDate.now(),
     val cardsReviewed: Int,
+    val correctCount: Int,
     val timestamp: Long = System.currentTimeMillis()
 )

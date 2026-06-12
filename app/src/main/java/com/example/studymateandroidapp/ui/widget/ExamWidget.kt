@@ -89,7 +89,7 @@ class ExamWidget : GlanceAppWidget() {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(ColorProvider(day = Color.Black, night = Color.Black))
+                .background(ColorProvider(day = Color.White, night = Color.White))
                 .padding(if (isSmall) 8.dp else 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -103,7 +103,7 @@ class ExamWidget : GlanceAppWidget() {
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
                         fontSize = if (isSmall) 14.sp else 16.sp,
-                        color = ColorProvider(day = Color.White, night = Color.White)
+                        color = ColorProvider(day = Color.Black, night = Color.Black)
                     ),
                     modifier = GlanceModifier.defaultWeight()
                 )
@@ -130,7 +130,7 @@ class ExamWidget : GlanceAppWidget() {
                 Column(
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .background(ColorProvider(day = Color.DarkGray, night = Color.DarkGray))
+                        .background(ColorProvider(day = Color.LightGray, night = Color.LightGray))
                         .padding(8.dp)
                 ) {
                     Text(
@@ -138,13 +138,13 @@ class ExamWidget : GlanceAppWidget() {
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = ColorProvider(day = Color.White, night = Color.White)
+                            color = ColorProvider(day = Color.Black, night = Color.Black)
                         ),
                         maxLines = 1
                     )
                     Text(
                         text = nextExam.subject,
-                        style = TextStyle(fontSize = 12.sp, color = ColorProvider(day = Color.LightGray, night = Color.LightGray)),
+                        style = TextStyle(fontSize = 12.sp, color = ColorProvider(day = Color.DarkGray, night = Color.DarkGray)),
                         maxLines = 1
                     )
                     Spacer(modifier = GlanceModifier.height(4.dp))
@@ -157,7 +157,7 @@ class ExamWidget : GlanceAppWidget() {
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
-                            color = ColorProvider(day = Color.Cyan, night = Color.Cyan)
+                            color = ColorProvider(day = Color.Blue, night = Color.Blue)
                         )
                     )
                 }
@@ -167,7 +167,7 @@ class ExamWidget : GlanceAppWidget() {
                     val secondExam = upcomingExams[1]
                     Text(
                         text = "Next: ${secondExam.title}",
-                        style = TextStyle(fontSize = 11.sp, color = ColorProvider(day = Color.LightGray, night = Color.LightGray)),
+                        style = TextStyle(fontSize = 11.sp, color = ColorProvider(day = Color.DarkGray, night = Color.DarkGray)),
                         maxLines = 1,
                         modifier = GlanceModifier.fillMaxWidth()
                     )

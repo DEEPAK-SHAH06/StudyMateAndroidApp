@@ -57,6 +57,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(ExamViewmodel::class.java) ->
                 ExamViewmodel(
                     repository = ExamRepository(db.examDao()),
+                    studyProgressRepository = StudyProgressRepository(db.studyProgressDao()),
                     reminderScheduler = ReminderScheduler(application),
                     application = application
                 ) as T
@@ -80,6 +81,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(TimerViewmodel::class.java) ->
                 TimerViewmodel(
                     sessionRepository = SessionRepository(db.sessionDao()),
+                    studyProgressRepository = StudyProgressRepository(db.studyProgressDao()),
                     motivationRepository = MotivationRepository(
                         motivationDao = db.motivationDao(),
                         taskDao       = db.taskDao(),
@@ -125,7 +127,15 @@ object ViewModelFactory : ViewModelProvider.Factory {
                     StatisticsRepository(
                         taskRepository    = TaskRepository(db.taskDao()),
                         sessionRepository = SessionRepository(db.sessionDao()),
-                        goalRepository    = GoalRepository(db.goalDao())
+                        goalRepository    = GoalRepository(db.goalDao()),
+                        motivationRepository = MotivationRepository(
+                            motivationDao = db.motivationDao(),
+                            taskDao       = db.taskDao(),
+                            sessionDao    = db.sessionDao(),
+                            goalDao       = db.goalDao(),
+                            noteDao       = db.noteDao(),
+                            flashcardDao  = db.flashcardDao()
+                        )
                     )
                 ) as T
 

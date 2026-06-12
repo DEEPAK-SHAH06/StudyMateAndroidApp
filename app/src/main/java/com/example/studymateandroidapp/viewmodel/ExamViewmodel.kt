@@ -4,11 +4,14 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.model.Exam
+import com.example.studymateandroidapp.data.model.StudyProgress
 import com.example.studymateandroidapp.data.model.relations.ExamWithDetails
 import com.example.studymateandroidapp.data.repository.ExamRepository
+import com.example.studymateandroidapp.data.repository.StudyProgressRepository
 import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -18,12 +21,17 @@ import java.time.ZoneId
 
 class ExamViewmodel(
     private val repository: ExamRepository,
+    private val studyProgressRepository: StudyProgressRepository,
     private val reminderScheduler: ReminderScheduler,
     private val application: Application
 ) : ViewModel() {
 
     val allExams: StateFlow<List<Exam>> = repository.allExams
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val examProgress: StateFlow<Map<Long, StudyProgress>> = studyProgressRepository.getAllProgress()
+        .map { list -> list.associateBy { it.examId } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     fun getExamWithDetails(id: Long) = repository.getExamWithDetails(id)
 

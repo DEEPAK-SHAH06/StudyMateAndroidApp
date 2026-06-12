@@ -45,4 +45,10 @@ class FlashcardViewmodel(
             WidgetUpdateHelper.updateAllWidgets(application)
         }
     }
+
+    fun completeFlashcardSession(examId: Long, correct: Int, total: Int) {
+        viewModelScope.launch {
+            repository.completeReviewSession(examId, correct, total)
+        }
+    }
 }
