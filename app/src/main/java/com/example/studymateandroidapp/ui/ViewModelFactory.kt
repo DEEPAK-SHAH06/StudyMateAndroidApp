@@ -17,111 +17,127 @@ object ViewModelFactory : ViewModelProvider.Factory {
         val application = extras[APPLICATION_KEY]!!
         val db          = StudyPlannerDatabase.getInstance(application)
 
-        // Shared Repositories
-        val taskRepo = TaskRepository(db.taskDao())
-        val sessionRepo = SessionRepository(db.sessionDao())
-        val examRepo = ExamRepository(db.examDao())
-        val goalRepo = GoalRepository(db.goalDao())
-        val noteRepo = NoteRepository(db.noteDao())
-        val flashcardRepo = FlashcardRepository(db.flashcardDao())
-        val studyProgressRepo = StudyProgressRepository(db.studyProgressDao())
-        val motivationRepo = MotivationRepository(
-            motivationDao = db.motivationDao(),
-            taskDao       = db.taskDao(),
-            sessionDao    = db.sessionDao(),
-            goalDao       = db.goalDao(),
-            noteDao       = db.noteDao(),
-            flashcardDao  = db.flashcardDao()
-        )
-        val authRepo = AuthRepository(application)
-        val prefManager = PreferenceManager(application)
-        val reminderScheduler = ReminderScheduler(application)
-
-        val notificationRepo = NotificationRepository(
-            context = application,
-            reminderDao = db.reminderDao(),
-            taskDao = db.taskDao(),
-            examDao = db.examDao(),
-            scheduler = reminderScheduler
-        )
-
-        val statisticsRepo = StatisticsRepository(
-            taskRepository       = taskRepo,
-            sessionRepository    = sessionRepo,
-            goalRepository       = goalRepo,
-            motivationRepository = motivationRepo
-        )
-
         return when {
+
             // ── Dashboard ──────────────────────────────────────────
             modelClass.isAssignableFrom(DashboardViewModel::class.java) ->
                 DashboardViewModel(
-                    taskRepository       = taskRepo,
-                    sessionRepository    = sessionRepo,
-                    examRepository       = examRepo,
-                    goalRepository       = goalRepo,
-                    motivationRepository = motivationRepo,
-                    authRepository       = authRepo,
-                    preferenceManager    = prefManager
+                    taskRepository    = TaskRepository(db.taskDao()),
+                    sessionRepository = SessionRepository(db.sessionDao()),
+                    examRepository    = ExamRepository(db.examDao()),
+                    goalRepository    = GoalRepository(db.goalDao()),
+                    motivationRepository = MotivationRepository(
+                        motivationDao = db.motivationDao(),
+                        taskDao       = db.taskDao(),
+                        sessionDao    = db.sessionDao(),
+                        goalDao       = db.goalDao(),
+                        noteDao       = db.noteDao(),
+                        flashcardDao  = db.flashcardDao()
+                    ),
+                    authRepository    = AuthRepository(application),
+                    preferenceManager = PreferenceManager(application)
+                ) as T
+
+            // ── Calendar ───────────────────────────────────────────
+            modelClass.isAssignableFrom(CalendarViewModel::class.java) ->
+                CalendarViewModel(
+                    taskRepository = TaskRepository(db.taskDao()),
+                    examRepository = ExamRepository(db.examDao())
                 ) as T
 
             // ── Tasks ──────────────────────────────────────────────
             modelClass.isAssignableFrom(TaskViewmodel::class.java) ->
                 TaskViewmodel(
-                    repository = taskRepo,
-                    motivationRepository = motivationRepo,
-                    reminderScheduler = reminderScheduler
+                    repository = TaskRepository(db.taskDao()),
+                    reminderScheduler = ReminderScheduler(application),
+                    application = application
                 ) as T
 
             // ── Exams ──────────────────────────────────────────────
             modelClass.isAssignableFrom(ExamViewmodel::class.java) ->
                 ExamViewmodel(
-                    repository = examRepo,
-                    studyProgressRepository = studyProgressRepo,
-                    reminderScheduler = reminderScheduler
+                    repository = ExamRepository(db.examDao()),
+                    studyProgressRepository = StudyProgressRepository(db.studyProgressDao()),
+                    reminderScheduler = ReminderScheduler(application),
+                    application = application
                 ) as T
 
             // ── Goals ──────────────────────────────────────────────
             modelClass.isAssignableFrom(GoalViewmodel::class.java) ->
-                GoalViewmodel(goalRepo) as T
+                GoalViewmodel(GoalRepository(db.goalDao())) as T
 
             // ── Notes ──────────────────────────────────────────────
             modelClass.isAssignableFrom(NoteViewmodel::class.java) ->
-                NoteViewmodel(noteRepo) as T
+                NoteViewmodel(NoteRepository(db.noteDao())) as T
 
             // ── Flashcards ─────────────────────────────────────────
             modelClass.isAssignableFrom(FlashcardViewmodel::class.java) ->
                 FlashcardViewmodel(
-                    repository = flashcardRepo,
-                    motivationRepository = motivationRepo,
-                    studyProgressRepository = studyProgressRepo
+                    repository = FlashcardRepository(db.flashcardDao()),
+                    application = application
                 ) as T
 
             // ── Timer ──────────────────────────────────────────────
             modelClass.isAssignableFrom(TimerViewmodel::class.java) ->
                 TimerViewmodel(
-                    sessionRepository = sessionRepo,
-                    studyProgressRepository = studyProgressRepo,
-                    motivationRepository = motivationRepo,
-                    preferenceManager = prefManager,
-                    context = application
+                    sessionRepository = SessionRepository(db.sessionDao()),
+                    studyProgressRepository = StudyProgressRepository(db.studyProgressDao()),
+                    motivationRepository = MotivationRepository(
+                        motivationDao = db.motivationDao(),
+                        taskDao       = db.taskDao(),
+                        sessionDao    = db.sessionDao(),
+                        goalDao       = db.goalDao(),
+                        noteDao       = db.noteDao(),
+                        flashcardDao  = db.flashcardDao()
+                    ),
+                    preferenceManager = PreferenceManager(application),
+                    context           = application
                 ) as T
 
             // ── Motivation / Reflection / Achievements ─────────────
             modelClass.isAssignableFrom(MotivationViewModel::class.java) ->
-                MotivationViewModel(motivationRepo) as T
+                MotivationViewModel(
+                    MotivationRepository(
+                        motivationDao = db.motivationDao(),
+                        taskDao       = db.taskDao(),
+                        sessionDao    = db.sessionDao(),
+                        goalDao       = db.goalDao(),
+                        noteDao       = db.noteDao(),
+                        flashcardDao  = db.flashcardDao()
+                    )
+                ) as T
 
             // ── Settings ───────────────────────────────────────────
             modelClass.isAssignableFrom(SettingViewmodel::class.java) ->
                 SettingViewmodel(
-                    notificationRepository = notificationRepo,
-                    authRepository    = authRepo,
-                    preferenceManager = prefManager
+                    notificationRepository = NotificationRepository(
+                        context = application,
+                        reminderDao = db.reminderDao(),
+                        taskDao = db.taskDao(),
+                        examDao = db.examDao(),
+                        scheduler = ReminderScheduler(application)
+                    ),
+                    authRepository    = AuthRepository(application),
+                    preferenceManager = PreferenceManager(application)
                 ) as T
 
             // ── Statistics ─────────────────────────────────────────
             modelClass.isAssignableFrom(StatisticsViewmodel::class.java) ->
-                StatisticsViewmodel(statisticsRepo) as T
+                StatisticsViewmodel(
+                    StatisticsRepository(
+                        taskRepository    = TaskRepository(db.taskDao()),
+                        sessionRepository = SessionRepository(db.sessionDao()),
+                        goalRepository    = GoalRepository(db.goalDao()),
+                        motivationRepository = MotivationRepository(
+                            motivationDao = db.motivationDao(),
+                            taskDao       = db.taskDao(),
+                            sessionDao    = db.sessionDao(),
+                            goalDao       = db.goalDao(),
+                            noteDao       = db.noteDao(),
+                            flashcardDao  = db.flashcardDao()
+                        )
+                    )
+                ) as T
 
             // ── Legacy stubs (keep until teammate screens are done) ─
             modelClass.isAssignableFrom(ReflectionViewmodel::class.java) ->
@@ -133,7 +149,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             // ── Authentication ─────────────────────────────────────
             modelClass.isAssignableFrom(AuthViewModel::class.java) ->
                 AuthViewModel(
-                    authRepository = authRepo,
+                    authRepository = AuthRepository(application),
                     syncManager = com.example.studymateandroidapp.utils.sync.SyncManager(application)
                 ) as T
 

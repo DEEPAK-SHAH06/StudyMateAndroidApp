@@ -1,10 +1,11 @@
 package com.example.studymateandroidapp.viewmodel
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.model.Task
 import com.example.studymateandroidapp.data.repository.TaskRepository
-import com.example.studymateandroidapp.data.repository.MotivationRepository
+import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -14,8 +15,8 @@ import com.example.studymateandroidapp.utils.notification.ReminderScheduler
 
 class TaskViewmodel(
     private val repository: TaskRepository,
-    private val motivationRepository: MotivationRepository,
-    private val reminderScheduler: ReminderScheduler
+    private val reminderScheduler: ReminderScheduler,
+    private val application: Application
 ) : ViewModel() {
 
     val allTasks: StateFlow<List<Task>> = repository.allTasks
@@ -32,6 +33,7 @@ class TaskViewmodel(
                     dueTime = task.dueTime
                 )
             }
+            WidgetUpdateHelper.updateAllWidgets(application)
         }
     }
 
@@ -48,6 +50,7 @@ class TaskViewmodel(
             } else {
                 reminderScheduler.cancelTaskReminders(task.id)
             }
+            WidgetUpdateHelper.updateAllWidgets(application)
         }
     }
 
@@ -55,22 +58,7 @@ class TaskViewmodel(
         viewModelScope.launch {
             repository.delete(task)
             reminderScheduler.cancelTaskReminders(task.id)
-        }
-    }
-
-    fun onTaskCompletionToggled(taskId: Long, completed: Boolean) {
-        viewModelScope.launch {
-            val task = repository.getTaskById(taskId)
-            if (task != null) {
-                repository.update(task.copy(
-                    isCompleted = completed,
-                    status = if (completed) com.example.studymateandroidapp.data.model.TaskStatus.COMPLETED else com.example.studymateandroidapp.data.model.TaskStatus.TODO,
-                    completedAt = if (completed) java.time.LocalDate.now() else null
-                ))
-                if (completed) {
-                    motivationRepository.recordStudyActivity()
-                }
-            }
+            WidgetUpdateHelper.updateAllWidgets(application)
         }
     }
 
