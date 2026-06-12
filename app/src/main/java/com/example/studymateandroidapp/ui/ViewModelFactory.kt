@@ -68,7 +68,10 @@ object ViewModelFactory : ViewModelProvider.Factory {
 
             // ── Notes ──────────────────────────────────────────────
             modelClass.isAssignableFrom(NoteViewmodel::class.java) ->
-                NoteViewmodel(NoteRepository(db.noteDao())) as T
+                NoteViewmodel(
+                    repository = NoteRepository(db.noteDao()),
+                    application = application
+                ) as T
 
             // ── Flashcards ─────────────────────────────────────────
             modelClass.isAssignableFrom(FlashcardViewmodel::class.java) ->

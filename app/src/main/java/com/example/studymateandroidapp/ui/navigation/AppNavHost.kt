@@ -293,6 +293,30 @@ fun AppNavHost(
             NoteScreen(
                 examId = examId,
                 viewModel = vm,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddNote = { id ->
+                    navController.navigate(Screen.AddNote.createRoute(examId = id))
+                },
+                onNavigateToEditNote = { noteId, id ->
+                    navController.navigate(Screen.AddNote.createRoute(noteId = noteId, examId = id))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.AddNote.route,
+            arguments = listOf(
+                navArgument("noteId") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("examId") { type = NavType.LongType; defaultValue = -1L }
+            )
+        ) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getLong("noteId")?.takeIf { it != -1L }
+            val examId = backStackEntry.arguments?.getLong("examId")?.takeIf { it != -1L }
+            val vm: NoteViewmodel = viewModel(factory = ViewModelFactory)
+            AddEditNoteScreen(
+                noteId = noteId,
+                examId = examId,
+                viewModel = vm,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

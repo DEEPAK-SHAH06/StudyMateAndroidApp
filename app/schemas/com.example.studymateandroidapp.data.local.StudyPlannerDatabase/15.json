@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 15,
-    "identityHash": "a3f34c5c2f788c5fe712e1e13b34be24",
+    "identityHash": "865fa0ce305dac691b85703b2d0c2969",
     "entities": [
       {
         "tableName": "exams",
@@ -918,11 +918,17 @@
       },
       {
         "tableName": "flashcard_reviews",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `cardsReviewed` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `examId` INTEGER NOT NULL, `date` INTEGER NOT NULL, `cardsReviewed` INTEGER NOT NULL, `correctCount` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "examId",
+            "columnName": "examId",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -935,6 +941,12 @@
           {
             "fieldPath": "cardsReviewed",
             "columnName": "cardsReviewed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "correctCount",
+            "columnName": "correctCount",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -958,7 +970,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a3f34c5c2f788c5fe712e1e13b34be24')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '865fa0ce305dac691b85703b2d0c2969')"
     ]
   }
 }
