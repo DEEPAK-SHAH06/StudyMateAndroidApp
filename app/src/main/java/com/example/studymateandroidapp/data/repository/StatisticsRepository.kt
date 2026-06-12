@@ -57,7 +57,7 @@ class StatisticsRepository(
             taskRepository.getCompletedCount(),
             taskRepository.getOverdueCount(today, now),
             sessionRepository.getTotalStudySeconds(),
-            goalRepository.allGoals,
+            goalRepository.getAllGoals(),
             goalRepository.getOverdueCount(today)
         ) { args: Array<Any> ->
             val total = args[0] as Int

@@ -223,7 +223,7 @@ class DashboardViewModel(
 
     private fun loadActiveGoals() {
         viewModelScope.launch {
-            goalRepository.allGoals
+            goalRepository.getAllGoals()
                 .catch { /* silently ignore */ }
                 .collect { goals ->
                     val summaries = goals.filter { it.currentValue < it.targetValue }.map { goal ->
@@ -231,7 +231,7 @@ class DashboardViewModel(
                             id = goal.id,
                             title = goal.title,
                             progressPercent = if (goal.targetValue > 0) {
-                                ((goal.currentValue.toInt() * 100) / goal.targetValue.toInt()).coerceIn(0, 100)
+                                ((goal.currentValue * 100) / goal.targetValue).coerceIn(0, 100)
                             } else 0
                         )
                     }
