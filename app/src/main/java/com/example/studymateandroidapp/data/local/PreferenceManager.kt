@@ -135,4 +135,10 @@ class PreferenceManager(private val context: Context) {
             preferences[LAST_DAILY_HABIT_REMINDER_DATE] = date
         }
     }
+
+    suspend fun clearAll() {
+        context.dataStore.edit { preferences ->
+            preferences.clear()
+        }
+    }
 }

@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -66,6 +67,8 @@ fun DashboardScreen(
         greeting = uiState.greeting,
         userName = uiState.userName,
         userBio = uiState.userBio,
+        userPhotoUrl = uiState.userPhotoUrl,
+        currentStreak = uiState.currentStreak,
         todayTasks = uiState.todayTasks,
         pendingTaskCount = uiState.pendingTaskCount,
         todayStudyFormatted = uiState.todayStudyFormatted,
@@ -96,6 +99,8 @@ private fun DashboardContent(
     greeting: String,
     userName: String,
     userBio: String,
+    userPhotoUrl: String?,
+    currentStreak: Int,
     todayTasks: List<Task>,
     pendingTaskCount: Int,
     todayStudyFormatted: String,
@@ -170,12 +175,21 @@ private fun DashboardContent(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.padding(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (userPhotoUrl != null) {
+                            AsyncImage(
+                                model = userPhotoUrl,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier.padding(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                     Spacer(Modifier.width(16.dp))
                     Column {
@@ -186,10 +200,16 @@ private fun DashboardContent(
                             letterSpacing = 1.sp
                         )
                         Text(
-                            text = "Hi, $userName",
+                            text = "Hi, $userName 👋",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = if (currentStreak > 0) "🔥 $currentStreak Day Streak" else "Start your streak today 🔥",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = userBio,
@@ -362,7 +382,7 @@ private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
                 text = task.title,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground,
-                textDecoration = if (task.isCompleted) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
+                textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null
             )
             Text(task.priority.name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
         }
@@ -377,6 +397,8 @@ private fun DashboardPreview() {
             greeting = "Good Morning",
             userName = "John",
             userBio = "Software Engineer",
+            userPhotoUrl = null,
+            currentStreak = 5,
             todayTasks = listOf(Task(id = 1, title = "Mock Task", priority = Priority.HIGH)),
             pendingTaskCount = 1,
             todayStudyFormatted = "2h 30m",

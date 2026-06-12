@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.local.PreferenceManager
+import com.example.studymateandroidapp.data.local.StudyPlannerDatabase
 import com.example.studymateandroidapp.data.model.ProfileState
 import com.example.studymateandroidapp.data.model.ReminderSetting
 import com.example.studymateandroidapp.data.repository.AuthRepository
@@ -241,6 +242,29 @@ class SettingViewmodel(
 
     fun signOut() {
         authRepository.signOut()
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            val result = authRepository.deleteAccount()
+            if (result.isSuccess) {
+                try {
+                    // Clear local database
+                    StudyPlannerDatabase.getInstance(authRepository.context).clearAllTables()
+                    
+                    // Clear preferences
+                    preferenceManager.clearAll()
+                    
+                    // Reset UI state
+                    _profileState.value = ProfileState()
+                    Log.d(TAG, "Local data cleared after account deletion")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to clear local data", e)
+                }
+            } else {
+                _uiError.value = result.exceptionOrNull()?.message ?: "Failed to delete account"
+            }
+        }
     }
 
     fun toggleSync(enabled: Boolean) {

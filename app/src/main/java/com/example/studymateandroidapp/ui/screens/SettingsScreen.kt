@@ -82,6 +82,7 @@ fun SettingsScreen(
             }
         },
         onSignOut           = { viewModel.signOut() },
+        onDeleteAccount     = { viewModel.deleteAccount() },
         onToggleSync        = { viewModel.toggleSync(it) },
         onSyncNow           = { viewModel.triggerSync() }
     )
@@ -107,9 +108,36 @@ fun SettingsContent(
     onToggleAppLock: (Boolean) -> Unit,
     onSignIn: () -> Unit,
     onSignOut: () -> Unit,
+    onDeleteAccount: () -> Unit,
     onToggleSync: (Boolean) -> Unit,
     onSyncNow: () -> Unit
 ) {
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Delete Account?") },
+            text = { Text("This will permanently delete your account and all your study data from the cloud. This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteAccount()
+                        showDeleteConfirmation = false
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete Permanently")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
@@ -380,6 +408,20 @@ fun SettingsContent(
             }
 
             Spacer(modifier = Modifier.height(32.dp))
+
+            if (isSignedIn) {
+                TextButton(
+                    onClick = { showDeleteConfirmation = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(Icons.Default.DeleteForever, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Delete Account Permanently")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
@@ -473,8 +515,9 @@ fun SettingsScreenPreview() {
 
             onSignIn = {},
             onSignOut = {},
+            onDeleteAccount = {},
             onToggleSync = {},
             onSyncNow = {}
-        )
-    }
-}
+            )
+            }
+            }

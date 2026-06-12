@@ -215,6 +215,10 @@ private fun achievementInfo(type: AchievementType): Triple<String, String, Strin
     AchievementType.FIRST_REFLECTION -> Triple("🪷", "Self Aware", "Write your first reflection")
     AchievementType.POMODORO_MASTER -> Triple("🍅", "Pomodoro Master", "Complete 10 full Pomodoro cycles")
     AchievementType.POMODORO_LEGEND -> Triple("👑", "Pomodoro Legend", "Complete 50 full Pomodoro cycles")
+    AchievementType.STREAK_3_DAY -> Triple("🔥", "First Spark", "3-day study streak!")
+    AchievementType.STREAK_7_DAY -> Triple("📜", "Consistent Learner", "7-day study streak!")
+    AchievementType.STREAK_30_DAY -> Triple("⚔️", "Study Warrior", "30-day study streak!")
+    AchievementType.STREAK_100_DAY -> Triple("💎", "Unstoppable", "100-day study streak!")
 }
 
 @Preview(showBackground = true)
