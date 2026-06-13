@@ -149,8 +149,7 @@ fun GoalCard(
                 IconButton(onClick = onDelete) {
                     Icon(
                         Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error
+                        contentDescription = "Delete"
                     )
                 }
             }

@@ -76,6 +76,8 @@ fun DashboardScreen(
         nextExamTitle = uiState.nextExam?.title,
         daysUntilNextExam = uiState.daysUntilNextExam,
         activeGoals = uiState.activeGoals,
+        totalGoalCount = uiState.totalGoalCount,
+        completedGoalCount = uiState.completedGoalCount,
         isLoading = uiState.isLoading,
         showSyncPrompt = uiState.showSyncPrompt,
         dailyQuote = uiState.dailyQuote,
@@ -108,6 +110,8 @@ private fun DashboardContent(
     nextExamTitle: String?,
     daysUntilNextExam: Long?,
     activeGoals: List<GoalSummary>,
+    totalGoalCount: Int,
+    completedGoalCount: Int,
     isLoading: Boolean,
     showSyncPrompt: Boolean,
     dailyQuote: String,
@@ -292,19 +296,36 @@ private fun DashboardContent(
                 }
             }
 
-            // ── 5. Focus Pulse ───────────────────────────
+            // ── 5. Goals Card ───────────────────────────
             item {
-                Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
                     Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Focus Pulse", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("Total focus: $todayStudyFormatted today", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                            Spacer(Modifier.height(16.dp))
-                            FocusStatRow(Icons.Default.FlashOn, "Deep Work", "${(todayStudyMinutes * 0.6).toInt()}m")
-                            FocusStatRow(Icons.Default.MenuBook, "Study", "${(todayStudyMinutes * 0.4).toInt()}m")
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Goals", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            
+                            if (totalGoalCount == 0) {
+                                Text("No goals yet", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Create your first goal to start tracking progress", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                            } else {
+                                Text("${activeGoals.size} active goals", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("$completedGoalCount of $totalGoalCount completed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                                
+                                if (activeGoals.isNotEmpty()) {
+                                    Spacer(Modifier.height(12.dp))
+                                    activeGoals.take(2).forEach { goal ->
+                                        GoalProgressRow(goal.title, goal.progressPercent)
+                                    }
+                                }
+                            }
                             
                             Spacer(Modifier.height(12.dp))
-                            Text("Full insights →", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { onNavigateToStats() })
+                            Text("View Goals →", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { onNavigateToGoals() })
                         }
                     }
                 }
@@ -355,13 +376,21 @@ private fun DashboardContent(
 }
 
 @Composable
-private fun FocusStatRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
+private fun GoalProgressRow(label: String, progressPercent: Int) {
     Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-        Spacer(Modifier.width(8.dp))
-        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.weight(1f))
-        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(modifier = Modifier.weight(1f)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                Text("$progressPercent%", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(Modifier.height(4.dp))
+            LinearProgressIndicator(
+                progress = { progressPercent / 100f },
+                modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+            )
+        }
     }
 }
 
@@ -406,6 +435,8 @@ private fun DashboardPreview() {
             nextExamTitle = "Math Final",
             daysUntilNextExam = 3,
             activeGoals = emptyList(),
+            totalGoalCount = 0,
+            completedGoalCount = 0,
             isLoading = false,
             showSyncPrompt = true,
             dailyQuote = "Focus on being productive instead of busy.",

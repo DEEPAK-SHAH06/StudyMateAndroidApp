@@ -51,6 +51,8 @@ class DashboardViewModel(
 
         // Goals
         val activeGoals: List<GoalSummary> = emptyList(),
+        val totalGoalCount: Int = 0,
+        val completedGoalCount: Int = 0,
 
         // Motivation
         val dailyQuote: String = "",
@@ -235,7 +237,13 @@ class DashboardViewModel(
                             } else 0
                         )
                     }
-                    _uiState.update { it.copy(activeGoals = summaries) }
+                    _uiState.update { 
+                        it.copy(
+                            activeGoals = summaries,
+                            totalGoalCount = goals.size,
+                            completedGoalCount = goals.count { g -> g.currentValue >= g.targetValue }
+                        )
+                    }
                 }
         }
     }
