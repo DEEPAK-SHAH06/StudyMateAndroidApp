@@ -2,8 +2,6 @@ package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,8 +10,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,12 +30,12 @@ import com.example.studymateandroidapp.data.model.Exam
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.ExamViewmodel
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import com.example.studymateandroidapp.data.model.StudyProgress
 
 @Composable
@@ -46,7 +45,9 @@ fun ExamScreen(
     onNavigateToEditExam: (Long) -> Unit,
     onStartStudy: (Long) -> Unit,
     onNavigateToNotes: (Long) -> Unit,
-    onNavigateToFlashcards: (Long) -> Unit
+    onNavigateToFlashcards: (Long) -> Unit,
+    onNavigateToAchievements: () -> Unit,
+    onStatsClick: () -> Unit
 ) {
     val exams by viewModel.allExams.collectAsState()
     val progress by viewModel.examProgress.collectAsState()
@@ -54,6 +55,8 @@ fun ExamScreen(
     ExamContent(
         exams = exams,
         progress = progress,
+        onStatsClick   = onStatsClick,
+        onNavigateToAchievements = onNavigateToAchievements,
         onAddExam = onNavigateToAddExam,
         onExamClick = onNavigateToEditExam,
         onDeleteExam = { viewModel.deleteExam(it) },
@@ -67,6 +70,8 @@ fun ExamScreen(
 fun ExamContent(
     exams: List<Exam>,
     progress: Map<Long, StudyProgress>,
+    onNavigateToAchievements: () -> Unit,
+    onStatsClick: () -> Unit,
     onAddExam: () -> Unit,
     onExamClick: (Long) -> Unit,
     onDeleteExam: (Exam) -> Unit,
@@ -77,7 +82,16 @@ fun ExamContent(
     Scaffold(
         topBar = {
             StudyMateTopBar(
-                title = "Exams :",
+                title = "",
+
+                actions = {
+                    IconButton(onClick = onNavigateToAchievements) {
+                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements", tint = MaterialTheme.colorScheme.onSurface)
+                    }
+                    IconButton(onClick = onStatsClick) {
+                        Icon(Icons.Default.BarChart, contentDescription = "Statistics")
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -97,6 +111,13 @@ fun ExamContent(
                 .padding(innerPadding)
                 .padding(horizontal = 28.dp)
         ) {
+            Text(
+                "Exams :",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                fontSize = 26.sp
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -111,9 +132,12 @@ fun ExamContent(
             }
 
             Text(
-                text = "Upcoming Exams",
+                text = "Upcoming",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                modifier = Modifier.align(Alignment.End),
+                fontSize = 18.sp,
+                color = Color.DarkGray,
+                fontWeight = FontWeight.Medium
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -345,6 +369,8 @@ fun ExamScreenPreview() {
             onExamClick = {},
             onDeleteExam = {},
             onStartStudy = {},
+            onNavigateToAchievements = {},
+            onStatsClick = {},
             onNotesClick = {},
             onFlashcardsClick = {}
         )
