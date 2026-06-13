@@ -5,7 +5,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.Button
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -18,7 +17,6 @@ import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.LocalSize
 import androidx.compose.ui.unit.DpSize
-import androidx.glance.ButtonDefaults
 import androidx.glance.background
 import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
@@ -58,7 +56,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
     override val sizeMode = SizeMode.Responsive(
         setOf(
             DpSize(100.dp, 100.dp),
-            DpSize(200.dp, 120.dp),
+            DpSize(100.dp, 120.dp),
             DpSize(300.dp, 200.dp)
         )
     )
@@ -102,13 +100,14 @@ class StudyPlannerWidget : GlanceAppWidget() {
         todayDate: String,
         widgetSize: DpSize
     ) {
-        val isSmall = widgetSize.width < 150.dp || widgetSize.height < 120.dp
+        val isSmall = widgetSize.width < 100.dp || widgetSize.height < 120.dp
         
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(ColorProvider(day = Color.Black, night = Color.Black))
-                .padding(if (isSmall) 8.dp else 12.dp),
+                .background(ColorProvider(day = Color.White, night = Color.White))
+                .cornerRadius(20.dp)
+                .padding(if (isSmall) 8.dp else 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header Section: App Name and Date
@@ -124,7 +123,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = if (isSmall) 14.sp else 16.sp,
-                            color = ColorProvider(day = Color.White, night = Color.White)
+                            color = ColorProvider(day = Color.Black, night = Color.Black)
                         ),
                         modifier = GlanceModifier.defaultWeight()
                     )
@@ -133,7 +132,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                             text = todayDate,
                             style = TextStyle(
                                 fontSize = 12.sp,
-                                color = ColorProvider(day = Color.LightGray, night = Color.LightGray)
+                                color = ColorProvider(day = Color.DarkGray, night = Color.DarkGray)
                             )
                         )
                     }
@@ -149,16 +148,16 @@ class StudyPlannerWidget : GlanceAppWidget() {
                 Text(
                     text = if (isSmall) "$progress%" else "Progress: $progress%",
                     style = TextStyle(
-                        fontSize = if (isSmall) 12.sp else 13.sp, 
+                        fontSize = if (isSmall) 10.sp else 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = ColorProvider(day = Color.Cyan, night = Color.Cyan)
+                        color = ColorProvider(day = Color.Red, night = Color.Red)
                     )
                 )
                 Spacer(modifier = GlanceModifier.defaultWeight())
                 if (widgetSize.width > 120.dp) {
                     Text(
                         text = "$remainingTasks left",
-                        style = TextStyle(fontSize = 11.sp, color = ColorProvider(day = Color.LightGray, night = Color.LightGray))
+                        style = TextStyle(fontSize = 11.sp, color = ColorProvider(day = Color.DarkGray, night = Color.DarkGray))
                     )
                 }
             }
@@ -170,7 +169,6 @@ class StudyPlannerWidget : GlanceAppWidget() {
                 Box(
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .background(ColorProvider(day = Color.DarkGray, night = Color.DarkGray))
                         .padding(if (isSmall) 8.dp else 12.dp)
                 ) {
                     if (nextTask != null) {
@@ -180,7 +178,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = if (isSmall) 13.sp else 15.sp,
-                                    color = ColorProvider(day = Color.White, night = Color.White)
+                                    color = ColorProvider(day = Color.Black, night = Color.Black)
                                 ),
                                 maxLines = 1
                             )
@@ -190,7 +188,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                                         text = nextTask.subjectTag ?: "Study",
                                         style = TextStyle(
                                             fontSize = 11.sp,
-                                            color = ColorProvider(day = Color.LightGray, night = Color.LightGray)
+                                            color = ColorProvider(day = Color.DarkGray, night = Color.DarkGray)
                                         )
                                     )
                                 }
@@ -201,7 +199,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                             text = if (isSmall) "All done! 🎉" else "No more tasks today! 🎉",
                             style = TextStyle(
                                 fontSize = 13.sp,
-                                color = ColorProvider(day = Color.White, night = Color.White)
+
                             )
                         )
                     }
@@ -222,7 +220,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                         Box(
                             modifier = GlanceModifier
                                 .size(36.dp)
-                                .background(ColorProvider(day = Color.Black, night = Color.Black))
+                                .background(ColorProvider(day = Color.White, night = Color.White))
                                 .cornerRadius(18.dp)
                                 .clickable(actionRunCallback<RefreshActionCallback>()),
                             contentAlignment = Alignment.Center
@@ -230,16 +228,16 @@ class StudyPlannerWidget : GlanceAppWidget() {
                             Image(
                                 provider = ImageProvider(R.drawable.again),
                                 contentDescription = "Refresh",
-                                modifier = GlanceModifier.size(20.dp),
-                                colorFilter = ColorFilter.tint(ColorProvider(day = Color.White, night = Color.White))
+                                modifier = GlanceModifier.size(16.dp),
+                                colorFilter = ColorFilter.tint(ColorProvider(day = Color.Black, night = Color.Black))
                             )
                         }
                     }
-                    Spacer(modifier = GlanceModifier.width(16.dp))
+                    Spacer(modifier = GlanceModifier.width(2.dp))
                     Box(
                         modifier = GlanceModifier
                             .size(36.dp)
-                            .background(ColorProvider(day = Color.Black, night = Color.Black))
+                            .background(ColorProvider(day = Color.White, night = Color.White))
                             .cornerRadius(18.dp)
                             .clickable(actionStartActivity<MainActivity>()),
                         contentAlignment = Alignment.Center
@@ -247,8 +245,8 @@ class StudyPlannerWidget : GlanceAppWidget() {
                         Image(
                             provider = ImageProvider(R.drawable.outline_exit_to_app_24),
                             contentDescription = "Open",
-                            modifier = GlanceModifier.size(20.dp),
-                            colorFilter = ColorFilter.tint(ColorProvider(day = Color.White, night = Color.White))
+                            modifier = GlanceModifier.size(16.dp),
+                            colorFilter = ColorFilter.tint(ColorProvider(day = Color.Black, night = Color.Black))
                         )
                     }
                 }

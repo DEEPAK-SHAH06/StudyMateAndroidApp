@@ -8,5 +8,6 @@ object WidgetUpdateHelper {
         StudyPlannerWidget().updateAll(context)
         FlashcardWidget().updateAll(context)
         ExamWidget().updateAll(context)
+        StatisticsWidget().updateAll(context)
     }
 }
