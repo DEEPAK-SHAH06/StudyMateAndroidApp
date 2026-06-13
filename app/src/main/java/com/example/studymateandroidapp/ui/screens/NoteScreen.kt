@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.data.model.Note
+import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.NoteViewmodel
 
@@ -27,14 +28,26 @@ fun NoteScreen(
     onNavigateToEditNote: (Long, Long?) -> Unit
 ) {
     val notes by viewModel.allNotes.collectAsState()
+    var noteToDelete by remember { mutableStateOf<Note?>(null) }
     
     NoteContent(
         notes = notes.filter { examId == null || it.examId == examId },
         onBack = onNavigateBack,
         onAddNote = { onNavigateToAddNote(examId) },
         onEditNote = { noteId -> onNavigateToEditNote(noteId, examId) },
-        onDeleteNote = { viewModel.deleteNote(it) }
+        onDeleteNote = { noteToDelete = it }
     )
+
+    noteToDelete?.let { note ->
+        ConfirmDeleteDialog(
+            itemName = "Note",
+            onConfirm = {
+                viewModel.deleteNote(note)
+                noteToDelete = null
+            },
+            onDismiss = { noteToDelete = null }
+        )
+    }
 }
 
 @Composable

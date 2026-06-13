@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import com.example.studymateandroidapp.data.model.ReminderSetting
 import com.example.studymateandroidapp.data.model.ReminderType
+import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.SettingViewmodel
 
@@ -46,6 +47,7 @@ fun SettingsScreen(
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
     
     LaunchedEffect(errorState) {
         errorState?.let {
@@ -82,10 +84,21 @@ fun SettingsScreen(
             }
         },
         onSignOut           = { viewModel.signOut() },
-        onDeleteAccount     = { viewModel.deleteAccount() },
+        onDeleteAccount     = { showDeleteConfirmation = true },
         onToggleSync        = { viewModel.toggleSync(it) },
         onSyncNow           = { viewModel.triggerSync() }
     )
+
+    if (showDeleteConfirmation) {
+        ConfirmDeleteDialog(
+            itemName = "Account",
+            onConfirm = {
+                viewModel.deleteAccount()
+                showDeleteConfirmation = false
+            },
+            onDismiss = { showDeleteConfirmation = false }
+        )
+    }
 }
 
 @Composable
