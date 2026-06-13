@@ -29,6 +29,7 @@ import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.Task
 import com.example.studymateandroidapp.data.model.TaskStatus
+import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.TaskViewmodel
 import kotlinx.coroutines.launch
@@ -66,33 +67,18 @@ fun TaskScreen(
         onDeleteTask = { taskToDelete = it }
     )
 
-    if (taskToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { taskToDelete = null },
-            title = { Text("Delete Task?") },
-            text = { Text("This action cannot be undone.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        taskToDelete?.let { task ->
-                            viewModel.deleteTask(task) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Task deleted")
-                                }
-                            }
-                        }
-                        taskToDelete = null
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
-                ) {
-                    Text("Delete")
+    taskToDelete?.let { task ->
+        ConfirmDeleteDialog(
+            itemName = "Task",
+            onConfirm = {
+                viewModel.deleteTask(task) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Task deleted")
+                    }
                 }
+                taskToDelete = null
             },
-            dismissButton = {
-                TextButton(onClick = { taskToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
+            onDismiss = { taskToDelete = null }
         )
     }
 }

@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Exam
+import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.ExamViewmodel
 import java.time.Instant
@@ -37,6 +38,9 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 import androidx.compose.ui.draw.clip
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.example.studymateandroidapp.data.model.StudyProgress
 
 @Composable
@@ -50,17 +54,29 @@ fun ExamScreen(
 ) {
     val exams by viewModel.allExams.collectAsState()
     val progress by viewModel.examProgress.collectAsState()
+    var examToDelete by remember { mutableStateOf<Exam?>(null) }
 
     ExamContent(
         exams = exams,
         progress = progress,
         onAddExam = onNavigateToAddExam,
         onExamClick = onNavigateToEditExam,
-        onDeleteExam = { viewModel.deleteExam(it) },
+        onDeleteExam = { examToDelete = it },
         onStartStudy = onStartStudy,
         onNotesClick = onNavigateToNotes,
         onFlashcardsClick = onNavigateToFlashcards
     )
+
+    examToDelete?.let { exam ->
+        ConfirmDeleteDialog(
+            itemName = "Exam",
+            onConfirm = {
+                viewModel.deleteExam(exam)
+                examToDelete = null
+            },
+            onDismiss = { examToDelete = null }
+        )
+    }
 }
 
 @Composable

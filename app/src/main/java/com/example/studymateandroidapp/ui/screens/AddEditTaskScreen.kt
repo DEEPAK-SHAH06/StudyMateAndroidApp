@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.Task
+import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.TaskViewmodel
 import java.time.LocalDate
@@ -261,37 +262,24 @@ fun AddEditTaskScreen(
                 }
 
                 if (showDeleteConfirm) {
-                    AlertDialog(
-                        onDismissRequest = { showDeleteConfirm = false },
-                        title = { Text("Delete Task?") },
-                        text = { Text("This action cannot be undone.") },
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    val currentTask = Task(
-                                        id = taskId,
-                                        title = title,
-                                        description = description,
-                                        priority = priority,
-                                        dueDate = dueDate,
-                                        dueTime = dueTime,
-                                        subjectTag = subjectTag.uppercase()
-                                    )
-                                    viewModel.deleteTask(currentTask) {
-                                        onNavigateBack()
-                                    }
-                                    showDeleteConfirm = false
-                                },
-                                colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
-                            ) {
-                                Text("Delete")
+                    ConfirmDeleteDialog(
+                        itemName = "Task",
+                        onConfirm = {
+                            val currentTask = Task(
+                                id = taskId,
+                                title = title,
+                                description = description,
+                                priority = priority,
+                                dueDate = dueDate,
+                                dueTime = dueTime,
+                                subjectTag = subjectTag.uppercase()
+                            )
+                            viewModel.deleteTask(currentTask) {
+                                onNavigateBack()
                             }
+                            showDeleteConfirm = false
                         },
-                        dismissButton = {
-                            TextButton(onClick = { showDeleteConfirm = false }) {
-                                Text("Cancel")
-                            }
-                        }
+                        onDismiss = { showDeleteConfirm = false }
                     )
                 }
             }

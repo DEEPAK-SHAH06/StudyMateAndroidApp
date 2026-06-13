@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Flashcard
+import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.FlashcardViewmodel
 
@@ -38,6 +39,7 @@ fun FlashcardScreen(
     onNavigateBack: () -> Unit
 ) {
     val flashcards by viewModel.allFlashcards.collectAsState()
+    var cardToDelete by remember { mutableStateOf<Flashcard?>(null) }
     
     FlashcardContent(
         flashcards = flashcards.filter { examId == null || it.examId == examId },
@@ -45,8 +47,19 @@ fun FlashcardScreen(
         onBack = onNavigateBack,
         onAddCard = onAddCard,
         onStartStudy = { onStartStudy(examId ?: -1L) },
-        onDeleteCard = { viewModel.deleteFlashcard(it) }
+        onDeleteCard = { cardToDelete = it }
     )
+
+    cardToDelete?.let { card ->
+        ConfirmDeleteDialog(
+            itemName = "Flashcard",
+            onConfirm = {
+                viewModel.deleteFlashcard(card)
+                cardToDelete = null
+            },
+            onDismiss = { cardToDelete = null }
+        )
+    }
 }
 
 @Composable

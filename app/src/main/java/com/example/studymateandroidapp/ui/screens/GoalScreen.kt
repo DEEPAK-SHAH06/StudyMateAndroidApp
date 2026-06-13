@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.studymateandroidapp.data.model.Goal
 import com.example.studymateandroidapp.data.model.GoalStatus
+import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.GoalViewmodel
 
@@ -31,6 +32,7 @@ fun GoalScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.listState.collectAsStateWithLifecycle()
+    var goalIdToDelete by remember { mutableStateOf<Long?>(null) }
 
     Scaffold(
         topBar = {
@@ -84,11 +86,22 @@ fun GoalScreen(
                         goal = item.goal,
                         progressPercent = item.progressPercent,
                         onClick = { onNavigateToEditGoal(item.goal.id) },
-                        onDelete = { viewModel.onDeleteGoal(item.goal.id) }
+                        onDelete = { goalIdToDelete = item.goal.id }
                     )
                 }
             }
         }
+    }
+
+    goalIdToDelete?.let { goalId ->
+        ConfirmDeleteDialog(
+            itemName = "Goal",
+            onConfirm = {
+                viewModel.onDeleteGoal(goalId)
+                goalIdToDelete = null
+            },
+            onDismiss = { goalIdToDelete = null }
+        )
     }
 }
 
