@@ -39,7 +39,7 @@ sealed class Screen(
     data object Exams : Screen("exams", "Exams", Icons.Default.MenuBook)
     data object Statistics : Screen("statistics", "Stats", Icons.Default.BarChart)
     data object Calendar : Screen("calendar", "Calendar", Icons.Default.CalendarMonth)
-    data object Notes : Screen("notes", "Notes", Icons.Default.Description) {
+    data object Notes : Screen("notes?examId={examId}", "Notes", Icons.Default.Description) {
         fun createRoute(examId: Long? = null) = if (examId != null) "notes?examId=$examId" else "notes"
     }
 

@@ -15,6 +15,9 @@ interface NoteDao {
     @Query("SELECT COUNT(*) FROM notes")
     fun getNoteCount(): Flow<Int>
 
+    @Query("SELECT * FROM notes WHERE id = :id")
+    suspend fun getNoteById(id: Long): Note?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(note: Note): Long
 

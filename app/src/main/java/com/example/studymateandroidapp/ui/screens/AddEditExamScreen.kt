@@ -88,6 +88,10 @@ fun AddEditExamContent(
     var location by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
 
+    val currentDateTime = LocalDateTime.now()
+    val selectedDateTime = LocalDateTime.of(examDate, examTime)
+    val isDateTimeInPast = selectedDateTime.isBefore(currentDateTime)
+
     val context = androidx.compose.ui.platform.LocalContext.current
 
     Scaffold(
@@ -139,7 +143,7 @@ fun AddEditExamContent(
                     label = "Exam Date",
                     value = examDate.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
                     onClick = {
-                        android.app.DatePickerDialog(
+                        val datePickerDialog = android.app.DatePickerDialog(
                             context,
                             { _, year, month, dayOfMonth ->
                                 examDate = LocalDate.of(year, month + 1, dayOfMonth)
@@ -147,7 +151,9 @@ fun AddEditExamContent(
                             examDate.year,
                             examDate.monthValue - 1,
                             examDate.dayOfMonth
-                        ).show()
+                        )
+                        datePickerDialog.datePicker.minDate = System.currentTimeMillis() - 1000
+                        datePickerDialog.show()
                     },
                     leadingIcon = { Icon(painter = painterResource(id = R.drawable.calendar), contentDescription = null, modifier = Modifier.size(20.dp)) },
                     modifier = Modifier.weight(1f)
@@ -195,11 +201,24 @@ fun AddEditExamContent(
 
             Spacer(Modifier.height(16.dp))
 
+            if (isDateTimeInPast) {
+                Text(
+                    text = "Exam date and time must be in the future.",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
+
             Button(
-                onClick = { if (title.isNotBlank() && subject.isNotBlank()) onSave(title, subject, examDate, examTime) },
+                onClick = { if (title.isNotBlank() && subject.isNotBlank() && !isDateTimeInPast) onSave(title, subject, examDate, examTime) },
+                enabled = title.isNotBlank() && subject.isNotBlank() && !isDateTimeInPast,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black,
+                    disabledContainerColor = Color.Gray
+                )
             ) {
                 Text("Save Exam", fontWeight = FontWeight.Bold)
             }

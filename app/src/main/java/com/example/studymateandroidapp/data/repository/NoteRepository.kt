@@ -10,6 +10,8 @@ class NoteRepository(private val noteDao: NoteDao) {
     fun getNotesByExamId(examId: Long): Flow<List<Note>> =
         noteDao.getNotesByExamId(examId)
 
+    suspend fun getNoteById(id: Long): Note? = noteDao.getNoteById(id)
+
     suspend fun insert(note: Note) {
         noteDao.insert(note)
     }
