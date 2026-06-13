@@ -78,6 +78,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(NoteViewmodel::class.java) ->
                 NoteViewmodel(
                     repository = NoteRepository(db.noteDao()),
+                    examRepository = ExamRepository(db.examDao()),
                     application = application
                 ) as T
 

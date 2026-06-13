@@ -22,8 +22,10 @@ fun AddEditNoteScreen(
     viewModel: NoteViewmodel,
     onNavigateBack: () -> Unit
 ) {
+    val exams by viewModel.allExams.collectAsState()
     var content by remember { mutableStateOf("") }
     var existingNote by remember { mutableStateOf<Note?>(null) }
+    var selectedExamId by remember(examId) { mutableStateOf(examId) }
 
     LaunchedEffect(noteId) {
         if (noteId != null) {
@@ -31,7 +33,15 @@ fun AddEditNoteScreen(
             if (note != null) {
                 existingNote = note
                 content = note.content
+                selectedExamId = note.examId
             }
+        }
+    }
+
+    // Automatically select the first exam if none provided and exams are available
+    LaunchedEffect(exams) {
+        if (selectedExamId == null && exams.isNotEmpty()) {
+            selectedExamId = exams.first().id
         }
     }
 
@@ -63,6 +73,14 @@ fun AddEditNoteScreen(
                 fontWeight = FontWeight.Bold
             )
 
+            if (selectedExamId == null) {
+                Text(
+                    text = "Please create an exam first before adding notes.",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
             OutlinedTextField(
                 value = content,
                 onValueChange = { content = it },
@@ -77,22 +95,24 @@ fun AddEditNoteScreen(
 
             Button(
                 onClick = {
-                    if (content.isNotBlank()) {
+                    val finalExamId = selectedExamId
+                    if (content.isNotBlank() && finalExamId != null) {
                         if (noteId == null) {
                             viewModel.addNote(
                                 Note(
                                     content = content,
-                                    examId = examId ?: 1L
+                                    examId = finalExamId
                                 )
                             )
                         } else {
                             existingNote?.let {
-                                viewModel.updateNote(it.copy(content = content))
+                                viewModel.updateNote(it.copy(content = content, examId = finalExamId))
                             }
                         }
                         onNavigateBack()
                     }
                 },
+                enabled = content.isNotBlank() && selectedExamId != null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),

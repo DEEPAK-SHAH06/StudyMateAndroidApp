@@ -110,7 +110,7 @@ fun NoteItem(note: Note, onEdit: () -> Unit, onDelete: () -> Unit) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.Gray)
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Gray)
                 }
             }
         }
