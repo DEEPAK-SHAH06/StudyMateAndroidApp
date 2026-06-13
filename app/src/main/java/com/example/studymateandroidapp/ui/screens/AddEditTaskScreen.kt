@@ -248,6 +248,53 @@ fun AddEditTaskScreen(
             ) {
                 Text("Save Task", fontWeight = FontWeight.Bold)
             }
+
+            if (taskId != null) {
+                var showDeleteConfirm by remember { mutableStateOf(false) }
+
+                TextButton(
+                    onClick = { showDeleteConfirm = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                ) {
+                    Text("Delete Task", fontWeight = FontWeight.Bold)
+                }
+
+                if (showDeleteConfirm) {
+                    AlertDialog(
+                        onDismissRequest = { showDeleteConfirm = false },
+                        title = { Text("Delete Task?") },
+                        text = { Text("This action cannot be undone.") },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    val currentTask = Task(
+                                        id = taskId,
+                                        title = title,
+                                        description = description,
+                                        priority = priority,
+                                        dueDate = dueDate,
+                                        dueTime = dueTime,
+                                        subjectTag = subjectTag.uppercase()
+                                    )
+                                    viewModel.deleteTask(currentTask) {
+                                        onNavigateBack()
+                                    }
+                                    showDeleteConfirm = false
+                                },
+                                colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                            ) {
+                                Text("Delete")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showDeleteConfirm = false }) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 }

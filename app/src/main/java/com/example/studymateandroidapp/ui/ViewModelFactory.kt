@@ -49,6 +49,14 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(TaskViewmodel::class.java) ->
                 TaskViewmodel(
                     repository = TaskRepository(db.taskDao()),
+                    motivationRepository = MotivationRepository(
+                        motivationDao = db.motivationDao(),
+                        taskDao       = db.taskDao(),
+                        sessionDao    = db.sessionDao(),
+                        goalDao       = db.goalDao(),
+                        noteDao       = db.noteDao(),
+                        flashcardDao  = db.flashcardDao()
+                    ),
                     reminderScheduler = ReminderScheduler(application),
                     application = application
                 ) as T

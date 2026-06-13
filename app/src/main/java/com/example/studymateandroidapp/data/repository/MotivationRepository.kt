@@ -28,9 +28,10 @@ class MotivationRepository(
 
     private fun getAllStudyDates(): Flow<Set<LocalDate>> = combine(
         sessionDao.getAllStartTimes().map { it.map { dt -> dt.toLocalDate() }.toSet() },
-        flashcardDao.getReviewDates().map { it.toSet() }
-    ) { studyDates, reviewDates ->
-        studyDates + reviewDates
+        flashcardDao.getReviewDates().map { it.toSet() },
+        taskDao.getCompletedDates().map { it.toSet() }
+    ) { studyDates, reviewDates, taskDates ->
+        studyDates + reviewDates + taskDates
     }
 
     fun getStreak(): Flow<Int> = getAllStudyDates()
@@ -255,7 +256,8 @@ class MotivationRepository(
     private suspend fun calculateCurrentStreak(): Int {
         val studyDates = sessionDao.getAllStartTimes().firstOrNull()?.map { it.toLocalDate() } ?: emptyList()
         val reviewDates = flashcardDao.getReviewDates().firstOrNull() ?: emptyList()
-        val allDates = (studyDates + reviewDates).toSet()
+        val taskDates = taskDao.getCompletedDates().firstOrNull() ?: emptyList()
+        val allDates = (studyDates + reviewDates + taskDates).toSet()
         
         return calculateStreakFromDates(allDates)
     }

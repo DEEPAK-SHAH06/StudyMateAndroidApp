@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.model.Task
+import com.example.studymateandroidapp.data.repository.MotivationRepository
 import com.example.studymateandroidapp.data.repository.TaskRepository
 import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,6 +16,7 @@ import com.example.studymateandroidapp.utils.notification.ReminderScheduler
 
 class TaskViewmodel(
     private val repository: TaskRepository,
+    private val motivationRepository: MotivationRepository,
     private val reminderScheduler: ReminderScheduler,
     private val application: Application
 ) : ViewModel() {
@@ -51,14 +53,21 @@ class TaskViewmodel(
                 reminderScheduler.cancelTaskReminders(task.id)
             }
             WidgetUpdateHelper.updateAllWidgets(application)
+            if (task.isCompleted) {
+                motivationRepository.checkAndUnlockAchievements()
+            }
         }
     }
 
-    fun deleteTask(task: Task) {
+    fun deleteTask(task: Task, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             repository.delete(task)
             reminderScheduler.cancelTaskReminders(task.id)
             WidgetUpdateHelper.updateAllWidgets(application)
+            if (task.isCompleted) {
+                motivationRepository.checkAndUnlockAchievements()
+            }
+            onComplete()
         }
     }
 
