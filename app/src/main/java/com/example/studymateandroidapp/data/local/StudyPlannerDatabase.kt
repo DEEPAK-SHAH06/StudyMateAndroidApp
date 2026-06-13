@@ -24,7 +24,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
         StudyProgress::class,
         FlashcardReview::class
     ],
-    version = 15,
+    version = 16,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -158,6 +158,23 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. Fix flashcard_reviews (Add missing columns from broken version 15)
+                // We check if they exist first to avoid errors if some users had a "semi-working" version 15
+                try {
+                    db.execSQL("ALTER TABLE flashcard_reviews ADD COLUMN examId INTEGER NOT NULL DEFAULT 0")
+                } catch (_: Exception) {}
+                try {
+                    db.execSQL("ALTER TABLE flashcard_reviews ADD COLUMN correctCount INTEGER NOT NULL DEFAULT 0")
+                } catch (_: Exception) {}
+
+                // 2. Fix study_sessions (Add missing indices)
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_study_sessions_userId ON study_sessions(userId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_study_sessions_serverId ON study_sessions(serverId)")
+            }
+        }
+
         /**
          * SINGLETON
          */
@@ -201,7 +218,8 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                     MIGRATION_11_12,
                     MIGRATION_12_13,
                     MIGRATION_13_14,
-                    MIGRATION_14_15
+                    MIGRATION_14_15,
+                    MIGRATION_15_16
                 )
                 .build()
         }
