@@ -3,10 +3,9 @@ package com.example.studymateandroidapp.ui.widget
 import android.content.Context
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.Button
-import androidx.glance.ButtonDefaults
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -157,7 +156,7 @@ class ExamWidget : GlanceAppWidget() {
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
-                            color = ColorProvider(day = Color.Blue, night = Color.Blue)
+                            color = ColorProvider(day = Color.Red, night = Color.Red)
                         )
                     )
                 }
@@ -229,4 +228,10 @@ class RefreshExamsActionCallback : ActionCallback {
     ) {
         ExamWidget().update(context, glanceId)
     }
+}
+
+@Preview
+@Composable
+fun ExamWidgetPreview(){
+    ExamWidget()
 }
