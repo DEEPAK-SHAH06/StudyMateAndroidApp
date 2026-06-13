@@ -2,6 +2,7 @@ package com.example.studymateandroidapp.ui.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -27,6 +28,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.appwidget.cornerRadius
+import androidx.glance.color.ColorProvider
 import com.example.studymateandroidapp.StudyMateApplication
 import com.example.studymateandroidapp.data.repository.StatisticsRepository
 import kotlinx.coroutines.flow.first
@@ -83,7 +85,7 @@ class StatisticsWidget : GlanceAppWidget() {
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = if (isSmall) 14.sp else 16.sp,
-                    color = GlanceTheme.colors.primary
+                    color = ColorProvider(day = Color.Black, night = Color.Black)
                 ),
                 modifier = GlanceModifier.fillMaxWidth()
             )
