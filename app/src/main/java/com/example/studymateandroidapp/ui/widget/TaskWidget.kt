@@ -5,7 +5,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.Button
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -18,7 +17,6 @@ import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.LocalSize
 import androidx.compose.ui.unit.DpSize
-import androidx.glance.ButtonDefaults
 import androidx.glance.background
 import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
