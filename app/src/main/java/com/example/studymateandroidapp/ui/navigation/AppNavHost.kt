@@ -132,7 +132,12 @@ fun AppNavHost(
                 sharedTimerVm.setExamId(examIdArg)
             }
             
-            TimerScreen(viewModel = sharedTimerVm, examId = examIdArg)
+            TimerScreen(
+                viewModel = sharedTimerVm,
+                examId = examIdArg,
+                onNavigateToAchievements = { navController.navigate(Screen.Achievements.route) },
+                onStatsClick = { navController.navigate(Screen.Statistics.route) }
+            )
         }
 
         // ── Statistics ────────────────────────────────
@@ -146,6 +151,8 @@ fun AppNavHost(
             val vm: ExamViewmodel = viewModel(factory = ViewModelFactory)
             ExamScreen(
                 viewModel = vm,
+                onNavigateToAchievements = { navController.navigate(Screen.Achievements.route) },
+                onStatsClick = { navController.navigate(Screen.Statistics.route) },
                 onNavigateToAddExam = { navController.navigate(Screen.AddExam.route) },
                 onNavigateToEditExam = { examId ->
                     navController.navigate(Screen.ExamDetail.createRoute(examId))

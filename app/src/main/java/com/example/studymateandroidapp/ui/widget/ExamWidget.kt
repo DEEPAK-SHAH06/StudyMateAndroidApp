@@ -3,7 +3,6 @@ package com.example.studymateandroidapp.ui.widget
 import android.content.Context
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -228,10 +227,4 @@ class RefreshExamsActionCallback : ActionCallback {
     ) {
         ExamWidget().update(context, glanceId)
     }
-}
-
-@Preview
-@Composable
-fun ExamWidgetPreview(){
-    ExamWidget()
 }

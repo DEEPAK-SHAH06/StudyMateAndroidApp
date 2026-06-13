@@ -10,11 +10,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +28,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studymateandroidapp.R
-import com.example.studymateandroidapp.data.model.StudySession
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.TimerViewmodel
 import java.time.format.DateTimeFormatter
@@ -35,7 +35,9 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun TimerScreen(
     viewModel: TimerViewmodel,
-    examId: Long? = null
+    examId: Long? = null,
+    onNavigateToAchievements: () -> Unit,
+    onStatsClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -43,6 +45,8 @@ fun TimerScreen(
         uiState = uiState,
         onModeChange = { viewModel.setMode(it) },
         onPhaseChange = { viewModel.setPhase(it) },
+        onStatsClick        = onStatsClick,
+        onNavigateToAchievements = onNavigateToAchievements,
         onTitleChange = { viewModel.updateStudyTitle(it) },
         onStart = { viewModel.startTimer() },
         onPause = { viewModel.pauseTimer() },
@@ -55,6 +59,8 @@ fun TimerScreen(
 @Composable
 fun TimerContent(
     uiState: TimerViewmodel.TimerUiState,
+    onNavigateToAchievements: () -> Unit,
+    onStatsClick: () -> Unit,
     onModeChange: (TimerViewmodel.TimerMode) -> Unit,
     onPhaseChange: (TimerViewmodel.PomodoroPhase) -> Unit,
     onTitleChange: (String) -> Unit,
@@ -67,10 +73,13 @@ fun TimerContent(
     Scaffold(
         topBar = {
             StudyMateTopBar(
-                title = "Study Timer :",
+                title = "",
                 actions = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(painter = painterResource(id = R.drawable.statistics), contentDescription = "Stats")
+                    IconButton(onClick = onNavigateToAchievements) {
+                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements", tint = MaterialTheme.colorScheme.onSurface)
+                    }
+                    IconButton(onClick = onStatsClick) {
+                        Icon(Icons.Default.BarChart, contentDescription = "Statistics")
                     }
                 }
             )
@@ -83,14 +92,22 @@ fun TimerContent(
                 .padding(horizontal = 28.dp),
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
+
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "Study Timer :",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    fontSize = 26.sp
+                )
+                Spacer(modifier = Modifier.height(14.dp))
 
                 // Pomodoro / Stop watch Toggle
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(40.dp)
+                        .height(35.dp)
                         .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(20.dp))
                         .clip(RoundedCornerShape(20.dp))
                 ) {
@@ -126,13 +143,14 @@ fun TimerContent(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(5.dp))
 
                 // Work / Break / Long
                 if (uiState.mode == TimerViewmodel.TimerMode.POMODORO) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         TimerModeChip("Work", isSelected = uiState.phase == TimerViewmodel.PomodoroPhase.WORK, enabled = !uiState.isRunning && !uiState.isPaused, modifier = Modifier.weight(1f)) { onPhaseChange(TimerViewmodel.PomodoroPhase.WORK) }
                         TimerModeChip("Break", isSelected = uiState.phase == TimerViewmodel.PomodoroPhase.BREAK, enabled = !uiState.isRunning && !uiState.isPaused, modifier = Modifier.weight(1f)) { onPhaseChange(TimerViewmodel.PomodoroPhase.BREAK) }
@@ -140,7 +158,7 @@ fun TimerContent(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(34.dp))
 
                 // Circular Timer
                 Box(
@@ -149,7 +167,7 @@ fun TimerContent(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(240.dp)
+                            .size(200.dp)
                             .border(8.dp, if (uiState.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
@@ -164,15 +182,16 @@ fun TimerContent(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(36.dp))
 
                 // Input Field
                 OutlinedTextField(
                     value = uiState.studyTitle,
                     onValueChange = onTitleChange,
-                    placeholder = { Text("What are you studying?", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    placeholder = { Text("What are you studying?", fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+                    modifier = Modifier.fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(6.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -195,13 +214,13 @@ fun TimerContent(
                         // START
                         Button(
                             onClick = onStart,
-                            modifier = Modifier.weight(1f).height(56.dp),
+                            modifier = Modifier.weight(1f).height(52.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Start", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                            Text("Start Session", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                         }
                     } else if (uiState.isRunning) {
                         // PAUSE
@@ -242,7 +261,7 @@ fun TimerContent(
                     // RESET
                     IconButton(
                         onClick = onReset,
-                        modifier = Modifier.size(56.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                        modifier = Modifier.size(52.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                     ) {
                         Icon(Icons.Default.Refresh, contentDescription = "Reset", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -304,10 +323,10 @@ fun TimerModeChip(label: String, isSelected: Boolean, enabled: Boolean, modifier
         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(12.dp),
         border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        modifier = modifier.clickable(enabled = enabled) { onClick() }
+        modifier = modifier.clickable(enabled = enabled) { onClick() }.padding(start = 12.dp, end = 12.dp)
     ) {
         Box(
-            modifier = Modifier.padding(vertical = 8.dp),
+            modifier = Modifier.padding(vertical = 3.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -362,6 +381,8 @@ fun TimerPreview() {
             onModeChange = {},
             onPhaseChange = {},
             onTitleChange = {},
+            onNavigateToAchievements = {},
+            onStatsClick = {},
             onStart = {},
             onPause = {},
             onResume = {},
