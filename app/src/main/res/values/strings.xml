@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">StudyMateAndroidApp</string>
+    <string name="app_name">Study Mate</string>
     <string name="title_activity_app_nav_host">StudtMate</string>
     <string name="title_activity_setting">SettingActivity</string>
     <string name="title_activity_dashboard">Dashboard</string>
