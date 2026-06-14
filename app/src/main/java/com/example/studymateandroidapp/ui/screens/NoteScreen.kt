@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.data.model.Note
+import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.NoteViewmodel
 
@@ -21,29 +23,41 @@ import com.example.studymateandroidapp.viewmodel.NoteViewmodel
 fun NoteScreen(
     examId: Long? = null,
     viewModel: NoteViewmodel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToAddNote: (Long?) -> Unit,
+    onNavigateToEditNote: (Long, Long?) -> Unit
 ) {
     val notes by viewModel.allNotes.collectAsState()
+    var noteToDelete by remember { mutableStateOf<Note?>(null) }
     
     NoteContent(
         notes = notes.filter { examId == null || it.examId == examId },
         onBack = onNavigateBack,
-        onAddNote = { content ->
-            viewModel.addNote(Note(content = content, examId = examId ?: 1L))
-        },
-        onDeleteNote = { viewModel.deleteNote(it) }
+        onAddNote = { onNavigateToAddNote(examId) },
+        onEditNote = { noteId -> onNavigateToEditNote(noteId, examId) },
+        onDeleteNote = { noteToDelete = it }
     )
+
+    noteToDelete?.let { note ->
+        ConfirmDeleteDialog(
+            itemName = "Note",
+            onConfirm = {
+                viewModel.deleteNote(note)
+                noteToDelete = null
+            },
+            onDismiss = { noteToDelete = null }
+        )
+    }
 }
 
 @Composable
 fun NoteContent(
     notes: List<Note>,
     onBack: () -> Unit,
-    onAddNote: (String) -> Unit,
+    onAddNote: () -> Unit,
+    onEditNote: (Long) -> Unit,
     onDeleteNote: (Note) -> Unit
 ) {
-    var showAddDialog by remember { mutableStateOf(false) }
-
     Scaffold(
         topBar = {
             StudyMateTopBar(
@@ -53,7 +67,7 @@ fun NoteContent(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddDialog = true },
+                onClick = onAddNote,
                 containerColor = Color.Black,
                 contentColor = Color.White
             ) {
@@ -73,25 +87,19 @@ fun NoteContent(
                 contentPadding = PaddingValues(16.dp)
             ) {
                 items(notes) { note ->
-                    NoteItem(note = note, onDelete = { onDeleteNote(note) })
+                    NoteItem(
+                        note = note,
+                        onEdit = { onEditNote(note.id) },
+                        onDelete = { onDeleteNote(note) }
+                    )
                 }
             }
-        }
-
-        if (showAddDialog) {
-            AddNoteDialog(
-                onDismiss = { showAddDialog = false },
-                onConfirm = { content ->
-                    onAddNote(content)
-                    showAddDialog = false
-                }
-            )
         }
     }
 }
 
 @Composable
-fun NoteItem(note: Note, onDelete: () -> Unit) {
+fun NoteItem(note: Note, onEdit: () -> Unit, onDelete: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -105,42 +113,21 @@ fun NoteItem(note: Note, onDelete: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = note.content, style = MaterialTheme.typography.bodyLarge)
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+            Text(
+                text = note.content,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f)
+            )
+            Row {
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.Gray)
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Gray)
+                }
             }
         }
     }
-}
-
-@Composable
-fun AddNoteDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    var content by remember { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Add New Note") },
-        text = {
-            TextField(
-                value = content,
-                onValueChange = { content = it },
-                label = { Text("Note Content") },
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = { if (content.isNotBlank()) onConfirm(content) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-            ) {
-                Text("Add")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
 }
 
 @Preview(showBackground = true)
@@ -151,6 +138,7 @@ fun NotePreview() {
             notes = listOf(Note(id = 1, content = "Mock Note 1", examId = 1)),
             onBack = {},
             onAddNote = {},
+            onEditNote = {},
             onDeleteNote = {}
         )
     }

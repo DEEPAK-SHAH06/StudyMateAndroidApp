@@ -14,6 +14,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.tasks.await
@@ -28,6 +30,54 @@ class AuthRepository(val context: Context) {
 
     private val _currentUser = MutableStateFlow(auth.currentUser)
     val currentUser: StateFlow<com.google.firebase.auth.FirebaseUser?> = _currentUser
+
+    /**
+     * Deletes the current user account and all associated data from Firebase.
+     */
+    suspend fun deleteAccount(): Result<Unit> {
+        val user = auth.currentUser ?: return Result.failure(Exception("No user logged in"))
+        val userId = user.uid
+
+        return try {
+            Log.d(TAG, "Starting account deletion for user: $userId")
+
+            // 1. Delete Firestore Data
+            val firestore = Firebase.firestore
+            val collections = listOf("tasks", "goals", "sessions", "reflections", "achievements")
+            
+            for (collectionName in collections) {
+                val snapshot = firestore.collection("users").document(userId)
+                    .collection(collectionName).get().await()
+                for (doc in snapshot.documents) {
+                    doc.reference.delete().await()
+                }
+                Log.d(TAG, "Deleted Firestore collection: $collectionName")
+            }
+            
+            // Delete the user document itself if it exists
+            firestore.collection("users").document(userId).delete().await()
+
+            // 2. Delete Storage Data
+            val storageRef = Firebase.storage.reference.child("profile_pictures/$userId.jpg")
+            try {
+                storageRef.delete().await()
+                Log.d(TAG, "Deleted profile picture from Storage")
+            } catch (e: Exception) {
+                // Ignore if file doesn't exist or other non-critical storage errors
+                Log.w(TAG, "Profile picture delete skipped: ${e.message}")
+            }
+
+            // 3. Delete Auth Account
+            user.delete().await()
+            _currentUser.value = null
+            Log.d(TAG, "Firebase Auth account deleted successfully")
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Delete account failed", e)
+            Result.failure(e)
+        }
+    }
 
     /**
      * Triggers the Google Sign-In bottom sheet using modern Credentials Manager.

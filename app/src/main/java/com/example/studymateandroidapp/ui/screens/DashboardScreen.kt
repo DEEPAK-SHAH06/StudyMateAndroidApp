@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -67,6 +68,7 @@ fun DashboardScreen(
         userName = uiState.userName,
         userBio = uiState.userBio,
         userPhotoUrl = uiState.userPhotoUrl,
+        currentStreak = uiState.currentStreak,
         todayTasks = uiState.todayTasks,
         pendingTaskCount = uiState.pendingTaskCount,
         todayStudyFormatted = uiState.todayStudyFormatted,
@@ -74,6 +76,8 @@ fun DashboardScreen(
         nextExamTitle = uiState.nextExam?.title,
         daysUntilNextExam = uiState.daysUntilNextExam,
         activeGoals = uiState.activeGoals,
+        totalGoalCount = uiState.totalGoalCount,
+        completedGoalCount = uiState.completedGoalCount,
         isLoading = uiState.isLoading,
         showSyncPrompt = uiState.showSyncPrompt,
         dailyQuote = uiState.dailyQuote,
@@ -98,6 +102,7 @@ private fun DashboardContent(
     userName: String,
     userBio: String,
     userPhotoUrl: String?,
+    currentStreak: Int,
     todayTasks: List<Task>,
     pendingTaskCount: Int,
     todayStudyFormatted: String,
@@ -105,6 +110,8 @@ private fun DashboardContent(
     nextExamTitle: String?,
     daysUntilNextExam: Long?,
     activeGoals: List<GoalSummary>,
+    totalGoalCount: Int,
+    completedGoalCount: Int,
     isLoading: Boolean,
     showSyncPrompt: Boolean,
     dailyQuote: String,
@@ -162,6 +169,7 @@ private fun DashboardContent(
         ) {
             // ── 1. Profile Header ────────────────────────────
             item {
+                Spacer(Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -196,10 +204,16 @@ private fun DashboardContent(
                             letterSpacing = 1.sp
                         )
                         Text(
-                            text = "Hi, $userName",
+                            text = "Hi, $userName 👋",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = if (currentStreak > 0) "🔥 $currentStreak Day Streak" else "Start your streak today 🔥",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = userBio,
@@ -282,19 +296,36 @@ private fun DashboardContent(
                 }
             }
 
-            // ── 5. Focus Pulse ───────────────────────────
+            // ── 5. Goals Card ───────────────────────────
             item {
-                Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
                     Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Focus Pulse", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("Total focus: $todayStudyFormatted today", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                            Spacer(Modifier.height(16.dp))
-                            FocusStatRow(Icons.Default.FlashOn, "Deep Work", "${(todayStudyMinutes * 0.6).toInt()}m")
-                            FocusStatRow(Icons.Default.MenuBook, "Study", "${(todayStudyMinutes * 0.4).toInt()}m")
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Goals", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            
+                            if (totalGoalCount == 0) {
+                                Text("No goals yet", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Create your first goal to start tracking progress", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                            } else {
+                                Text("${activeGoals.size} active goals", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("$completedGoalCount of $totalGoalCount completed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                                
+                                if (activeGoals.isNotEmpty()) {
+                                    Spacer(Modifier.height(12.dp))
+                                    activeGoals.take(2).forEach { goal ->
+                                        GoalProgressRow(goal.title, goal.progressPercent)
+                                    }
+                                }
+                            }
                             
                             Spacer(Modifier.height(12.dp))
-                            Text("Full insights →", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { onNavigateToStats() })
+                            Text("View Goals →", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { onNavigateToGoals() })
                         }
                     }
                 }
@@ -345,13 +376,21 @@ private fun DashboardContent(
 }
 
 @Composable
-private fun FocusStatRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
+private fun GoalProgressRow(label: String, progressPercent: Int) {
     Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-        Spacer(Modifier.width(8.dp))
-        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.weight(1f))
-        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(modifier = Modifier.weight(1f)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                Text("$progressPercent%", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(Modifier.height(4.dp))
+            LinearProgressIndicator(
+                progress = { progressPercent / 100f },
+                modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+            )
+        }
     }
 }
 
@@ -372,7 +411,7 @@ private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
                 text = task.title,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground,
-                textDecoration = if (task.isCompleted) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
+                textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null
             )
             Text(task.priority.name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
         }
@@ -388,6 +427,7 @@ private fun DashboardPreview() {
             userName = "John",
             userBio = "Software Engineer",
             userPhotoUrl = null,
+            currentStreak = 5,
             todayTasks = listOf(Task(id = 1, title = "Mock Task", priority = Priority.HIGH)),
             pendingTaskCount = 1,
             todayStudyFormatted = "2h 30m",
@@ -395,6 +435,8 @@ private fun DashboardPreview() {
             nextExamTitle = "Math Final",
             daysUntilNextExam = 3,
             activeGoals = emptyList(),
+            totalGoalCount = 0,
+            completedGoalCount = 0,
             isLoading = false,
             showSyncPrompt = true,
             dailyQuote = "Focus on being productive instead of busy.",

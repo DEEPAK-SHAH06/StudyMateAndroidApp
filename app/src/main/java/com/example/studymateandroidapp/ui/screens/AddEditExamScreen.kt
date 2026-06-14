@@ -1,7 +1,6 @@
 package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Exam
-import com.example.studymateandroidapp.data.model.relations.ExamWithDetails
+import com.example.studymateandroidapp.ui.components.DateTimeFieldSelector
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.ExamViewmodel
 import java.time.Instant
@@ -89,6 +88,10 @@ fun AddEditExamContent(
     var location by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
 
+    val currentDateTime = LocalDateTime.now()
+    val selectedDateTime = LocalDateTime.of(examDate, examTime)
+    val isDateTimeInPast = selectedDateTime.isBefore(currentDateTime)
+
     val context = androidx.compose.ui.platform.LocalContext.current
 
     Scaffold(
@@ -136,28 +139,11 @@ fun AddEditExamContent(
             )
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedTextField(
+                DateTimeFieldSelector(
+                    label = "Exam Date",
                     value = examDate.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
-                    onValueChange = {},
-                    label = { Text("Exam Date") },
-                    readOnly = true,
-                    leadingIcon = { 
-                        IconButton(onClick = {
-                            android.app.DatePickerDialog(
-                                context,
-                                { _, year, month, dayOfMonth ->
-                                    examDate = LocalDate.of(year, month + 1, dayOfMonth)
-                                },
-                                examDate.year,
-                                examDate.monthValue - 1,
-                                examDate.dayOfMonth
-                            ).show()
-                        }) {
-                            Icon(painter = painterResource(id = R.drawable.date), contentDescription = null, modifier = Modifier.size(20.dp))
-                        }
-                    },
-                    modifier = Modifier.weight(1f).clickable {
-                        android.app.DatePickerDialog(
+                    onClick = {
+                        val datePickerDialog = android.app.DatePickerDialog(
                             context,
                             { _, year, month, dayOfMonth ->
                                 examDate = LocalDate.of(year, month + 1, dayOfMonth)
@@ -165,32 +151,18 @@ fun AddEditExamContent(
                             examDate.year,
                             examDate.monthValue - 1,
                             examDate.dayOfMonth
-                        ).show()
+                        )
+                        datePickerDialog.datePicker.minDate = System.currentTimeMillis() - 1000
+                        datePickerDialog.show()
                     },
-                    shape = RoundedCornerShape(12.dp)
+                    leadingIcon = { Icon(painter = painterResource(id = R.drawable.calendar), contentDescription = null, modifier = Modifier.size(20.dp)) },
+                    modifier = Modifier.weight(1f)
                 )
 
-                OutlinedTextField(
+                DateTimeFieldSelector(
+                    label = "Time",
                     value = examTime.format(DateTimeFormatter.ofPattern("hh:mm a")),
-                    onValueChange = {},
-                    label = { Text("Time") },
-                    readOnly = true,
-                    leadingIcon = { 
-                        IconButton(onClick = {
-                            android.app.TimePickerDialog(
-                                context,
-                                { _, hourOfDay, minute ->
-                                    examTime = LocalTime.of(hourOfDay, minute)
-                                },
-                                examTime.hour,
-                                examTime.minute,
-                                false
-                            ).show()
-                        }) {
-                            Icon(painter = painterResource(id = R.drawable.time), contentDescription = null, modifier = Modifier.size(20.dp))
-                        }
-                    },
-                    modifier = Modifier.weight(1f).clickable {
+                    onClick = {
                         android.app.TimePickerDialog(
                             context,
                             { _, hourOfDay, minute ->
@@ -201,7 +173,8 @@ fun AddEditExamContent(
                             false
                         ).show()
                     },
-                    shape = RoundedCornerShape(12.dp)
+                    leadingIcon = { Icon(painter = painterResource(id = R.drawable.time), contentDescription = null, modifier = Modifier.size(20.dp)) },
+                    modifier = Modifier.weight(1f)
                 )
             }
 
@@ -228,11 +201,24 @@ fun AddEditExamContent(
 
             Spacer(Modifier.height(16.dp))
 
+            if (isDateTimeInPast) {
+                Text(
+                    text = "Exam date and time must be in the future.",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
+
             Button(
-                onClick = { if (title.isNotBlank() && subject.isNotBlank()) onSave(title, subject, examDate, examTime) },
+                onClick = { if (title.isNotBlank() && subject.isNotBlank() && !isDateTimeInPast) onSave(title, subject, examDate, examTime) },
+                enabled = title.isNotBlank() && subject.isNotBlank() && !isDateTimeInPast,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black,
+                    disabledContainerColor = Color.Gray
+                )
             ) {
                 Text("Save Exam", fontWeight = FontWeight.Bold)
             }
@@ -241,7 +227,6 @@ fun AddEditExamContent(
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

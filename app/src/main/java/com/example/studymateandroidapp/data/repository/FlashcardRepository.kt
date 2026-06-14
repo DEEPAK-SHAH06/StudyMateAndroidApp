@@ -24,4 +24,14 @@ class FlashcardRepository(private val flashcardDao: FlashcardDao) {
     suspend fun delete(flashcard: Flashcard) {
         flashcardDao.delete(flashcard)
     }
+
+    suspend fun completeReviewSession(examId: Long, correctCount: Int, cardsCount: Int) {
+        flashcardDao.insertReview(
+            com.example.studymateandroidapp.data.model.FlashcardReview(
+                examId = examId,
+                correctCount = correctCount,
+                cardsReviewed = cardsCount
+            )
+        )
+    }
 }

@@ -51,6 +51,8 @@ class DashboardViewModel(
 
         // Goals
         val activeGoals: List<GoalSummary> = emptyList(),
+        val totalGoalCount: Int = 0,
+        val completedGoalCount: Int = 0,
 
         // Motivation
         val dailyQuote: String = "",
@@ -116,6 +118,9 @@ class DashboardViewModel(
                     status = if (completed) com.example.studymateandroidapp.data.model.TaskStatus.COMPLETED else com.example.studymateandroidapp.data.model.TaskStatus.TODO,
                     completedAt = if (completed) LocalDate.now() else null
                 ))
+                if (completed) {
+                    motivationRepository.recordStudyActivity()
+                }
             }
         }
     }
@@ -232,7 +237,13 @@ class DashboardViewModel(
                             } else 0
                         )
                     }
-                    _uiState.update { it.copy(activeGoals = summaries) }
+                    _uiState.update { 
+                        it.copy(
+                            activeGoals = summaries,
+                            totalGoalCount = goals.size,
+                            completedGoalCount = goals.count { g -> g.currentValue >= g.targetValue }
+                        )
+                    }
                 }
         }
     }

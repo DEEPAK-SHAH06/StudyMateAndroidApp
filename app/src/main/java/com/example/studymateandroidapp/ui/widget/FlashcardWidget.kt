@@ -1,10 +1,10 @@
 package com.example.studymateandroidapp.ui.widget
 
 import android.content.Context
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.Button
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -15,6 +15,7 @@ import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -31,6 +32,9 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.ColorFilter
+import androidx.glance.appwidget.cornerRadius
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.datastore.preferences.core.Preferences
@@ -41,7 +45,6 @@ import com.example.studymateandroidapp.MainActivity
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.local.StudyPlannerDatabase
 import com.example.studymateandroidapp.data.model.Flashcard
-import kotlin.random.Random
 
 class FlashcardWidget : GlanceAppWidget() {
 
@@ -86,7 +89,7 @@ class FlashcardWidget : GlanceAppWidget() {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(GlanceTheme.colors.surface)
+                .background(ColorProvider(day = Color.Black, night = Color.Black))
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -101,7 +104,7 @@ class FlashcardWidget : GlanceAppWidget() {
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = GlanceTheme.colors.onSurface
+                        color = ColorProvider(day = Color.White, night = Color.White)
                     ),
                     modifier = GlanceModifier.defaultWeight()
                 )
@@ -114,7 +117,8 @@ class FlashcardWidget : GlanceAppWidget() {
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .defaultWeight()
-                        .background(GlanceTheme.colors.secondaryContainer)
+                        .background(ColorProvider(day = Color.DarkGray, night = Color.DarkGray))
+                        .clickable(actionRunCallback<ToggleAnswerActionCallback>())
                         .padding(12.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -124,7 +128,7 @@ class FlashcardWidget : GlanceAppWidget() {
                             style = TextStyle(
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 15.sp,
-                                color = GlanceTheme.colors.onSecondaryContainer
+                                color = ColorProvider(day = Color.White, night = Color.White)
                             )
                         )
                     }
@@ -134,18 +138,24 @@ class FlashcardWidget : GlanceAppWidget() {
 
                 Row(
                     modifier = GlanceModifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Button(
-                        text = if (showAnswer) "Hide Answer" else "Show Answer",
-                        onClick = actionRunCallback<ToggleAnswerActionCallback>(),
-                        modifier = GlanceModifier.padding(horizontal = 4.dp)
-                    )
-                    Button(
-                        text = "Next",
-                        onClick = actionRunCallback<NextFlashcardActionCallback>(),
-                        modifier = GlanceModifier.padding(horizontal = 4.dp)
-                    )
+                    Box(
+                        modifier = GlanceModifier
+                            .size(36.dp)
+                            .background(ColorProvider(day = Color.White, night = Color.White))
+                            .cornerRadius(18.dp)
+                            .clickable(actionRunCallback<NextFlashcardActionCallback>()),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            provider = ImageProvider(R.drawable.next_arrow),
+                            contentDescription = "Next",
+                            modifier = GlanceModifier.size(20.dp),
+                            colorFilter = ColorFilter.tint(ColorProvider(day = Color.Black, night = Color.Black))
+                        )
+                    }
                 }
             } else {
                 Box(
@@ -160,10 +170,21 @@ class FlashcardWidget : GlanceAppWidget() {
                         style = TextStyle(fontSize = 14.sp, color = GlanceTheme.colors.onSurfaceVariant)
                     )
                 }
-                Button(
-                    text = "Open App",
-                    onClick = actionStartActivity<MainActivity>()
-                )
+                Box(
+                    modifier = GlanceModifier
+                        .size(36.dp)
+                        .background(ColorProvider(day = Color.Black, night = Color.Black))
+                        .cornerRadius(18.dp)
+                        .clickable(actionStartActivity<MainActivity>()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        provider = ImageProvider(R.drawable.outline_exit_to_app_24),
+                        contentDescription = "Open",
+                        modifier = GlanceModifier.size(20.dp),
+                        colorFilter = ColorFilter.tint(ColorProvider(day = Color.Black, night = Color.Black))
+                    )
+                }
             }
         }
     }
@@ -178,7 +199,7 @@ class ToggleAnswerActionCallback : ActionCallback {
         updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
             val current = prefs[FlashcardWidget.ShowAnswerKey] ?: false
             prefs.toMutablePreferences().apply {
-                set(FlashcardWidget.ShowAnswerKey, !current)
+                this[FlashcardWidget.ShowAnswerKey] = !current
             }
         }
         FlashcardWidget().update(context, glanceId)

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">StudyMateAndroidApp</string>
+    <string name="app_name">Study Mate</string>
     <string name="title_activity_app_nav_host">StudtMate</string>
     <string name="title_activity_setting">SettingActivity</string>
     <string name="title_activity_dashboard">Dashboard</string>
@@ -28,4 +28,7 @@
     <string name="welcome_back">Welcome back!</string>
     <string name="fingerprint_instruction">Fingerprint instruction</string>
     <string name="title_activity_reflection_history_ui">Reflection History</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">This is an app widget description</string>
 </resources>

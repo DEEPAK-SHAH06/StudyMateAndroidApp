@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.DailyReflection
 import com.example.studymateandroidapp.ui.components.AppCard
+import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.MotivationViewModel
 import java.time.LocalDate
@@ -41,6 +42,7 @@ fun DailyReflectionScreen(
 ) {
     val uiState         by viewModel.uiState.collectAsState()
     val recentReflections by viewModel.recentReflections.collectAsState()
+    var reflectionToDelete by remember { mutableStateOf<DailyReflection?>(null) }
 
     // Navigate back only on first save, not every time state changes
     LaunchedEffect(uiState.isReflectionSaved) {
@@ -62,8 +64,19 @@ fun DailyReflectionScreen(
         onHighlightChange = viewModel::onReflectionHighlightChanged,
         onSave            = viewModel::saveReflection,
         onEditReflection  = viewModel::editReflection,
-        onDeleteReflection = viewModel::deleteReflection
+        onDeleteReflection = { reflectionToDelete = it }
     )
+
+    reflectionToDelete?.let { reflection ->
+        ConfirmDeleteDialog(
+            itemName = "Reflection",
+            onConfirm = {
+                viewModel.deleteReflection(reflection)
+                reflectionToDelete = null
+            },
+            onDismiss = { reflectionToDelete = null }
+        )
+    }
 }
 
 @Composable

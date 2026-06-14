@@ -3,43 +3,38 @@ package com.example.studymateandroidapp.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.Task
 import com.example.studymateandroidapp.data.model.TaskStatus
+import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.TaskViewmodel
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun TaskScreen(
@@ -50,9 +45,13 @@ fun TaskScreen(
     onNavigateToEditTask: (Long) -> Unit
 ) {
     val tasks by viewModel.allTasks.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var taskToDelete by remember { mutableStateOf<Task?>(null) }
     
     TaskContent(
         tasks = tasks,
+        snackbarHostState = snackbarHostState,
         onAddTask = onNavigateToAddTask,
         onStatsClick        = onNavigateToStats,
         onAchievementsClick = onNavigateToAchievements,
@@ -64,18 +63,36 @@ fun TaskScreen(
                 status = if (isCompleted) TaskStatus.COMPLETED else TaskStatus.TODO,
                 completedAt = if (isCompleted) LocalDate.now() else null
             ))
-        }
+        },
+        onDeleteTask = { taskToDelete = it }
     )
+
+    taskToDelete?.let { task ->
+        ConfirmDeleteDialog(
+            itemName = "Task",
+            onConfirm = {
+                viewModel.deleteTask(task) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Task deleted")
+                    }
+                }
+                taskToDelete = null
+            },
+            onDismiss = { taskToDelete = null }
+        )
+    }
 }
 
 @Composable
 fun TaskContent(
     tasks: List<Task>,
+    snackbarHostState: SnackbarHostState,
     onAddTask: () -> Unit,
     onStatsClick: () -> Unit,
     onAchievementsClick: () -> Unit,
     onTaskClick: (Long) -> Unit,
-    onToggleTask: (Task) -> Unit
+    onToggleTask: (Task) -> Unit,
+    onDeleteTask: (Task) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val filters = listOf("Pending", "Completed", "Overdue")
@@ -106,6 +123,7 @@ fun TaskContent(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             StudyMateTopBar(
                 title = "",
@@ -183,12 +201,13 @@ fun TaskContent(
                 TaskItemView(
                     task = task,
                     onToggle = { onToggleTask(task) },
-                    onClick = { onTaskClick(task.id) }
+                    onClick = { onTaskClick(task.id) },
+                    onDelete = { onDeleteTask(task) }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            if (filteredTasks.isEmpty()) {
+            if (filteredTasks.isEmpty() && overdueTask == null) {
                 Box(Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
                     Text(
                         text = "No tasks found.",
@@ -280,7 +299,7 @@ fun SectionHeader(title: String, subtitle: String) {
 }
 
 @Composable
-fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit) {
+fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit, onDelete: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -327,27 +346,17 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit) {
                     }
                 }
             }
+
+            IconButton(onClick = onDelete) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }
-//                                fontWeight = FontWeight.Bold
-//                            )
-//                        }
-//                        Spacer(modifier = Modifier.width(8.dp))
-//                    }
-//                    Icon(Icons.Default.Timer, contentDescription = null, modifier = Modifier.size(14.dp))
-//                    Spacer(modifier = Modifier.width(4.dp))
-//                    Text(
-//                        text = task.dueTime?.format(DateTimeFormatter.ofPattern("h:mm a")) ?: "No time",
-//                        style = MaterialTheme.typography.labelSmall
-//                    )
-//                }
-//            }
-//
-//            Icon(Icons.Default.MoreVert, contentDescription = null)
-//        }
-//    }
-//}
 
 @Composable
 fun PriorityTaskCard(task: Task) {
@@ -430,11 +439,13 @@ fun TaskScreenPreview() {
     MaterialTheme {
         TaskContent(
             tasks = mockTasks,
+            snackbarHostState = SnackbarHostState(),
             onAddTask = {},
             onTaskClick = {},
             onStatsClick = {},
             onAchievementsClick = {},
-            onToggleTask = {}
+            onToggleTask = {},
+            onDeleteTask = {}
         )
     }
 }

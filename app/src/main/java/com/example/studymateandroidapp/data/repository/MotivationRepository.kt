@@ -26,12 +26,29 @@ class MotivationRepository(
 ) {
     // ── Streak Logic ──────────────────────────────────────
 
-    fun getStreak(): Flow<Int> = combine(
-        taskDao.getCompletedDates(),
-        sessionDao.getAllStartTimes().map { it.map { dt -> dt.toLocalDate() }.toSet() }
-    ) { completedDates, studyDates ->
-        val allActivityDates = completedDates.toSet() + studyDates
-        calculateStreakFromDates(allActivityDates)
+    private fun getAllStudyDates(): Flow<Set<LocalDate>> = combine(
+        sessionDao.getAllStartTimes().map { it.map { dt -> dt.toLocalDate() }.toSet() },
+        flashcardDao.getReviewDates().map { it.toSet() },
+        taskDao.getCompletedDates().map { it.toSet() }
+    ) { studyDates, reviewDates, taskDates ->
+        studyDates + reviewDates + taskDates
+    }
+
+    fun getStreak(): Flow<Int> = getAllStudyDates()
+        .map { calculateStreakFromDates(it) }
+
+    fun getBestStreak(): Flow<Int> = getAllStudyDates()
+        .map { it.sortedDescending() }
+        .map { calculateBestStreak(it) }
+
+    fun getWeeklyStreakStatus(): Flow<List<Boolean>> = getAllStudyDates().map { studyDates ->
+        val today = LocalDate.now()
+        // Sunday-to-Saturday window
+        val sunday = today.minusDays(today.dayOfWeek.value.toLong() % 7)
+        
+        (0..6).map { dayOffset ->
+            studyDates.contains(sunday.plusDays(dayOffset.toLong()))
+        }
     }
 
     private fun calculateStreakFromDates(dates: Set<LocalDate>): Int {
@@ -52,6 +69,44 @@ class MotivationRepository(
         }
         
         return streak
+    }
+
+    private fun calculateBestStreak(sortedDates: List<LocalDate>): Int {
+        if (sortedDates.isEmpty()) return 0
+        
+        var maxStreak = 0
+        var currentStreak = 0
+        var lastDate: LocalDate? = null
+        
+        // We need them sorted ascending for easier logic, or just handle descending
+        val sortedAsc = sortedDates.sorted()
+        
+        for (date in sortedAsc) {
+            if (lastDate == null) {
+                currentStreak = 1
+            } else if (date == lastDate.plusDays(1)) {
+                currentStreak++
+            } else if (date != lastDate) { // Skip duplicates on same day
+                currentStreak = 1
+            }
+            maxStreak = maxOf(maxStreak, currentStreak)
+            lastDate = date
+        }
+        
+        return maxStreak
+    }
+
+    /**
+     * Unified method to record any meaningful study activity.
+     * Called when:
+     * - Task completed
+     * - Study session saved (Stopwatch/Pomodoro WORK)
+     * - Flashcard review session finished
+     */
+    suspend fun recordStudyActivity() {
+        // Achievement check is the primary side-effect
+        // The streak itself is reactive based on the database content
+        checkAndUnlockAchievements()
     }
 
     // ── Reflections ───────────────────────────────────────
@@ -163,15 +218,21 @@ class MotivationRepository(
         }
 
         // Streak achievements
-        val streak = calculateStreak()
+        val streak = calculateCurrentStreak()
+        if (streak >= 3) {
+            tryUnlock(AchievementType.STREAK_3_DAY, "First Spark", "3-day study streak!")?.let { newAchievements.add(it) }
+        }
         if (streak >= 7) {
-            tryUnlock(AchievementType.SEVEN_DAY_STREAK, "Week Warrior", "7-day study streak!")?.let { newAchievements.add(it) }
+            tryUnlock(AchievementType.STREAK_7_DAY, "Consistent Learner", "7-day study streak!")?.let { newAchievements.add(it) }
         }
         if (streak >= 14) {
             tryUnlock(AchievementType.FOURTEEN_DAY_STREAK, "Fortnight Focus", "14-day study streak!")?.let { newAchievements.add(it) }
         }
         if (streak >= 30) {
-            tryUnlock(AchievementType.THIRTY_DAY_STREAK, "Monthly Master", "30-day study streak!")?.let { newAchievements.add(it) }
+            tryUnlock(AchievementType.STREAK_30_DAY, "Study Warrior", "30-day study streak!")?.let { newAchievements.add(it) }
+        }
+        if (streak >= 100) {
+            tryUnlock(AchievementType.STREAK_100_DAY, "Unstoppable", "100-day study streak!")?.let { newAchievements.add(it) }
         }
 
         return newAchievements
@@ -189,13 +250,14 @@ class MotivationRepository(
     }
 
     /**
-     * Calculate consecutive days with at least one completed task or study session.
+     * Calculate consecutive days with at least one study session or flashcard review.
      * Counts backwards from today.
      */
-    private suspend fun calculateStreak(): Int {
-        val completedDates = taskDao.getCompletedDates().firstOrNull() ?: emptyList()
+    private suspend fun calculateCurrentStreak(): Int {
         val studyDates = sessionDao.getAllStartTimes().firstOrNull()?.map { it.toLocalDate() } ?: emptyList()
-        val allDates = (completedDates + studyDates).toSet()
+        val reviewDates = flashcardDao.getReviewDates().firstOrNull() ?: emptyList()
+        val taskDates = taskDao.getCompletedDates().firstOrNull() ?: emptyList()
+        val allDates = (studyDates + reviewDates + taskDates).toSet()
         
         return calculateStreakFromDates(allDates)
     }

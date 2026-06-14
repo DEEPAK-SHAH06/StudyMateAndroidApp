@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,12 +11,17 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.Task
+import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.TaskViewmodel
 import java.time.LocalDate
@@ -52,7 +58,7 @@ fun AddEditTaskScreen(
     Scaffold(
         topBar = {
             StudyMateTopBar(
-                title = if (taskId == null) "Add Task" else "Edit Task",
+                title = if (taskId == null) "Create Task" else "Edit Task",
                 onBack = onNavigateBack
             )
         }
@@ -61,10 +67,48 @@ fun AddEditTaskScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 28.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "NEW ENTRY",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "Organize Your Study\nStream",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 38.sp
+                    )
+                    Text(
+                        text = "Capture the essence of your next milestone.\nClarity leads to focus.",
+                        fontSize = 10.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Image(
+                    painter = painterResource(R.drawable.create_task),
+                    contentDescription = null,
+                    modifier = Modifier.size(100.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -204,6 +248,40 @@ fun AddEditTaskScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
                 Text("Save Task", fontWeight = FontWeight.Bold)
+            }
+
+            if (taskId != null) {
+                var showDeleteConfirm by remember { mutableStateOf(false) }
+
+                TextButton(
+                    onClick = { showDeleteConfirm = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                ) {
+                    Text("Delete Task", fontWeight = FontWeight.Bold)
+                }
+
+                if (showDeleteConfirm) {
+                    ConfirmDeleteDialog(
+                        itemName = "Task",
+                        onConfirm = {
+                            val currentTask = Task(
+                                id = taskId,
+                                title = title,
+                                description = description,
+                                priority = priority,
+                                dueDate = dueDate,
+                                dueTime = dueTime,
+                                subjectTag = subjectTag.uppercase()
+                            )
+                            viewModel.deleteTask(currentTask) {
+                                onNavigateBack()
+                            }
+                            showDeleteConfirm = false
+                        },
+                        onDismiss = { showDeleteConfirm = false }
+                    )
+                }
             }
         }
     }

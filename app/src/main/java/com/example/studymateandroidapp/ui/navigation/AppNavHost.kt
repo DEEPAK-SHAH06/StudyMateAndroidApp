@@ -132,7 +132,12 @@ fun AppNavHost(
                 sharedTimerVm.setExamId(examIdArg)
             }
             
-            TimerScreen(viewModel = sharedTimerVm, examId = examIdArg)
+            TimerScreen(
+                viewModel = sharedTimerVm,
+                examId = examIdArg,
+                onNavigateToAchievements = { navController.navigate(Screen.Achievements.route) },
+                onStatsClick = { navController.navigate(Screen.Statistics.route) }
+            )
         }
 
         // ── Statistics ────────────────────────────────
@@ -146,6 +151,8 @@ fun AppNavHost(
             val vm: ExamViewmodel = viewModel(factory = ViewModelFactory)
             ExamScreen(
                 viewModel = vm,
+                onNavigateToAchievements = { navController.navigate(Screen.Achievements.route) },
+                onStatsClick = { navController.navigate(Screen.Statistics.route) },
                 onNavigateToAddExam = { navController.navigate(Screen.AddExam.route) },
                 onNavigateToEditExam = { examId ->
                     navController.navigate(Screen.ExamDetail.createRoute(examId))
@@ -291,6 +298,30 @@ fun AppNavHost(
             val examId = backStackEntry.arguments?.getLong("examId")?.takeIf { it != -1L }
             val vm: NoteViewmodel = viewModel(factory = ViewModelFactory)
             NoteScreen(
+                examId = examId,
+                viewModel = vm,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddNote = { id ->
+                    navController.navigate(Screen.AddNote.createRoute(examId = id))
+                },
+                onNavigateToEditNote = { noteId, id ->
+                    navController.navigate(Screen.AddNote.createRoute(noteId = noteId, examId = id))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.AddNote.route,
+            arguments = listOf(
+                navArgument("noteId") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("examId") { type = NavType.LongType; defaultValue = -1L }
+            )
+        ) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getLong("noteId")?.takeIf { it != -1L }
+            val examId = backStackEntry.arguments?.getLong("examId")?.takeIf { it != -1L }
+            val vm: NoteViewmodel = viewModel(factory = ViewModelFactory)
+            AddEditNoteScreen(
+                noteId = noteId,
                 examId = examId,
                 viewModel = vm,
                 onNavigateBack = { navController.popBackStack() }

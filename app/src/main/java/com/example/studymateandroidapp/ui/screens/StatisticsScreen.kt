@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,8 +28,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.data.repository.StatisticsRepository
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
+import com.example.studymateandroidapp.ui.components.StreakCard
 import com.example.studymateandroidapp.viewmodel.StatisticsViewmodel
 import com.example.studymateandroidapp.viewmodel.StatisticsViewmodel.DailyChartPoint
+import java.time.LocalDate
 
 @Composable
 fun StatisticsScreen(
@@ -51,6 +54,9 @@ fun StatisticsScreen(
         todayStudySeconds  = uiState.todayStudySeconds,
         completedGoals     = uiState.completedGoals,
         thisWeekStudySeconds = uiState.thisWeekStudySeconds,
+        currentStreak      = uiState.currentStreak,
+        bestStreak         = uiState.bestStreak,
+        weeklyStreakStatus = uiState.weeklyStreakStatus,
         weeklyAverageSubtitle = uiState.weeklyAverageSubtitle,
         dailyChartData     = uiState.dailyChartData,
         onBack             = onBack
@@ -65,6 +71,9 @@ fun StatisticsContent(
     todayStudySeconds: Int,
     completedGoals: Int,
     thisWeekStudySeconds: Int,
+    currentStreak: Int,
+    bestStreak: Int,
+    weeklyStreakStatus: List<Boolean>,
     weeklyAverageSubtitle: String,
     dailyChartData: List<DailyChartPoint>,
     onBack: () -> Unit
@@ -79,7 +88,7 @@ fun StatisticsContent(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 28.dp),
+                .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(Modifier.height(8.dp))
@@ -115,7 +124,7 @@ fun StatisticsContent(
                     icon     = Icons.Default.EmojiEvents,
                     label    = "Goals Met",
                     value    = "$completedGoals",
-                    subtext  = null
+                    subtext  = "all time"
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
@@ -158,6 +167,21 @@ fun StatisticsContent(
                     }
                 }
             }
+
+            // ── Streak Section ────────────────────────────
+            Text(
+                "Study Habit",
+                style      = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier   = Modifier.padding(top = 8.dp)
+            )
+            
+            StreakCard(
+                streakCount = currentStreak,
+                bestStreak = bestStreak,
+                weeklyStatus = weeklyStreakStatus,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(Modifier.height(80.dp))
         }
@@ -302,6 +326,9 @@ fun StatisticsPreview() {
             todayStudySeconds  = 1800,
             completedGoals     = 2,
             thisWeekStudySeconds = 7200,
+            currentStreak      = 5,
+            bestStreak         = 12,
+            weeklyStreakStatus = listOf(true, true, true, false, true, true, true),
             weeklyAverageSubtitle = "Avg: 17m 08s/day",
             dailyChartData     = emptyList(),
             onBack             = {}
