@@ -25,6 +25,7 @@ import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.Task
 import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
+import com.example.studymateandroidapp.ui.components.DateTimeFieldSelector
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.TaskViewmodel
 import java.time.LocalDate
@@ -44,6 +45,8 @@ fun AddEditTaskScreen(
     var dueTime by remember { mutableStateOf(LocalTime.of(9, 0)) }
     var subjectTag by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf(Color.Red) }
+
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     LaunchedEffect(taskId) {
         if (taskId != null) {
@@ -179,91 +182,105 @@ fun AddEditTaskScreen(
                 shape = RoundedCornerShape(12.dp)
             )
 
-            Text("Priority", style = MaterialTheme.typography.titleSmall)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                "Priority",
+                style = MaterialTheme.typography.titleSmall
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Priority.entries.forEach { p ->
+
+                    val iconRes = when (p) {
+                        Priority.HIGH -> R.drawable.high
+                        Priority.MEDIUM -> R.drawable.medium
+                        Priority.LOW -> R.drawable.low
+                    }
+
                     FilterChip(
                         selected = priority == p,
                         onClick = { priority = p },
-                        label = { Text(p.name) },
+                        label = {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+
+                                Icon(
+                                    painter = painterResource(iconRes),
+                                    contentDescription = p.name,
+                                    modifier = Modifier.size(18.dp)
+                                )
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Text(
+                                    text = p.name,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        },
                         modifier = Modifier.weight(1f)
                     )
                 }
             }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                val context = androidx.compose.ui.platform.LocalContext.current
-                
-                OutlinedTextField(
-                    value = dueDate.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
-                    onValueChange = {},
-                    label = { Text("Due Date") },
-                    readOnly = true,
-                    leadingIcon = { 
-                        IconButton(onClick = {
-                            val calendar = java.util.Calendar.getInstance()
-                            android.app.DatePickerDialog(
-                                context,
-                                { _, year, month, dayOfMonth ->
-                                    dueDate = LocalDate.of(year, month + 1, dayOfMonth)
-                                },
-                                dueDate.year,
-                                dueDate.monthValue - 1,
-                                dueDate.dayOfMonth
-                            ).show()
-                        }) {
-                            Icon(Icons.Default.CalendarMonth, contentDescription = null)
-                        }
-                    },
-                    modifier = Modifier.weight(1f).clickable {
-                        val calendar = java.util.Calendar.getInstance()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+
+                DateTimeFieldSelector(
+                    label = "Due Date",
+                    value = dueDate.format(
+                        DateTimeFormatter.ofPattern("MMM dd, yyyy")
+                    ),
+                    onClick = {
                         android.app.DatePickerDialog(
                             context,
-                            { _, year, month, dayOfMonth ->
-                                dueDate = LocalDate.of(year, month + 1, dayOfMonth)
+                            { _, year, month, day ->
+                                dueDate = LocalDate.of(year, month + 1, day)
                             },
                             dueDate.year,
                             dueDate.monthValue - 1,
                             dueDate.dayOfMonth
                         ).show()
                     },
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = true
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.CalendarMonth,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.weight(1f)
                 )
 
-                OutlinedTextField(
-                    value = dueTime.format(DateTimeFormatter.ofPattern("hh:mm a")),
-                    onValueChange = {},
-                    label = { Text("Due Time") },
-                    readOnly = true,
-                    leadingIcon = { 
-                        IconButton(onClick = {
-                            android.app.TimePickerDialog(
-                                context,
-                                { _, hourOfDay, minute ->
-                                    dueTime = LocalTime.of(hourOfDay, minute)
-                                },
-                                dueTime.hour,
-                                dueTime.minute,
-                                false
-                            ).show()
-                        }) {
-                            Icon(Icons.Default.Timer, contentDescription = null)
-                        }
-                    },
-                    modifier = Modifier.weight(1f).clickable {
+                DateTimeFieldSelector(
+                    label = "Due Time",
+                    value = dueTime.format(
+                        DateTimeFormatter.ofPattern("hh:mm a")
+                    ),
+                    onClick = {
                         android.app.TimePickerDialog(
                             context,
-                            { _, hourOfDay, minute ->
-                                dueTime = LocalTime.of(hourOfDay, minute)
+                            { _, hour, minute ->
+                                dueTime = LocalTime.of(hour, minute)
                             },
                             dueTime.hour,
                             dueTime.minute,
                             false
                         ).show()
                     },
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = true
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Timer,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.weight(1f)
                 )
             }
 
