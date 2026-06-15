@@ -1,9 +1,12 @@
 package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -40,6 +43,7 @@ fun AddEditTaskScreen(
     var dueDate by remember { mutableStateOf(LocalDate.now()) }
     var dueTime by remember { mutableStateOf(LocalTime.of(9, 0)) }
     var subjectTag by remember { mutableStateOf("") }
+    var selectedColor by remember { mutableStateOf(Color.Red) }
 
     LaunchedEffect(taskId) {
         if (taskId != null) {
@@ -51,6 +55,7 @@ fun AddEditTaskScreen(
                 dueDate = task.dueDate ?: LocalDate.now()
                 dueTime = task.dueTime ?: LocalTime.of(9, 0)
                 subjectTag = task.subjectTag ?: ""
+                selectedColor = Color(task.tagColor.toULong())
             }
         }
     }
@@ -127,6 +132,43 @@ fun AddEditTaskScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Choose Tag Color :",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            val colors = listOf(
+                Color.Red,
+                Color(0xFFE6C229),   // Yellow
+                Color(0xFF4CAF50),   // Green
+                Color(0xFF2196F3),   // Blue
+                Color(0xFF9C27B0), // Purple
+                Color(0xFFBB86FC), // DarkPurple
+                Color(0xFFEF5099),  // Pink
+                Color(0xFFFF9800)  // Orange
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                colors.forEach { color ->
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .background(color, CircleShape)
+                            .border(
+                                width = if (selectedColor == color) 3.dp else 1.dp,
+                                color = Color.Black,
+                                shape = CircleShape
+                            )
+                            .clickable {
+                                selectedColor = color
+                            }
+                    )
+                }
+            }
 
             OutlinedTextField(
                 value = description,
@@ -237,7 +279,8 @@ fun AddEditTaskScreen(
                             priority = priority,
                             dueDate = dueDate,
                             dueTime = dueTime,
-                            subjectTag = subjectTag.uppercase()
+                            subjectTag = subjectTag.uppercase(),
+                            tagColor = selectedColor.value.toLong()
                         )
                         if (taskId == null) viewModel.addTask(task) else viewModel.updateTask(task)
                         onNavigateBack()
@@ -272,7 +315,8 @@ fun AddEditTaskScreen(
                                 priority = priority,
                                 dueDate = dueDate,
                                 dueTime = dueTime,
-                                subjectTag = subjectTag.uppercase()
+                                subjectTag = subjectTag.uppercase(),
+                                tagColor = selectedColor.value.toLong()
                             )
                             viewModel.deleteTask(currentTask) {
                                 onNavigateBack()

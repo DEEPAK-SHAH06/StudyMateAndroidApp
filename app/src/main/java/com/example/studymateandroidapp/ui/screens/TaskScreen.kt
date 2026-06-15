@@ -3,6 +3,7 @@ package com.example.studymateandroidapp.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -142,9 +143,11 @@ fun TaskContent(
                 onClick = onAddTask,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = RoundedCornerShape(12.dp)
+                modifier = Modifier.size(40.dp),
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Task")
+
             }
         }
     ) { innerPadding ->
@@ -163,14 +166,13 @@ fun TaskContent(
                 color = Color.Black,
                 fontSize = 26.sp
             )
-            Spacer(Modifier.height(3.dp))
             Text(
                 "Manage your study load with intentionality.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray,
                 fontSize = 12.sp
             )
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(6.dp))
 
             SearchBar(query = searchQuery, onQueryChange = { searchQuery = it })
 
@@ -240,14 +242,20 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
     TextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Search tasks, subjects...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+        modifier = Modifier.fillMaxWidth()
+            .height(48.6.dp)
+            .border(0.8.dp, Color.Black, RoundedCornerShape(40.dp)),
+        placeholder = { Text("Search tasks, subjects...",
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                      },
+
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(40.dp),
         singleLine = true,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -259,8 +267,10 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
 @Composable
 fun FilterChips(filters: List<String>, selectedFilter: String, onFilterSelected: (String) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier.fillMaxWidth()
+            .height(24.dp)
+        .padding(horizontal = 15.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         filters.forEach { filter ->
             val isSelected = filter == selectedFilter
@@ -303,46 +313,83 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit, onDelete
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .height(72.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFFF5F5F5), // Light gray background like in image
+        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f))
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Checkbox(
-                checked = task.isCompleted,
-                onCheckedChange = { onToggle() },
-                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
-            )
+            // Custom rounded checkbox
+            Surface(
+                modifier = Modifier
+                    .size(25.dp)
+                    .padding(2.dp)
+                    .clickable { onToggle() },
+                shape = RoundedCornerShape(6.dp),
+                border = BorderStroke(2.dp, if (task.isCompleted) Color(task.tagColor.toULong()) else Color.LightGray),
+                color = if (task.isCompleted) Color(task.tagColor.toULong()) else Color.White
+            ) {
+                if (task.isCompleted) {
+                    Icon(
+                        imageVector = Icons.Default.Add, // Using Add as a placeholder for checkmark or just leave colored
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.padding(2.dp)
+                    )
+                }
+            }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = task.title,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
+                    color = Color.Black,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textDecoration = if (task.isCompleted) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
+                    overflow = TextOverflow.Ellipsis
                 )
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    task.subjectTag?.let { tag ->
+                    if (!task.subjectTag.isNullOrBlank()) {
                         Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(task.tagColor.toULong()),
+                            border = BorderStroke(1.dp, Color.DarkGray.copy(alpha = 0.8f))
+
                         ) {
                             Text(
-                                text = tag,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                text = task.subjectTag.uppercase(),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = Color.White,
+                                fontWeight = FontWeight.Black
                             )
                         }
+                        Spacer(modifier = Modifier.width(16.dp))
+                    }
+
+                    if (task.dueTime != null) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.time),
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = Color.Black
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = task.dueTime.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a")),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -351,7 +398,8 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit, onDelete
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
+                    tint = Color.Gray
                 )
             }
         }
