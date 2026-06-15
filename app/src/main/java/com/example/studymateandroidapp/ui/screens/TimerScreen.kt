@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -52,7 +53,8 @@ fun TimerScreen(
         onPause = { viewModel.pauseTimer() },
         onResume = { viewModel.resumeTimer() },
         onStopAndSave = { viewModel.stopAndSave() },
-        onReset = { viewModel.resetTimer() }
+        onReset = { viewModel.resetTimer() },
+        onDeleteSession = { viewModel.deleteSession(it) }
     )
 }
 
@@ -68,7 +70,8 @@ fun TimerContent(
     onPause: () -> Unit,
     onResume: () -> Unit,
     onStopAndSave: () -> Unit,
-    onReset: () -> Unit
+    onReset: () -> Unit,
+    onDeleteSession: (com.example.studymateandroidapp.data.model.StudySession) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -297,6 +300,7 @@ fun TimerContent(
 
                 Text(
                     text = "Recent Sessions",
+                    fontSize = 18.sp,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -309,7 +313,8 @@ fun TimerContent(
                 RecentSessionItem(
                     title = session.subject,
                     duration = formatDuration(session.durationSeconds),
-                    date = session.startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    date = session.startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                    onDelete = { onDeleteSession(session) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -339,7 +344,7 @@ fun TimerModeChip(label: String, isSelected: Boolean, enabled: Boolean, modifier
 }
 
 @Composable
-fun RecentSessionItem(title: String, duration: String, date: String) {
+fun RecentSessionItem(title: String, duration: String, date: String, onDelete: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
@@ -351,11 +356,21 @@ fun RecentSessionItem(title: String, duration: String, date: String) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(text = title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Text(text = date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             }
-            Text(text = duration, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = duration, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete Session",
+                        Modifier.size(20.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -387,7 +402,8 @@ fun TimerPreview() {
             onPause = {},
             onResume = {},
             onStopAndSave = {},
-            onReset = {}
+            onReset = {},
+            onDeleteSession = {}
         )
     }
 }

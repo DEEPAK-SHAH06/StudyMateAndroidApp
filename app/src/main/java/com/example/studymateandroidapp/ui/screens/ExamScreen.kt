@@ -99,7 +99,8 @@ fun ExamContent(
                 onClick = onAddExam,
                 containerColor = Color.Black,
                 contentColor = Color.White,
-                shape = CircleShape
+                modifier = Modifier.size(40.dp),
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Exam")
             }
@@ -178,6 +179,8 @@ fun ExamContent(
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
                             text = "Past Exams",
+                            fontSize = 18.sp,
+                            modifier = Modifier.align(Alignment.End),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )

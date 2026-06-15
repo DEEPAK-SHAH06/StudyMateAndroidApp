@@ -166,6 +166,12 @@ class TimerViewmodel(
         resetTimerInternal()
     }
 
+    fun deleteSession(session: StudySession) {
+        viewModelScope.launch {
+            sessionRepository.delete(session)
+        }
+    }
+
     private fun resetTimerInternal() {
         _uiState.update { 
             it.copy(

@@ -408,7 +408,8 @@ fun AppNavHost(
                     navController.navigate(Screen.Dashboard.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
-                }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -421,7 +422,8 @@ fun AppNavHost(
                     navController.navigate(Screen.Dashboard.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
-                }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -429,7 +431,8 @@ fun AppNavHost(
             val vm: AuthViewModel = viewModel(factory = ViewModelFactory)
             ForgotPasswordScreen(
                 viewModel = vm,
-                onNavigateToLogin = { navController.popBackStack() }
+                onNavigateToLogin = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
             )
         }
     }
