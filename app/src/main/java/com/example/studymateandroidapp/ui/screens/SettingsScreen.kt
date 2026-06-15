@@ -310,11 +310,11 @@ fun SettingsContent(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                modifier = Modifier.fillMaxWidth()
+                    .size(150.dp),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(0.1.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(selected = themeMode == 0, onClick = { onThemeChange(0) })
                         Text("System Default", color = MaterialTheme.colorScheme.onSurface)
