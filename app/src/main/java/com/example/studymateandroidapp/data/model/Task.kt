@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.data.model
 
+import androidx.compose.ui.graphics.Color
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -34,6 +35,7 @@ data class Task(
     val dueTime: java.time.LocalTime? = null,
     val createdAt: LocalDate = LocalDate.now(),
     val examId: Long? = null,
+    val tagColor: Long = Color.Red.value.toLong(),
     val subjectTag: String? = null, // Cached for display (e.g., "PSYCHOLOGY")
     val isCompleted: Boolean = false,
     val completedAt: LocalDate? = null,

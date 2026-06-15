@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,33 +23,38 @@ import com.example.studymateandroidapp.viewmodel.AuthViewModel
 @Composable
 fun ForgotPasswordScreen(
     viewModel: AuthViewModel,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onBack: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     val uiState by viewModel.uiState.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Spacer(modifier = Modifier.height(60.dp))
         Image(
-            painter = painterResource(id = R.drawable.welcome),
+            painter = painterResource(id = R.drawable.forget),
             contentDescription = "Logo",
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier.size(180.dp)
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "Reset Password",
+            text = "Forget your password ?",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
+
+            Spacer(modifier = Modifier.height(18.dp))
         Text(
-            text = "Enter your email to receive a reset link",
+            text = "Don't worry. Please enter your email below to receive a reset link",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
         )
@@ -110,5 +116,13 @@ fun ForgotPasswordScreen(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier.padding(16.dp).align(Alignment.TopStart)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+        }
     }
 }

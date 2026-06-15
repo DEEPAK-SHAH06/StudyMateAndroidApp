@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -29,12 +30,14 @@ import com.example.studymateandroidapp.viewmodel.AuthViewModel
 fun RegisterScreen(
     viewModel: AuthViewModel,
     onNavigateToLogin: () -> Unit,
-    onRegisterSuccess: () -> Unit
+    onRegisterSuccess: () -> Unit,
+    onBack: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState) {
@@ -44,26 +47,30 @@ fun RegisterScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Spacer(modifier = Modifier.height(45.dp))
         Image(
-            painter = painterResource(id = R.drawable.welcome),
+            painter = painterResource(id = R.drawable.login),
             contentDescription = "Logo",
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier.size(180.dp)
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(18.dp))
         Text(
             text = "Create Account",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
             color = MaterialTheme.colorScheme.onBackground
         )
+            Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = "Join us and start your study journey",
             style = MaterialTheme.typography.bodyMedium,
@@ -105,7 +112,13 @@ fun RegisterScreen(
             onValueChange = { confirmPassword = it },
             label = { Text("Confirm Password") },
             leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-            visualTransformation = PasswordVisualTransformation(),
+            trailingIcon = {
+                val image = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                    Icon(imageVector = image, contentDescription = null)
+                }
+            },
+            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = true
@@ -154,5 +167,13 @@ fun RegisterScreen(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier.padding(16.dp).align(Alignment.TopStart)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+        }
     }
 }
