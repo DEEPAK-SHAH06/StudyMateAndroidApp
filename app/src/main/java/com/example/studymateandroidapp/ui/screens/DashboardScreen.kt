@@ -406,15 +406,21 @@ private fun GoalProgressRow(label: String, progressPercent: Int) {
 }
 
 @Composable
-private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
+private fun AestheticTaskRow(
+    task: Task,
+    onToggle: () -> Unit
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable { onToggle() },
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF5F5F5),
-        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f))
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        )
     ) {
         Row(
             modifier = Modifier
@@ -422,34 +428,63 @@ private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Rounded checkbox
+
+            // Checkbox
             Surface(
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(22.dp),
                 shape = RoundedCornerShape(5.dp),
-                border = BorderStroke(2.dp, if (task.isCompleted) Color(task.tagColor.toULong()) else Color.LightGray),
-                color = if (task.isCompleted) Color(task.tagColor.toULong()) else Color.White
+                border = BorderStroke(
+                    2.dp,
+                    if (task.isCompleted)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.outline
+                ),
+                color =
+                    if (task.isCompleted)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.surface
             ) {
                 if (task.isCompleted) {
-                    Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.padding(2.dp))
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
+
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null
+                    textDecoration =
+                        if (task.isCompleted)
+                            TextDecoration.LineThrough
+                        else
+                            null
                 )
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
                     if (!task.subjectTag.isNullOrBlank()) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
@@ -457,28 +492,39 @@ private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
                         ) {
                             Text(
                                 text = task.subjectTag.uppercase(),
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.padding(
+                                    horizontal = 8.dp,
+                                    vertical = 2.dp
+                                ),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Black,
                                 fontSize = 9.sp
                             )
                         }
+
                         Spacer(modifier = Modifier.width(12.dp))
                     }
 
                     if (task.dueTime != null) {
+
                         Icon(
-                            painter = painterResource(id = R.drawable.time),
+                            painter = painterResource(R.drawable.time),
                             contentDescription = null,
                             modifier = Modifier.size(12.dp),
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+
                         Spacer(modifier = Modifier.width(4.dp))
+
                         Text(
-                            text = task.dueTime.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a")),
+                            text = task.dueTime.format(
+                                java.time.format.DateTimeFormatter.ofPattern(
+                                    "h:mm a"
+                                )
+                            ),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold
                         )
                     }
