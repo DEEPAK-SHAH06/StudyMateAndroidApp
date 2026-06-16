@@ -8,12 +8,73 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:699079368997:android:bb6765c5f1e1e8fa3f7acc",
+        "android_client_info": {
+          "package_name": "com.example.c38"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "699079368997-1741hh0bnvrrg7df4nrm13fgbvgk7ufb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1hkGh7FPrDYTYHjakTuS0wgQiNcbKLeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "699079368997-1741hh0bnvrrg7df4nrm13fgbvgk7ufb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:699079368997:android:320c4c6a053e975a3f7acc",
         "android_client_info": {
           "package_name": "com.example.studymateandroidapp"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "699079368997-1r58iiioputcdiclmhuf0gfj4m0l0u2g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.studymateandroidapp",
+            "certificate_hash": "2bb57f69f15a1c82390c952fbdc15749b7a7e99c"
+          }
+        },
+        {
+          "client_id": "699079368997-aqs6cdo7mumd3ssamcfpq334ogc2q0gd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.studymateandroidapp",
+            "certificate_hash": "c5a7db6bd052b67000d69be0acf7f4069ad5e7bd"
+          }
+        },
+        {
+          "client_id": "699079368997-oafp9er1hveesmgvlfg8mnepdoqd2oa6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.studymateandroidapp",
+            "certificate_hash": "bf317c271e349b6f8d754615c31969cf004414a7"
+          }
+        },
+        {
+          "client_id": "699079368997-r8ag81o9j1kef6b950pa6g0538c1mphk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.studymateandroidapp",
+            "certificate_hash": "9100dcedd37138c35a1e2a6ede366ce6989c711d"
+          }
+        },
         {
           "client_id": "699079368997-1741hh0bnvrrg7df4nrm13fgbvgk7ufb.apps.googleusercontent.com",
           "client_type": 3
