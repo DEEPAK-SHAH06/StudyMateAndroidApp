@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.model.Flashcard
 import com.example.studymateandroidapp.data.repository.FlashcardRepository
+import com.example.studymateandroidapp.data.repository.MotivationRepository
 import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 
 class FlashcardViewmodel(
     private val repository: FlashcardRepository,
+    private val motivationRepository: MotivationRepository,
     private val application: Application
 ) : ViewModel() {
 
@@ -49,6 +51,7 @@ class FlashcardViewmodel(
     fun completeFlashcardSession(examId: Long, correct: Int, total: Int) {
         viewModelScope.launch {
             repository.completeReviewSession(examId, correct, total)
+            motivationRepository.addXp(3, "Flashcard Review Complete!")
         }
     }
 }

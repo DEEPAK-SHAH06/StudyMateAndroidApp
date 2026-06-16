@@ -22,9 +22,10 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
         Achievement::class,
         DailyReflection::class,
         StudyProgress::class,
-        FlashcardReview::class
+        FlashcardReview::class,
+        UserProgress::class
     ],
-    version = 17,
+    version = 18,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -39,6 +40,7 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
     abstract fun flashcardDao(): FlashcardDao
     abstract fun motivationDao(): MotivationDao
     abstract fun studyProgressDao(): StudyProgressDao
+    abstract fun userProgressDao(): UserProgressDao
 
     companion object {
 
@@ -200,6 +202,23 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. Create user_progress table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS user_progress (
+                        id INTEGER PRIMARY KEY NOT NULL,
+                        totalXp INTEGER NOT NULL
+                    )
+                """)
+                db.execSQL("INSERT OR IGNORE INTO user_progress (id, totalXp) VALUES (1, 0)")
+
+                // 2. Add isXpAwarded columns for persistent reward tracking
+                db.execSQL("ALTER TABLE tasks ADD COLUMN isXpAwarded INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE study_sessions ADD COLUMN isXpAwarded INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         /**
          * SINGLETON
          */
@@ -245,7 +264,8 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                     MIGRATION_13_14,
                     MIGRATION_14_15,
                     MIGRATION_15_16,
-                    MIGRATION_16_17
+                    MIGRATION_16_17,
+                    MIGRATION_17_18
                 )
                 .build()
         }

@@ -8,6 +8,7 @@ import com.example.studymateandroidapp.data.local.GoalDao
 import com.example.studymateandroidapp.data.local.NoteDao
 import com.example.studymateandroidapp.data.local.FlashcardDao
 import com.example.studymateandroidapp.data.local.MotivationDao
+import com.example.studymateandroidapp.data.local.UserProgressDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate
@@ -22,8 +23,17 @@ class MotivationRepository(
     private val sessionDao: SessionDao,
     private val goalDao: GoalDao,
     private val noteDao: NoteDao,
-    private val flashcardDao: FlashcardDao
+    private val flashcardDao: FlashcardDao,
+    private val gamificationRepository: GamificationRepository
 ) {
+    // ── Gamification (XP) ──────────────────────────────────
+
+    fun getUserProgress() = gamificationRepository.getUserProgress()
+
+    suspend fun addXp(amount: Int, message: String) {
+        gamificationRepository.addXp(amount, message)
+    }
+
     // ── Streak Logic ──────────────────────────────────────
 
     private fun getAllStudyDates(): Flow<Set<LocalDate>> = combine(
@@ -132,6 +142,7 @@ class MotivationRepository(
             )
         } else {
             motivationDao.insertReflection(reflection.copy(lastUpdated = System.currentTimeMillis()))
+            addXp(5, "Daily Reflection Saved!")
         }
     }
 
@@ -246,6 +257,7 @@ class MotivationRepository(
             description = description
         )
         motivationDao.insertAchievement(achievement)
+        addXp(25, "Achievement Unlocked!")
         return achievement
     }
 

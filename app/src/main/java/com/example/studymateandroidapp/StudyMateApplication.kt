@@ -15,6 +15,8 @@ class StudyMateApplication : Application() {
         NotificationHelper.createChannels(this)
 
         val db = StudyPlannerDatabase.getInstance(this)
+        val gamificationRepository = GamificationRepository(db.userProgressDao())
+        
         statisticsRepository = StatisticsRepository(
             taskRepository = TaskRepository(db.taskDao()),
             sessionRepository = SessionRepository(db.sessionDao()),
@@ -23,10 +25,12 @@ class StudyMateApplication : Application() {
                 motivationDao = db.motivationDao(),
                 taskDao = db.taskDao(),
                 sessionDao = db.sessionDao(),
-                goalDao = db.goalDao(),
-                noteDao = db.noteDao(),
-                flashcardDao = db.flashcardDao()
-            )
+                goalDao       = db.goalDao(),
+                noteDao       = db.noteDao(),
+                flashcardDao  = db.flashcardDao(),
+                gamificationRepository = gamificationRepository
+                ),
+            gamificationRepository = gamificationRepository
         )
     }
 }

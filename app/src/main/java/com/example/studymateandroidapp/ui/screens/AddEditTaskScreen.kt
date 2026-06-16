@@ -45,6 +45,7 @@ fun AddEditTaskScreen(
     var dueTime by remember { mutableStateOf(LocalTime.of(9, 0)) }
     var subjectTag by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf(Color.Red) }
+    var existingTask by remember { mutableStateOf<Task?>(null) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
 
@@ -52,6 +53,7 @@ fun AddEditTaskScreen(
         if (taskId != null) {
             val task = viewModel.getTaskById(taskId)
             if (task != null) {
+                existingTask = task
                 title = task.title
                 description = task.description
                 priority = task.priority
@@ -289,16 +291,28 @@ fun AddEditTaskScreen(
             Button(
                 onClick = {
                     if (title.isNotBlank()) {
-                        val task = Task(
-                            id = taskId ?: 0,
-                            title = title,
-                            description = description,
-                            priority = priority,
-                            dueDate = dueDate,
-                            dueTime = dueTime,
-                            subjectTag = subjectTag.uppercase(),
-                            tagColor = selectedColor.value.toLong()
-                        )
+                        val task = if (taskId != null && existingTask != null) {
+                            existingTask!!.copy(
+                                title = title,
+                                description = description,
+                                priority = priority,
+                                dueDate = dueDate,
+                                dueTime = dueTime,
+                                subjectTag = subjectTag.uppercase(),
+                                tagColor = selectedColor.value.toLong()
+                            )
+                        } else {
+                            Task(
+                                id = 0,
+                                title = title,
+                                description = description,
+                                priority = priority,
+                                dueDate = dueDate,
+                                dueTime = dueTime,
+                                subjectTag = subjectTag.uppercase(),
+                                tagColor = selectedColor.value.toLong()
+                            )
+                        }
                         if (taskId == null) viewModel.addTask(task) else viewModel.updateTask(task)
                         onNavigateBack()
                     }
@@ -325,7 +339,7 @@ fun AddEditTaskScreen(
                     ConfirmDeleteDialog(
                         itemName = "Task",
                         onConfirm = {
-                            val currentTask = Task(
+                            val taskToDelete = existingTask ?: Task(
                                 id = taskId,
                                 title = title,
                                 description = description,
@@ -335,7 +349,7 @@ fun AddEditTaskScreen(
                                 subjectTag = subjectTag.uppercase(),
                                 tagColor = selectedColor.value.toLong()
                             )
-                            viewModel.deleteTask(currentTask) {
+                            viewModel.deleteTask(taskToDelete) {
                                 onNavigateBack()
                             }
                             showDeleteConfirm = false
