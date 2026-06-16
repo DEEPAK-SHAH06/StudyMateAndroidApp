@@ -45,9 +45,8 @@ class DashboardViewModel(
         // Study
         val todayStudyMinutes: Int = 0,
 
-        // Next exam
-        val nextExam: Exam? = null,
-        val daysUntilNextExam: Long? = null,
+        // Exams
+        val upcomingExams: List<ExamCountdown> = emptyList(),
 
         // Goals
         val activeGoals: List<GoalSummary> = emptyList(),
@@ -83,6 +82,14 @@ class DashboardViewModel(
         val progressPercent: Int
     )
 
+    data class ExamCountdown(
+        val id: Long,
+        val title: String,
+        val subject: String,
+        val daysUntil: Long,
+        val isToday: Boolean
+    )
+
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
@@ -91,7 +98,7 @@ class DashboardViewModel(
         loadDailyQuote()
         loadTodayTasks()
         loadTodayStudyMinutes()
-        loadNextExam()
+        loadUpcomingExams()
         loadActiveGoals()
         observeAuthState()
         checkReflectionPrompt()
@@ -199,25 +206,31 @@ class DashboardViewModel(
         }
     }
 
-    private fun loadNextExam() {
+    private fun loadUpcomingExams() {
         viewModelScope.launch {
             examRepository.allExams
                 .catch { /* silently ignore */ }
                 .collect { exams ->
                     val today = LocalDate.now()
-                    val nextExam = exams
+                    val upcoming = exams
                         .filter {
                             val examDateLocal = java.time.Instant.ofEpochMilli(it.examDate).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
                             !examDateLocal.isBefore(today)
                         }
-                        .minByOrNull { it.examDate }
-
-                    val days = nextExam?.let {
-                        val examDateLocal = java.time.Instant.ofEpochMilli(it.examDate).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
-                        ChronoUnit.DAYS.between(today, examDateLocal)
-                    }
+                        .sortedBy { it.examDate }
+                        .map {
+                            val examDateLocal = java.time.Instant.ofEpochMilli(it.examDate).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                            val days = ChronoUnit.DAYS.between(today, examDateLocal)
+                            ExamCountdown(
+                                id = it.id,
+                                title = it.title,
+                                subject = it.subject,
+                                daysUntil = days,
+                                isToday = days == 0L
+                            )
+                        }
                     _uiState.update {
-                        it.copy(nextExam = nextExam, daysUntilNextExam = days)
+                        it.copy(upcomingExams = upcoming)
                     }
                 }
         }

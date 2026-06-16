@@ -21,6 +21,7 @@ bin/
 out/
 .gradle/
 Captures/
+.gradle_home
 
 # --- Local Configuration (User specific) ---
 local.properties
