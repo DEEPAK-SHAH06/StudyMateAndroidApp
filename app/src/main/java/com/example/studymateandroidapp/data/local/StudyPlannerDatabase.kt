@@ -24,7 +24,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
         StudyProgress::class,
         FlashcardReview::class
     ],
-    version = 16,
+    version = 17,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -175,6 +175,31 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_16_17 = object : Migration(16, 17) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. Fix missing tagColor in tasks (The primary cause of the identity hash crash)
+                try {
+                    db.execSQL("ALTER TABLE tasks ADD COLUMN tagColor INTEGER NOT NULL DEFAULT 0")
+                } catch (_: Exception) {
+                    // Column might already exist on fresh v16 installs
+                }
+
+                // 2. Robustly ensure flashcard_reviews has all columns
+                try {
+                    db.execSQL("ALTER TABLE flashcard_reviews ADD COLUMN examId INTEGER NOT NULL DEFAULT 0")
+                } catch (_: Exception) {}
+                try {
+                    db.execSQL("ALTER TABLE flashcard_reviews ADD COLUMN correctCount INTEGER NOT NULL DEFAULT 0")
+                } catch (_: Exception) {}
+
+                // 3. Robustly ensure study_sessions has all indices
+                try {
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_study_sessions_userId ON study_sessions(userId)")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_study_sessions_serverId ON study_sessions(serverId)")
+                } catch (_: Exception) {}
+            }
+        }
+
         /**
          * SINGLETON
          */
@@ -219,7 +244,8 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                     MIGRATION_12_13,
                     MIGRATION_13_14,
                     MIGRATION_14_15,
-                    MIGRATION_15_16
+                    MIGRATION_15_16,
+                    MIGRATION_16_17
                 )
                 .build()
         }

@@ -259,7 +259,7 @@ fun StudyFinishedView(
             )
         }
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("Back to Exams")
+            Text("Back to Flashcard deck section. ")
         }
     }
 }

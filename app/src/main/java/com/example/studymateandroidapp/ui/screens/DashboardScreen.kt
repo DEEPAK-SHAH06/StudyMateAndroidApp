@@ -1,6 +1,7 @@
 package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -73,8 +75,7 @@ fun DashboardScreen(
         pendingTaskCount = uiState.pendingTaskCount,
         todayStudyFormatted = uiState.todayStudyFormatted,
         todayStudyMinutes = uiState.todayStudyMinutes,
-        nextExamTitle = uiState.nextExam?.title,
-        daysUntilNextExam = uiState.daysUntilNextExam,
+        upcomingExams = uiState.upcomingExams,
         activeGoals = uiState.activeGoals,
         totalGoalCount = uiState.totalGoalCount,
         completedGoalCount = uiState.completedGoalCount,
@@ -107,8 +108,7 @@ private fun DashboardContent(
     pendingTaskCount: Int,
     todayStudyFormatted: String,
     todayStudyMinutes: Int,
-    nextExamTitle: String?,
-    daysUntilNextExam: Long?,
+    upcomingExams: List<DashboardViewModel.ExamCountdown>,
     activeGoals: List<GoalSummary>,
     totalGoalCount: Int,
     completedGoalCount: Int,
@@ -155,7 +155,9 @@ private fun DashboardContent(
             FloatingActionButton(
                 onClick = onNavigateToCalendar,
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(40.dp),
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Icon(Icons.Default.CalendarMonth, contentDescription = "Calendar")
             }
@@ -211,6 +213,7 @@ private fun DashboardContent(
                         )
                         Text(
                             text = if (currentStreak > 0) "🔥 $currentStreak Day Streak" else "Start your streak today 🔥",
+                            fontSize = 10.sp,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
@@ -218,18 +221,19 @@ private fun DashboardContent(
                         Text(
                             text = userBio,
                             style = MaterialTheme.typography.bodyMedium,
+                            fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
                         )
                     }
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(20.dp))
             }
 
             // ── 2. Daily Inspiration Quote ──────────────────
             if (dailyQuote.isNotBlank()) {
                 item {
                     DailyQuoteCard(quote = dailyQuote, author = dailyQuoteAuthor)
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(19.dp))
                 }
             }
 
@@ -255,44 +259,24 @@ private fun DashboardContent(
                 }
             }
 
-            // ── 4. Featured Exam Card ──────────────────────
-            if (nextExamTitle != null) {
+            // ── 4. Exam Countdown Cards ──────────────────────
+            if (upcomingExams.isNotEmpty()) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(32.dp))
-                            .background(MaterialTheme.colorScheme.primary)
+                    Text(
+                        "Upcoming Exams",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(bottom = 24.dp)
                     ) {
-                        Column(modifier = Modifier.padding(24.dp)) {
-                            Surface(color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f), shape = RoundedCornerShape(50.dp)) {
-                                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Timer, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onPrimary)
-                                    Spacer(Modifier.width(4.dp))
-                                    Text(
-                                        text = when {
-                                            daysUntilNextExam == 0L -> "HAPPENING TODAY"
-                                            daysUntilNextExam == 1L -> "DUE TOMORROW"
-                                            else -> "STARTS IN $daysUntilNextExam DAYS"
-                                        },
-                                        fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                }
-                            }
-                            Spacer(Modifier.height(16.dp))
-                            Text(text = nextExamTitle, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
-                            Text("Preparing for your next big challenge.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
-                            Spacer(Modifier.height(16.dp))
-                            Button(
-                                onClick = onNavigateToTimer,
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text("Start Session", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                            }
+                        items(upcomingExams) { countdown ->
+                            ExamCountdownCard(countdown = countdown, onClick = onNavigateToExams)
                         }
                     }
-                    Spacer(Modifier.height(24.dp))
                 }
             }
 
@@ -396,24 +380,127 @@ private fun GoalProgressRow(label: String, progressPercent: Int) {
 
 @Composable
 private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).clickable { onToggle() },
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable { onToggle() },
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFFF5F5F5),
+        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f))
     ) {
-        Icon(
-            imageVector = if (task.isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-            contentDescription = null,
-            tint = if (task.isCompleted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-        )
-        Spacer(Modifier.width(16.dp))
-        Column {
-            Text(
-                text = task.title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null
-            )
-            Text(task.priority.name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Rounded checkbox
+            Surface(
+                modifier = Modifier.size(20.dp),
+                shape = RoundedCornerShape(5.dp),
+                border = BorderStroke(2.dp, if (task.isCompleted) Color(task.tagColor.toULong()) else Color.LightGray),
+                color = if (task.isCompleted) Color(task.tagColor.toULong()) else Color.White
+            ) {
+                if (task.isCompleted) {
+                    Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.padding(2.dp))
+                }
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = task.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null
+                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (!task.subjectTag.isNullOrBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(task.tagColor.toULong())
+                        ) {
+                            Text(
+                                text = task.subjectTag.uppercase(),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White,
+                                fontWeight = FontWeight.Black,
+                                fontSize = 9.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                    }
+
+                    if (task.dueTime != null) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.time),
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = Color.Black
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = task.dueTime.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a")),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExamCountdownCard(
+    countdown: DashboardViewModel.ExamCountdown,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .width(280.dp)
+            .clip(RoundedCornerShape(32.dp))
+            .background(MaterialTheme.colorScheme.primary)
+            .clickable { onClick() }
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            Surface(color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f), shape = RoundedCornerShape(50.dp)) {
+                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Timer, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onPrimary)
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = when {
+                            countdown.isToday -> "HAPPENING TODAY"
+                            countdown.daysUntil == 1L -> "DUE TOMORROW"
+                            else -> "STARTS IN ${countdown.daysUntil} DAYS"
+                        },
+                        fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            Text(text = countdown.title, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(countdown.subject, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
+            Spacer(Modifier.height(16.dp))
+            Surface(color = MaterialTheme.colorScheme.onPrimary, shape = RoundedCornerShape(8.dp)) {
+                Text(
+                    "View Details",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
+            }
         }
     }
 }
@@ -432,8 +519,10 @@ private fun DashboardPreview() {
             pendingTaskCount = 1,
             todayStudyFormatted = "2h 30m",
             todayStudyMinutes = 150,
-            nextExamTitle = "Math Final",
-            daysUntilNextExam = 3,
+            upcomingExams = listOf(
+                DashboardViewModel.ExamCountdown(1, "Math Final", "Mathematics", 3, false),
+                DashboardViewModel.ExamCountdown(2, "Physics Midterm", "Physics", 0, true)
+            ),
             activeGoals = emptyList(),
             totalGoalCount = 0,
             completedGoalCount = 0,
