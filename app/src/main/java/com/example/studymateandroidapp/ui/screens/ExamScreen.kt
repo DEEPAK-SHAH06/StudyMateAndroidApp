@@ -114,10 +114,11 @@ fun ExamContent(
     var searchQuery by remember { mutableStateOf("") }
 
     val filteredExams = remember(exams, searchQuery) {
-        exams.filter { exam ->
+        val result = exams.filter { exam ->
             exam.title.contains(searchQuery, ignoreCase = true) ||
                     exam.subject.contains(searchQuery, ignoreCase = true)
         }
+        result
     }
 
     Scaffold(
