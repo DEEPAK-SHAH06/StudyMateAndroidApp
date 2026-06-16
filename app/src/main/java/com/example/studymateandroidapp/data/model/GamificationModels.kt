@@ -16,3 +16,13 @@ data class LevelInfo(
  * Event emitted when XP is earned.
  */
 data class XpEvent(val amount: Int, val message: String)
+
+/**
+ * Progress towards a specific achievement.
+ */
+data class AchievementProgress(
+    val type: AchievementType,
+    val current: Int,
+    val target: Int,
+    val isUnlocked: Boolean
+)

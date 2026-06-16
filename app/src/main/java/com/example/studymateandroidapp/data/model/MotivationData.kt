@@ -64,7 +64,12 @@ enum class AchievementType {
     STREAK_3_DAY,         // First Spark
     STREAK_7_DAY,         // Consistent Learner
     STREAK_30_DAY,        // Study Warrior
-    STREAK_100_DAY        // Unstoppable
+    STREAK_100_DAY,       // Unstoppable
+    NIGHT_OWL,           // Study after 12:00 AM
+    EARLY_BIRD,          // Study before 7:00 AM
+    FLASHCARD_MASTER,    // Create 50 flashcards
+    CONSISTENCY_KING,    // Maintain 14-day streak
+    MARATHON_STUDIER     // Study 100 total hours
 }
 
 /**
