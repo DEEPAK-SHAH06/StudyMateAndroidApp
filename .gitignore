@@ -46,3 +46,7 @@ Thumbs.db
 *.log
 /.idea/compiler.xml
 /.idea/inspectionProfiles/Project_Default.xml
+echo .vscode/ 
+.vscode/
+.idea/
+app/schemas/
