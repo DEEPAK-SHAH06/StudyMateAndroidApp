@@ -20,14 +20,15 @@ import java.time.Instant
 import java.time.ZoneId
 
 /**
- * ViewModel for managing [Exam] data and operations.
+ * ViewModel responsible for managing exam-related data and logic.
  *
- * This ViewModel handles fetching all exams, tracking study progress for each exam,
- * and performing CRUD operations on exams while also managing reminders and widget updates.
+ * This includes providing a list of all exams, tracking study progress, 
+ * and handling CRUD operations for exams, including scheduling notifications
+ * and updating widgets.
  *
- * @property repository The repository to access exam data.
- * @property studyProgressRepository The repository to access study progress data.
- * @property reminderScheduler Helper to schedule or cancel notifications for exams.
+ * @property repository The repository for exam data.
+ * @property studyProgressRepository The repository for study progress data.
+ * @property reminderScheduler Helper for scheduling exam reminders.
  * @property application The application context, used for widget updates.
  */
 class ExamViewmodel(
@@ -44,7 +45,7 @@ class ExamViewmodel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
-     * A [StateFlow] emitting a map where keys are exam IDs and values are the corresponding [StudyProgress].
+     * A [StateFlow] emitting a map of exam IDs to their corresponding [StudyProgress].
      */
     val examProgress: StateFlow<Map<Long, StudyProgress>> = studyProgressRepository.getAllProgress()
         .map { list -> list.associateBy { it.examId } }
@@ -53,15 +54,15 @@ class ExamViewmodel(
     /**
      * Retrieves an [ExamWithDetails] by its ID.
      *
-     * @param id The ID of the exam to retrieve.
-     * @return A Flow emitting the exam with its details.
+     * @param id The ID of the exam.
+     * @return A flow emitting the exam details.
      */
     fun getExamWithDetails(id: Long) = repository.getExamWithDetails(id)
 
     /**
      * Adds a new exam to the database, schedules reminders, and updates widgets.
      *
-     * @param exam The exam to be added.
+     * @param exam The [Exam] to add.
      */
     fun addExam(exam: Exam) {
         viewModelScope.launch {
@@ -84,7 +85,7 @@ class ExamViewmodel(
     /**
      * Updates an existing exam in the database, reschedules reminders, and updates widgets.
      *
-     * @param exam The exam with updated information.
+     * @param exam The [Exam] to update.
      */
     fun updateExam(exam: Exam) {
         viewModelScope.launch {
@@ -107,7 +108,7 @@ class ExamViewmodel(
     /**
      * Deletes an exam from the database, cancels its reminders, and updates widgets.
      *
-     * @param exam The exam to be deleted.
+     * @param exam The [Exam] to delete.
      */
     fun deleteExam(exam: Exam) {
         viewModelScope.launch {
