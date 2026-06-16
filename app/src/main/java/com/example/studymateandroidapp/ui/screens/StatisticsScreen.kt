@@ -13,6 +13,11 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import com.example.studymateandroidapp.utils.PdfGenerator
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,11 +48,46 @@ fun StatisticsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val levelInfo: LevelInfo? by viewModel.levelInfo.collectAsState(initial = null)
 
+    val context = LocalContext.current
+    var showExportDialog by remember { mutableStateOf(false) }
+
+    val createDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf"),
+        onResult = { uri ->
+            uri?.let {
+                context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                    PdfGenerator.generateStatisticsPdf(uiState, outputStream)
+                }
+            }
+        }
+    )
+
     if (uiState.isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
+    }
+
+    if (showExportDialog) {
+        AlertDialog(
+            onDismissRequest = { showExportDialog = false },
+            title = { Text("Export Statistics") },
+            text = { Text("Do you want to download a PDF report of your statistics?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showExportDialog = false
+                    createDocumentLauncher.launch("StudyMate_Statistics_${LocalDate.now()}.pdf")
+                }) {
+                    Text("Download")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExportDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     StatisticsContent(
@@ -63,6 +103,7 @@ fun StatisticsScreen(
         weeklyAverageSubtitle = uiState.weeklyAverageSubtitle,
         dailyChartData     = uiState.dailyChartData,
         levelInfo          = levelInfo,
+        onExport           = { showExportDialog = true },
         onBack             = onBack
     )
 }
@@ -81,11 +122,23 @@ fun StatisticsContent(
     weeklyAverageSubtitle: String,
     dailyChartData: List<DailyChartPoint>,
     levelInfo: LevelInfo?,
+    onExport: () -> Unit,
     onBack: () -> Unit
 ) {
     Scaffold(
         topBar = {
             StudyMateTopBar(title = "Statistics", onBack = onBack)
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onExport,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.padding(bottom = 16.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(Icons.Default.FileDownload, contentDescription = "Export PDF")
+            }
         }
     ) { innerPadding ->
         Column(
@@ -427,6 +480,7 @@ fun StatisticsPreview() {
                 progress = 0.28f,
                 title = "Scholar 🎓"
             ),
+            onExport           = {},
             onBack             = {}
         )
     }
