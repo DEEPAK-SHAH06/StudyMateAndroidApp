@@ -41,19 +41,26 @@ class TaskViewmodel(
 
     fun updateTask(task: Task) {
         viewModelScope.launch {
-            repository.update(task)
-            if (task.dueDate != null && task.dueTime != null) {
+            val updatedTask = if (task.isCompleted && !task.isXpAwarded) {
+                motivationRepository.addXp(5, "Task Completed!")
+                task.copy(isXpAwarded = true)
+            } else {
+                task
+            }
+            
+            repository.update(updatedTask)
+            if (updatedTask.dueDate != null && updatedTask.dueTime != null) {
                 reminderScheduler.scheduleTaskReminders(
-                    taskId = task.id,
-                    title = task.title,
-                    dueDate = task.dueDate,
-                    dueTime = task.dueTime
+                    taskId = updatedTask.id,
+                    title = updatedTask.title,
+                    dueDate = updatedTask.dueDate,
+                    dueTime = updatedTask.dueTime
                 )
             } else {
-                reminderScheduler.cancelTaskReminders(task.id)
+                reminderScheduler.cancelTaskReminders(updatedTask.id)
             }
             WidgetUpdateHelper.updateAllWidgets(application)
-            if (task.isCompleted) {
+            if (updatedTask.isCompleted) {
                 motivationRepository.checkAndUnlockAchievements()
             }
         }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Search
@@ -309,15 +310,23 @@ fun SectionHeader(title: String, subtitle: String) {
 }
 
 @Composable
-fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit, onDelete: () -> Unit) {
+fun TaskItemView(
+    task: Task,
+    onToggle: () -> Unit,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF5F5F5), // Light gray background like in image
-        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f))
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+        )
     ) {
         Row(
             modifier = Modifier
@@ -325,81 +334,117 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit, onDelete
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Custom rounded checkbox
+
+            // Checkbox
             Surface(
                 modifier = Modifier
                     .size(25.dp)
                     .padding(2.dp)
                     .clickable { onToggle() },
                 shape = RoundedCornerShape(6.dp),
-                border = BorderStroke(2.dp, if (task.isCompleted) Color(task.tagColor.toULong()) else Color.LightGray),
-                color = if (task.isCompleted) Color(task.tagColor.toULong()) else Color.White
+                border = BorderStroke(
+                    2.dp,
+                    if (task.isCompleted)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.outline
+                ),
+                color =
+                    if (task.isCompleted)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.surface
             ) {
                 if (task.isCompleted) {
-                    Icon(
-                        imageVector = Icons.Default.Add, // Using Add as a placeholder for checkmark or just leave colored
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.padding(2.dp)
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
                     if (!task.subjectTag.isNullOrBlank()) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
                             color = Color(task.tagColor.toULong()),
-                            border = BorderStroke(1.dp, Color.DarkGray.copy(alpha = 0.8f))
-
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                            )
                         ) {
                             Text(
                                 text = task.subjectTag.uppercase(),
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                modifier = Modifier.padding(
+                                    horizontal = 12.dp,
+                                    vertical = 4.dp
+                                ),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Black
                             )
                         }
+
                         Spacer(modifier = Modifier.width(16.dp))
                     }
 
                     if (task.dueTime != null) {
                         Icon(
-                            painter = painterResource(id = R.drawable.time),
+                            painter = painterResource(R.drawable.time),
                             contentDescription = null,
                             modifier = Modifier.size(14.dp),
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+
                         Spacer(modifier = Modifier.width(4.dp))
+
                         Text(
-                            text = task.dueTime.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a")),
+                            text = task.dueTime.format(
+                                java.time.format.DateTimeFormatter.ofPattern(
+                                    "h:mm a"
+                                )
+                            ),
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
 
-            IconButton(onClick = onDelete) {
+            IconButton(
+                onClick = onDelete
+            ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
                     modifier = Modifier.size(20.dp),
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

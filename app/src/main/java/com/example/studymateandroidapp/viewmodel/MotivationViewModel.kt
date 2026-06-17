@@ -40,6 +40,9 @@ class MotivationViewModel(
     val allAchievements = repository.getAllAchievements()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val achievementProgress = repository.getAchievementProgress()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val recentReflections = repository.getRecentReflections(30)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

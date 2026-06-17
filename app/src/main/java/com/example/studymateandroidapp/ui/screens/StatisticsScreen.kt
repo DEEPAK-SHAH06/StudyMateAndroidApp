@@ -13,10 +13,16 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import com.example.studymateandroidapp.utils.PdfGenerator
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -27,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.data.repository.StatisticsRepository
+import com.example.studymateandroidapp.data.model.LevelInfo
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.ui.components.StreakCard
 import com.example.studymateandroidapp.viewmodel.StatisticsViewmodel
@@ -39,12 +46,48 @@ fun StatisticsScreen(
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val levelInfo: LevelInfo? by viewModel.levelInfo.collectAsState(initial = null)
+
+    val context = LocalContext.current
+    var showExportDialog by remember { mutableStateOf(false) }
+
+    val createDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf"),
+        onResult = { uri ->
+            uri?.let {
+                context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                    PdfGenerator.generateStatisticsPdf(uiState, outputStream)
+                }
+            }
+        }
+    )
 
     if (uiState.isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
+    }
+
+    if (showExportDialog) {
+        AlertDialog(
+            onDismissRequest = { showExportDialog = false },
+            title = { Text("Export Statistics") },
+            text = { Text("Do you want to download a PDF report of your statistics?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showExportDialog = false
+                    createDocumentLauncher.launch("StudyMate_Statistics_${LocalDate.now()}.pdf")
+                }) {
+                    Text("Download")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExportDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     StatisticsContent(
@@ -59,6 +102,8 @@ fun StatisticsScreen(
         weeklyStreakStatus = uiState.weeklyStreakStatus,
         weeklyAverageSubtitle = uiState.weeklyAverageSubtitle,
         dailyChartData     = uiState.dailyChartData,
+        levelInfo          = levelInfo,
+        onExport           = { showExportDialog = true },
         onBack             = onBack
     )
 }
@@ -76,11 +121,24 @@ fun StatisticsContent(
     weeklyStreakStatus: List<Boolean>,
     weeklyAverageSubtitle: String,
     dailyChartData: List<DailyChartPoint>,
+    levelInfo: LevelInfo?,
+    onExport: () -> Unit,
     onBack: () -> Unit
 ) {
     Scaffold(
         topBar = {
             StudyMateTopBar(title = "Statistics", onBack = onBack)
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onExport,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.padding(bottom = 16.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(Icons.Default.FileDownload, contentDescription = "Export PDF")
+            }
         }
     ) { innerPadding ->
         Column(
@@ -92,6 +150,11 @@ fun StatisticsContent(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(Modifier.height(8.dp))
+
+            // ── Gamification Section ──────────────────────
+            if (levelInfo != null) {
+                LevelSection(levelInfo)
+            }
 
             // ── Row 1 ─────────────────────────────────────
             Row(
@@ -184,6 +247,84 @@ fun StatisticsContent(
             )
 
             Spacer(Modifier.height(80.dp))
+        }
+    }
+}
+
+@Composable
+private fun LevelSection(levelInfo: LevelInfo) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+        ),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "🎓 Level ${levelInfo.level}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = levelInfo.title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "XP Progress",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${levelInfo.currentLevelXp} / ${levelInfo.xpToNextLevel} XP",
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            LinearProgressIndicator(
+                progress = { levelInfo.progress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(12.dp)
+                    .clip(RoundedCornerShape(6.dp)),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = "Total XP: ${levelInfo.totalXp}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -331,6 +472,15 @@ fun StatisticsPreview() {
             weeklyStreakStatus = listOf(true, true, true, false, true, true, true),
             weeklyAverageSubtitle = "Avg: 17m 08s/day",
             dailyChartData     = emptyList(),
+            levelInfo          = LevelInfo(
+                totalXp = 1500,
+                level = 5,
+                currentLevelXp = 200,
+                xpToNextLevel = 700,
+                progress = 0.28f,
+                title = "Scholar 🎓"
+            ),
+            onExport           = {},
             onBack             = {}
         )
     }

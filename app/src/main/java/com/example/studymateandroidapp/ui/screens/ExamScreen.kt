@@ -2,6 +2,7 @@ package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,7 +37,12 @@ import java.time.format.DateTimeFormatter
 
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import com.example.studymateandroidapp.data.model.StudyProgress
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Search
 
 @Composable
 fun ExamScreen(
@@ -79,6 +85,15 @@ fun ExamContent(
     onNotesClick: (Long) -> Unit,
     onFlashcardsClick: (Long) -> Unit
 ) {
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredExams = remember(exams, searchQuery) {
+        exams.filter { exam ->
+            exam.title.contains(searchQuery, ignoreCase = true) ||
+                    exam.subject.contains(searchQuery, ignoreCase = true)
+        }
+    }
+
     Scaffold(
         topBar = {
             StudyMateTopBar(
@@ -119,6 +134,11 @@ fun ExamContent(
                 color = Color.Black,
                 fontSize = 26.sp
             )
+
+            Spacer(Modifier.height(12.dp))
+            ExamSearchBar(query = searchQuery, onQueryChange = { searchQuery = it })
+            Spacer(Modifier.height(12.dp))
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -144,8 +164,8 @@ fun ExamContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             val currentTime = System.currentTimeMillis()
-            val upcomingExams = exams.filter { it.examDate >= currentTime }.sortedBy { it.examDate }
-            val pastExams = exams.filter { it.examDate < currentTime }.sortedByDescending { it.examDate }
+            val upcomingExams = filteredExams.filter { it.examDate >= currentTime }.sortedBy { it.examDate }
+            val pastExams = filteredExams.filter { it.examDate < currentTime }.sortedByDescending { it.examDate }
 
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -154,7 +174,7 @@ fun ExamContent(
                 if (upcomingExams.isEmpty()) {
                     item {
                         Text(
-                            text = "No upcoming exams. Stay prepared!",
+                            text = if (searchQuery.isEmpty()) "No upcoming exams. Stay prepared!" else "No exams match your search.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Gray,
                             modifier = Modifier.padding(vertical = 8.dp)
@@ -203,6 +223,33 @@ fun ExamContent(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExamSearchBar(query: String, onQueryChange: (String) -> Unit) {
+    TextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier.fillMaxWidth()
+            .height(48.6.dp)
+            .border(0.8.dp, Color.Black, RoundedCornerShape(40.dp)),
+        placeholder = { Text("Search exams, subjects...",
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+        },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        shape = RoundedCornerShape(40.dp),
+        singleLine = true,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    )
 }
 
 @Composable

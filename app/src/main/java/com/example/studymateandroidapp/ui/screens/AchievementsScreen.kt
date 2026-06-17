@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,12 +22,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.text.style.TextOverflow
 import com.example.studymateandroidapp.data.model.Achievement
+import com.example.studymateandroidapp.data.model.AchievementProgress
 import com.example.studymateandroidapp.data.model.AchievementType
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.MotivationViewModel
-import java.text.SimpleDateFormat
-import java.util.*
 
 @Composable
 fun AchievementsScreen(
@@ -34,9 +35,11 @@ fun AchievementsScreen(
     onNavigateBack: () -> Unit
 ) {
     val achievements by viewModel.allAchievements.collectAsStateWithLifecycle(emptyList())
+    val progress by viewModel.achievementProgress.collectAsStateWithLifecycle(emptyList())
 
     AchievementsContent(
         achievements = achievements,
+        progress = progress,
         onBack = onNavigateBack
     )
 }
@@ -44,6 +47,7 @@ fun AchievementsScreen(
 @Composable
 fun AchievementsContent(
     achievements: List<Achievement>,
+    progress: List<AchievementProgress>,
     onBack: () -> Unit
 ) {
     val unlockedTypes = achievements.map { it.type }.toSet()
@@ -56,7 +60,7 @@ fun AchievementsContent(
                 onBack = onBack
             )
         },
-        containerColor = Color(0xFFF8F8F8)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -76,7 +80,10 @@ fun AchievementsContent(
                         .clip(RoundedCornerShape(24.dp))
                         .background(
                             Brush.linearGradient(
-                                listOf(Color(0xFF2D2D2D), Color(0xFF5A5A5A))
+                                listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.primaryContainer
+                                )
                             )
                         )
                         .padding(24.dp),
@@ -105,7 +112,7 @@ fun AchievementsContent(
                     text = "All Badges",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
 
@@ -118,10 +125,12 @@ fun AchievementsContent(
                 ) {
                     row.forEach { type ->
                         val unlockedAchievement = achievements.find { it.type == type }
+                        val currentProgress = progress.find { it.type == type }
                         AchievementBadge(
                             type = type,
                             achievement = unlockedAchievement,
                             isUnlocked = type in unlockedTypes,
+                            progress = currentProgress?.let { it.current to it.target },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -137,62 +146,133 @@ private fun AchievementBadge(
     type: AchievementType,
     achievement: Achievement?,
     isUnlocked: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    progress: Pair<Int, Int>? = null
 ) {
     val (emoji, title, desc) = achievementInfo(type)
-    val bgColor = if (isUnlocked) Color.White else Color(0xFFF0F0F0)
-    val textColor = if (isUnlocked) Color.Black else Color.Gray
+
+    val bgColor =
+        if (isUnlocked)
+            MaterialTheme.colorScheme.surface
+        else
+            MaterialTheme.colorScheme.surfaceVariant
+
+    val textColor =
+        if (isUnlocked)
+            MaterialTheme.colorScheme.onSurface
+        else
+            MaterialTheme.colorScheme.onSurfaceVariant
+
+    val alpha = if (isUnlocked) 1f else 0.75f
 
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
-        color = bgColor,
-        border = if (isUnlocked) null else androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f))
+        color = bgColor.copy(alpha = alpha),
+        border = if (isUnlocked)
+            null
+        else
+            BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            // ICON AREA
             Box(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
                     .background(
-                        if (isUnlocked) Color.Black else Color.Gray.copy(alpha = 0.1f)
+                        if (isUnlocked)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.15f)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 if (isUnlocked) {
                     Text(emoji, fontSize = 28.sp)
                 } else {
-                    Icon(Icons.Default.Lock, null, tint = Color.Gray, modifier = Modifier.size(24.dp))
+                    Icon(
+                        Icons.Default.Lock,
+                        null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
-            Spacer(Modifier.height(12.dp))
+
+            Spacer(Modifier.height(10.dp))
+
             Text(
                 text = title,
-                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = textColor,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                fontSize = 13.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
+
             Spacer(Modifier.height(4.dp))
+
             Text(
                 text = desc,
-                style = MaterialTheme.typography.labelSmall,
                 color = textColor.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
-                maxLines = 2,
-                lineHeight = 14.sp
+                fontSize = 11.sp,
+                lineHeight = 14.sp,
+                minLines = 2
             )
-            if (isUnlocked && achievement != null) {
-                Spacer(Modifier.height(8.dp))
+
+            Spacer(Modifier.height(10.dp))
+
+            // PROGRESS SECTION
+            if (!isUnlocked && progress != null) {
+                val (current, total) = progress
+                val percent = current.toFloat() / total.coerceAtLeast(1)
+
                 Text(
-                    text = SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(achievement.unlockedAt)),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold
+                    text = "$current / $total",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.SemiBold
                 )
+
+                Spacer(Modifier.height(6.dp))
+
+                LinearProgressIndicator(
+                    progress = { percent },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(50)),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = Color.LightGray.copy(alpha = 0.3f)
+                )
+            }
+
+            // UNLOCKED STATE
+            if (isUnlocked) {
+                Spacer(Modifier.height(8.dp))
+
+                if (isUnlocked && achievement != null) {
+                    Spacer(Modifier.height(8.dp))
+
+                    Text(
+                        text = java.text.SimpleDateFormat(
+                            "MMM d",
+                            java.util.Locale.getDefault()
+                        ).format(
+                            java.util.Date(achievement.unlockedAt)
+                        ),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }
@@ -213,12 +293,17 @@ private fun achievementInfo(type: AchievementType): Triple<String, String, Strin
     AchievementType.THIRTY_DAY_STREAK -> Triple("👑", "Monthly Master", "30-day streak")
     AchievementType.FIRST_FLASHCARD -> Triple("🃏", "Flash Scholar", "Create your first flashcard")
     AchievementType.FIRST_REFLECTION -> Triple("🪷", "Self Aware", "Write your first reflection")
-    AchievementType.POMODORO_MASTER -> Triple("🍅", "Pomodoro Master", "Complete 10 full Pomodoro cycles")
-    AchievementType.POMODORO_LEGEND -> Triple("👑", "Pomodoro Legend", "Complete 50 full Pomodoro cycles")
+    AchievementType.POMODORO_MASTER -> Triple("🍅", "Pomodoro Master", "Complete 10 sessions")
+    AchievementType.POMODORO_LEGEND -> Triple("👑", "Pomodoro Legend", "Complete 50 sessions")
     AchievementType.STREAK_3_DAY -> Triple("🔥", "First Spark", "3-day study streak!")
     AchievementType.STREAK_7_DAY -> Triple("📜", "Consistent Learner", "7-day study streak!")
     AchievementType.STREAK_30_DAY -> Triple("⚔️", "Study Warrior", "30-day study streak!")
     AchievementType.STREAK_100_DAY -> Triple("💎", "Unstoppable", "100-day study streak!")
+    AchievementType.NIGHT_OWL -> Triple("🌙", "Night Owl", "Study late at night")
+    AchievementType.EARLY_BIRD -> Triple("🌅", "Early Bird", "Study early morning")
+    AchievementType.FLASHCARD_MASTER -> Triple("🧠", "Flashcard Master", "Create 50 flashcards")
+    AchievementType.CONSISTENCY_KING -> Triple("👑", "Consistency King", "14-day streak")
+    AchievementType.MARATHON_STUDIER -> Triple("📚", "Marathon Studier", "100 hours studied")
 }
 
 @Preview(showBackground = true)
@@ -234,6 +319,7 @@ fun AchievementsPreview() {
                     description = "Complete your first task"
                 )
             ),
+            progress = emptyList(),
             onBack = {}
         )
     }

@@ -21,6 +21,7 @@ bin/
 out/
 .gradle/
 Captures/
+.gradle_home
 
 # --- Local Configuration (User specific) ---
 local.properties
@@ -45,3 +46,7 @@ Thumbs.db
 *.log
 /.idea/compiler.xml
 /.idea/inspectionProfiles/Project_Default.xml
+echo .vscode/ 
+.vscode/
+.idea/
+app/schemas/

@@ -39,6 +39,7 @@ data class Task(
     val subjectTag: String? = null, // Cached for display (e.g., "PSYCHOLOGY")
     val isCompleted: Boolean = false,
     val completedAt: LocalDate? = null,
+    val isXpAwarded: Boolean = false,
     
     // Sync metadata
     val userId: String? = null,

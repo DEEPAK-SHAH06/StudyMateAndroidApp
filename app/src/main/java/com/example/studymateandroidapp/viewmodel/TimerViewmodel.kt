@@ -202,10 +202,14 @@ class TimerViewmodel(
             endTime = LocalDateTime.now(),
             durationSeconds = seconds,
             isCompleted = isCompleted,
-            examId = _uiState.value.examId
+            examId = _uiState.value.examId,
+            isXpAwarded = isCompleted // Award XP immediately if finished naturally
         )
 
         viewModelScope.launch {
+            if (isCompleted) {
+                motivationRepository.addXp(10, "Study Session Complete!")
+            }
             sessionRepository.insert(session)
             motivationRepository.recordStudyActivity()
         }

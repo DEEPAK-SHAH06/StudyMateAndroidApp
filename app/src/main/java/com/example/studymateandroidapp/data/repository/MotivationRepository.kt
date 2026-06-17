@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.data.repository
 
+import com.example.studymateandroidapp.data.model.AchievementProgress
 import com.example.studymateandroidapp.data.model.Achievement
 import com.example.studymateandroidapp.data.model.AchievementType
 import com.example.studymateandroidapp.data.model.DailyReflection
@@ -8,9 +9,11 @@ import com.example.studymateandroidapp.data.local.GoalDao
 import com.example.studymateandroidapp.data.local.NoteDao
 import com.example.studymateandroidapp.data.local.FlashcardDao
 import com.example.studymateandroidapp.data.local.MotivationDao
+import com.example.studymateandroidapp.data.local.UserProgressDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate
+import java.time.LocalTime
 
 import com.example.studymateandroidapp.data.local.SessionDao
 import kotlinx.coroutines.flow.combine
@@ -22,8 +25,119 @@ class MotivationRepository(
     private val sessionDao: SessionDao,
     private val goalDao: GoalDao,
     private val noteDao: NoteDao,
-    private val flashcardDao: FlashcardDao
+    private val flashcardDao: FlashcardDao,
+    private val gamificationRepository: GamificationRepository
 ) {
+    // ── Gamification (XP & Progress) ───────────────────────
+
+    fun getUserProgress() = gamificationRepository.getUserProgress()
+
+    suspend fun addXp(amount: Int, message: String) {
+        gamificationRepository.addXp(amount, message)
+    }
+
+    /**
+     * Dynamically computes progress for all achievements.
+     */
+    fun getAchievementProgress(): Flow<List<AchievementProgress>> {
+        val flow1 = combine(
+            getAllAchievements(),
+            taskDao.getCompletedCount(),
+            sessionDao.getTotalStudySeconds(),
+            getStreak()
+        ) { achievements, completedTasks, totalSeconds, streak ->
+            Triple(achievements, completedTasks, totalSeconds) to streak
+        }
+
+        val flow2 = combine(
+            flashcardDao.getFlashcardCount(),
+            noteDao.getNoteCount(),
+            goalDao.getCompletedGoalCount(),
+            sessionDao.getCompletedPomodoroCount(),
+            sessionDao.getAllStartTimes()
+        ) { flashcards, notes, goals, pomodoros, startTimes ->
+            Triple(flashcards, notes, goals) to Pair(pomodoros, startTimes)
+        }
+
+        return combine(flow1, flow2) { f1, f2 ->
+            val (data1, streak) = f1
+            val (achievements, completedTasks, totalSeconds) = data1
+            val (data2, pair2) = f2
+            val (flashcards, notes, goals) = data2
+            val (pomodoros, startTimes) = pair2
+
+            val unlockedTypes = achievements.map { it.type }.toSet()
+            val studyHours = totalSeconds / 3600
+
+            AchievementType.entries.map { type ->
+                val target = getTargetForType(type)
+                val current = when (type) {
+                    AchievementType.FIRST_TASK -> if (completedTasks >= 1) 1 else 0
+                    AchievementType.TEN_TASKS -> completedTasks
+                    AchievementType.FIFTY_TASKS -> completedTasks
+                    AchievementType.FIRST_NOTE -> if (notes >= 1) 1 else 0
+                    AchievementType.TEN_NOTES -> notes
+                    AchievementType.FIRST_GOAL_COMPLETE -> if (goals >= 1) 1 else 0
+                    AchievementType.FIVE_GOALS_COMPLETE -> goals
+                    AchievementType.STUDY_HOUR -> studyHours
+                    AchievementType.STUDY_TEN_HOURS -> studyHours
+                    AchievementType.SEVEN_DAY_STREAK -> streak
+                    AchievementType.FOURTEEN_DAY_STREAK -> streak
+                    AchievementType.THIRTY_DAY_STREAK -> streak
+                    AchievementType.FIRST_FLASHCARD -> if (flashcards >= 1) 1 else 0
+                    AchievementType.FIRST_REFLECTION -> 0 // Binary
+                    AchievementType.POMODORO_MASTER -> pomodoros
+                    AchievementType.POMODORO_LEGEND -> pomodoros
+                    AchievementType.STREAK_3_DAY -> streak
+                    AchievementType.STREAK_7_DAY -> streak
+                    AchievementType.STREAK_30_DAY -> streak
+                    AchievementType.STREAK_100_DAY -> streak
+                    AchievementType.NIGHT_OWL -> if (startTimes.any { it.hour in 0..4 }) 1 else 0
+                    AchievementType.EARLY_BIRD -> if (startTimes.any { it.hour in 5..7 }) 1 else 0
+                    AchievementType.FLASHCARD_MASTER -> flashcards
+                    AchievementType.CONSISTENCY_KING -> streak
+                    AchievementType.MARATHON_STUDIER -> studyHours
+                }
+
+                val isUnlocked = type in unlockedTypes
+                AchievementProgress(
+                    type = type,
+                    current = if (isUnlocked) target else current.coerceAtMost(target),
+                    target = target,
+                    isUnlocked = isUnlocked
+                )
+            }
+        }
+    }
+
+    private fun getTargetForType(type: AchievementType): Int = when (type) {
+        AchievementType.FIRST_TASK -> 1
+        AchievementType.TEN_TASKS -> 10
+        AchievementType.FIFTY_TASKS -> 50
+        AchievementType.FIRST_NOTE -> 1
+        AchievementType.TEN_NOTES -> 10
+        AchievementType.FIRST_GOAL_COMPLETE -> 1
+        AchievementType.FIVE_GOALS_COMPLETE -> 5
+        AchievementType.STUDY_HOUR -> 1
+        AchievementType.STUDY_TEN_HOURS -> 10
+        AchievementType.SEVEN_DAY_STREAK -> 7
+        AchievementType.FOURTEEN_DAY_STREAK -> 14
+        AchievementType.THIRTY_DAY_STREAK -> 30
+        AchievementType.FIRST_FLASHCARD -> 1
+        AchievementType.FIRST_REFLECTION -> 1
+        AchievementType.POMODORO_MASTER -> 10
+        AchievementType.POMODORO_LEGEND -> 50
+        AchievementType.STREAK_3_DAY -> 3
+        AchievementType.STREAK_7_DAY -> 7
+        AchievementType.STREAK_30_DAY -> 30
+        AchievementType.STREAK_100_DAY -> 100
+        AchievementType.NIGHT_OWL -> 1
+        AchievementType.EARLY_BIRD -> 1
+        AchievementType.FLASHCARD_MASTER -> 50
+        AchievementType.CONSISTENCY_KING -> 14
+        AchievementType.MARATHON_STUDIER -> 100
+    }
+
     // ── Streak Logic ──────────────────────────────────────
 
     private fun getAllStudyDates(): Flow<Set<LocalDate>> = combine(
@@ -132,6 +246,7 @@ class MotivationRepository(
             )
         } else {
             motivationDao.insertReflection(reflection.copy(lastUpdated = System.currentTimeMillis()))
+            addXp(5, "Daily Reflection Saved!")
         }
     }
 
@@ -210,6 +325,9 @@ class MotivationRepository(
         if (flashcardCount >= 1) {
             tryUnlock(AchievementType.FIRST_FLASHCARD, "Flash Scholar", "Created your first flashcard")?.let { newAchievements.add(it) }
         }
+        if (flashcardCount >= 50) {
+            tryUnlock(AchievementType.FLASHCARD_MASTER, "Flashcard Master", "Create 50 flashcards")?.let { newAchievements.add(it) }
+        }
 
         // Reflection achievements
         val todayReflection = motivationDao.getReflectionForDate(LocalDate.now().toEpochDay())
@@ -224,15 +342,32 @@ class MotivationRepository(
         }
         if (streak >= 7) {
             tryUnlock(AchievementType.STREAK_7_DAY, "Consistent Learner", "7-day study streak!")?.let { newAchievements.add(it) }
+            tryUnlock(AchievementType.SEVEN_DAY_STREAK, "Week Warrior", "7-day study streak")?.let { newAchievements.add(it) }
         }
         if (streak >= 14) {
             tryUnlock(AchievementType.FOURTEEN_DAY_STREAK, "Fortnight Focus", "14-day study streak!")?.let { newAchievements.add(it) }
+            tryUnlock(AchievementType.CONSISTENCY_KING, "Consistency King", "14-day streak")?.let { newAchievements.add(it) }
         }
         if (streak >= 30) {
             tryUnlock(AchievementType.STREAK_30_DAY, "Study Warrior", "30-day study streak!")?.let { newAchievements.add(it) }
+            tryUnlock(AchievementType.THIRTY_DAY_STREAK, "Monthly Master", "30-day streak")?.let { newAchievements.add(it) }
         }
         if (streak >= 100) {
             tryUnlock(AchievementType.STREAK_100_DAY, "Unstoppable", "100-day study streak!")?.let { newAchievements.add(it) }
+        }
+
+        // Time of day achievements
+        val startTimes = sessionDao.getAllStartTimes().firstOrNull() ?: emptyList()
+        if (startTimes.any { it.hour in 0..4 }) {
+            tryUnlock(AchievementType.NIGHT_OWL, "Night Owl", "Study late at night")?.let { newAchievements.add(it) }
+        }
+        if (startTimes.any { it.hour in 5..7 }) {
+            tryUnlock(AchievementType.EARLY_BIRD, "Early Bird", "Study early morning")?.let { newAchievements.add(it) }
+        }
+
+        // Marathon studier (100 hours)
+        if (totalSeconds >= 360000) {
+            tryUnlock(AchievementType.MARATHON_STUDIER, "Marathon Studier", "100 hours studied")?.let { newAchievements.add(it) }
         }
 
         return newAchievements
@@ -246,6 +381,7 @@ class MotivationRepository(
             description = description
         )
         motivationDao.insertAchievement(achievement)
+        addXp(25, "Achievement Unlocked!")
         return achievement
     }
 
