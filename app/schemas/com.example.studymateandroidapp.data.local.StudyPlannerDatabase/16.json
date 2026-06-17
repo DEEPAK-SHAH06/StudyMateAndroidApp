@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 16,
-    "identityHash": "865fa0ce305dac691b85703b2d0c2969",
+    "identityHash": "561b387d40e480ac0882e24c5ea2a2bf",
     "entities": [
       {
         "tableName": "exams",
@@ -56,7 +56,7 @@
       },
       {
         "tableName": "tasks",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `dueDate` INTEGER, `dueTime` INTEGER, `createdAt` INTEGER NOT NULL, `examId` INTEGER, `subjectTag` TEXT, `isCompleted` INTEGER NOT NULL, `completedAt` INTEGER, `userId` TEXT, `serverId` TEXT, `lastUpdated` INTEGER NOT NULL, FOREIGN KEY(`examId`) REFERENCES `exams`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `dueDate` INTEGER, `dueTime` INTEGER, `createdAt` INTEGER NOT NULL, `examId` INTEGER, `tagColor` INTEGER NOT NULL, `subjectTag` TEXT, `isCompleted` INTEGER NOT NULL, `completedAt` INTEGER, `userId` TEXT, `serverId` TEXT, `lastUpdated` INTEGER NOT NULL, FOREIGN KEY(`examId`) REFERENCES `exams`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -111,6 +111,12 @@
             "columnName": "examId",
             "affinity": "INTEGER",
             "notNull": false
+          },
+          {
+            "fieldPath": "tagColor",
+            "columnName": "tagColor",
+            "affinity": "INTEGER",
+            "notNull": true
           },
           {
             "fieldPath": "subjectTag",
@@ -970,7 +976,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '865fa0ce305dac691b85703b2d0c2969')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '561b387d40e480ac0882e24c5ea2a2bf')"
     ]
   }
 }

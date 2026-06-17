@@ -243,15 +243,15 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         value = query,
         onValueChange = onQueryChange,
         modifier = Modifier.fillMaxWidth()
-            .height(48.6.dp)
-            .border(0.8.dp, Color.Black, RoundedCornerShape(40.dp)),
-        placeholder = { Text("Search tasks, subjects...",
-            fontSize = 14.sp,
+            .height(48.dp)
+            .border(0.8.dp, Color.Black, RoundedCornerShape(150.dp)),
+        placeholder = { Text("Search......",
+            fontSize = 13.4.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                       },
 
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        shape = RoundedCornerShape(40.dp),
+        shape = RoundedCornerShape(150.dp),
         singleLine = true,
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,

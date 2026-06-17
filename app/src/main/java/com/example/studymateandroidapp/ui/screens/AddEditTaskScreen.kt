@@ -162,7 +162,7 @@ fun AddEditTaskScreen(
                             .size(34.dp)
                             .background(color, CircleShape)
                             .border(
-                                width = if (selectedColor == color) 3.dp else 1.dp,
+                                width = if (selectedColor == color) 3.dp else 0.7.dp,
                                 color = Color.Black,
                                 shape = CircleShape
                             )
