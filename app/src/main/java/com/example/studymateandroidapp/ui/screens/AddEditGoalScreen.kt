@@ -23,6 +23,7 @@ fun AddEditGoalScreen(
     viewModel: GoalViewmodel,
     onNavigateBack: () -> Unit
 ) {
+    val uiState by viewModel.formState.collectAsState()
     val scope = rememberCoroutineScope()
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }

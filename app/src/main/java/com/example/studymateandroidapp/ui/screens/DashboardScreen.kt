@@ -143,10 +143,20 @@ private fun DashboardContent(
                 onBack = null,
                 actions = {
                     IconButton(onClick = onNavigateToAchievements) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(
+                            painter = painterResource(id = R.drawable.achievements),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Achievements",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                     IconButton(onClick = onNavigateToStats) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Statistics", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(
+                            painter = painterResource(id = R.drawable.statistics),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Statistics",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             )
@@ -156,10 +166,10 @@ private fun DashboardContent(
                 onClick = onNavigateToCalendar,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(50.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Icon(Icons.Default.CalendarMonth, contentDescription = "Calendar")
+                Icon(Icons.Default.CalendarMonth, contentDescription = "Calendar", modifier = Modifier.size(35.dp))
             }
         }
     ) { paddingValues ->
