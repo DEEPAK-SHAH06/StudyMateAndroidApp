@@ -81,6 +81,7 @@ fun AddEditTaskScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Spacer(modifier = Modifier.width(3.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -92,25 +93,27 @@ fun AddEditTaskScreen(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "NEW ENTRY",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Gray
+                        "NEW ENTRY",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Bold
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Organize Your Study\nStream",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 38.sp
+                        "Organize Your Study Stream",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 32.sp
                     )
+                    Spacer(modifier = Modifier.height(3.dp))
                     Text(
-                        text = "Capture the essence of your next milestone.\nClarity leads to focus.",
-                        fontSize = 10.sp,
+                        "Capture the essence of your next milestone.\nClarity leads to focus.",
+                        style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
 
                 Image(
                     painter = painterResource(R.drawable.create_task),
@@ -118,8 +121,6 @@ fun AddEditTaskScreen(
                     modifier = Modifier.size(100.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = title,
@@ -174,7 +175,7 @@ fun AddEditTaskScreen(
                     )
                 }
             }
-
+            Spacer(modifier = Modifier.height(2.dp))
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -183,12 +184,11 @@ fun AddEditTaskScreen(
                 minLines = 3,
                 shape = RoundedCornerShape(12.dp)
             )
-
+            Spacer(modifier = Modifier.height(1.dp))
             Text(
                 "Priority",
                 style = MaterialTheme.typography.titleSmall
             )
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -209,6 +209,7 @@ fun AddEditTaskScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center,
                                 modifier = Modifier.fillMaxWidth()
+                                    .height(62.dp)
                             ) {
 
                                 Icon(
@@ -229,7 +230,7 @@ fun AddEditTaskScreen(
                     )
                 }
             }
-
+            Spacer(modifier = Modifier.height(2.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)

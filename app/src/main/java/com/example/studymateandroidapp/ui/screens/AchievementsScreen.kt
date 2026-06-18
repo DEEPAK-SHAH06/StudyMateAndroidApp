@@ -1,7 +1,9 @@
 package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,11 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.studymateandroidapp.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.studymateandroidapp.data.model.Achievement
@@ -66,7 +70,7 @@ fun AchievementsContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 28.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
@@ -78,30 +82,29 @@ fun AchievementsContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(24.dp))
-                        .background(
-                            Brush.linearGradient(
-                                listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.primaryContainer
-                                )
-                            )
-                        )
+                        .border( 1.dp, Color.DarkGray.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+                        .background(Color.White)
                         .padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🏆", fontSize = 48.sp)
-                        Spacer(Modifier.height(8.dp))
+                        Image(
+                            painter = painterResource(id = R.drawable.achievement),
+                            contentDescription = null,
+                            modifier = Modifier.size(100.dp)
+                        )
+                        Spacer(Modifier.height(5.dp))
                         Text(
                             text = "${achievements.size} Unlocked",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = Color.Black
                         )
                         Text(
                             text = "of ${allTypes.size} total badges",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.8f)
+                            color = Color.Red.copy(alpha = 0.8f),
+                            fontSize = 14.sp
                         )
                     }
                 }

@@ -131,10 +131,21 @@ fun TaskContent(
                 title = "",
                 actions = {
                     IconButton(onClick = onAchievementsClick) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements")
+                        Icon(
+                        painter = painterResource(id = R.drawable.achievements),
+                            modifier = Modifier.size(20.dp),
+                        contentDescription = "Achievements",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
+
                     IconButton(onClick = onStatsClick) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Statistics")
+                        Icon(
+                            painter = painterResource(id = R.drawable.statistics),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Statistics",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             )
@@ -144,10 +155,10 @@ fun TaskContent(
                 onClick = onAddTask,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(50.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Task")
+                Icon(Icons.Default.Add, contentDescription = "Add Task",  modifier = Modifier.size(35.dp))
 
             }
         }
@@ -244,19 +255,15 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         value = query,
         onValueChange = onQueryChange,
         modifier = Modifier.fillMaxWidth()
-            .height(48.dp)
-            .border(0.8.dp, Color.Black, RoundedCornerShape(150.dp)),
-        placeholder = { Text("Search......",
-            fontSize = 13.4.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                      },
-
+            .size(49.dp)
+            ,
+        placeholder = { Text("Search tasks, subjects...", fontSize = 13.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        shape = RoundedCornerShape(150.dp),
+        shape = RoundedCornerShape(12.dp),
         singleLine = true,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -322,7 +329,7 @@ fun TaskItemView(
             .height(72.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
+        color = Color(0xFFF2F2F2),
         border = BorderStroke(
             1.dp,
             MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
@@ -342,6 +349,7 @@ fun TaskItemView(
                     .padding(2.dp)
                     .clickable { onToggle() },
                 shape = RoundedCornerShape(6.dp),
+
                 border = BorderStroke(
                     2.dp,
                     if (task.isCompleted)
@@ -392,10 +400,11 @@ fun TaskItemView(
                     if (!task.subjectTag.isNullOrBlank()) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.height(22.dp),
                             color = Color(task.tagColor.toULong()),
                             border = BorderStroke(
                                 1.dp,
-                                MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
                             )
                         ) {
                             Text(

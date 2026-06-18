@@ -101,10 +101,21 @@ fun ExamContent(
 
                 actions = {
                     IconButton(onClick = onNavigateToAchievements) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(
+                            painter = painterResource(id = R.drawable.achievements),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Achievements",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
+
                     IconButton(onClick = onStatsClick) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Statistics")
+                        Icon(
+                            painter = painterResource(id = R.drawable.statistics),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Statistics",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             )
@@ -114,10 +125,10 @@ fun ExamContent(
                 onClick = onAddExam,
                 containerColor = Color.Black,
                 contentColor = Color.White,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(50.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Exam")
+                Icon(Icons.Default.Add, contentDescription = "Add Exam", modifier = Modifier.size(35.dp))
             }
         }
     ) { innerPadding ->
@@ -137,7 +148,6 @@ fun ExamContent(
 
             Spacer(Modifier.height(12.dp))
             ExamSearchBar(query = searchQuery, onQueryChange = { searchQuery = it })
-            Spacer(Modifier.height(12.dp))
 
             Box(
                 modifier = Modifier
@@ -232,18 +242,17 @@ fun ExamSearchBar(query: String, onQueryChange: (String) -> Unit) {
         value = query,
         onValueChange = onQueryChange,
         modifier = Modifier.fillMaxWidth()
-            .height(48.6.dp)
-            .border(0.8.dp, Color.Black, RoundedCornerShape(40.dp)),
+            .height(49.dp),
         placeholder = { Text("Search exams, subjects...",
-            fontSize = 14.sp,
+            fontSize = 13.5.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
         },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        shape = RoundedCornerShape(40.dp),
+        shape = RoundedCornerShape(12.dp),
         singleLine = true,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
