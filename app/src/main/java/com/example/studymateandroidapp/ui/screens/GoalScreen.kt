@@ -1,17 +1,32 @@
 package com.example.studymateandroidapp.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,69 +44,19 @@ fun GoalScreen(
     viewModel: GoalViewmodel,
     onNavigateToAddGoal: () -> Unit,
     onNavigateToEditGoal: (Long) -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
 ) {
-    val uiState by viewModel.listState.collectAsStateWithLifecycle()
+    val listState by viewModel.listState.collectAsStateWithLifecycle()
     var goalIdToDelete by remember { mutableStateOf<Long?>(null) }
 
-    Scaffold(
-        topBar = {
-            StudyMateTopBar(
-                title = "Study Goals",
-                onBack = onNavigateBack
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToAddGoal,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Goal")
-            }
-        }
-    ) { padding ->
-        if (uiState.goals.isEmpty() && !uiState.isLoading) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.Flag,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    Text(
-                        "No goals set yet. Start big!",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(uiState.goals, key = { it.goal.id }) { item ->
-                    GoalCard(
-                        goal = item.goal,
-                        progressPercent = item.progressPercent,
-                        onClick = { onNavigateToEditGoal(item.goal.id) },
-                        onDelete = { goalIdToDelete = item.goal.id }
-                    )
-                }
-            }
-        }
-    }
+    GoalScreenContent(
+        listState = listState,
+        onNavigateToAddGoal = onNavigateToAddGoal,
+        onNavigateToEditGoal = onNavigateToEditGoal,
+        onNavigateBack = onNavigateBack,
+        onDeleteGoal = { goalIdToDelete = it },
+        onFilterChanged = viewModel::onFilterChanged
+    )
 
     goalIdToDelete?.let { goalId ->
         ConfirmDeleteDialog(
@@ -106,6 +71,130 @@ fun GoalScreen(
 }
 
 @Composable
+fun GoalScreenContent(
+    listState: GoalViewmodel.GoalListUiState,
+    onNavigateToAddGoal: () -> Unit,
+    onNavigateToEditGoal: (Long) -> Unit,
+    onNavigateBack: () -> Unit,
+    onDeleteGoal: (Long) -> Unit,
+    onFilterChanged: (GoalViewmodel.GoalFilter) -> Unit
+) {
+    val selectedFilter = if (listState.filter == GoalViewmodel.GoalFilter.COMPLETED) "Finished" else "Working"
+    val filteredGoals = listState.goals
+
+    Scaffold(
+        topBar = {
+            StudyMateTopBar(
+                title = "Study Goals",
+                onBack = onNavigateBack
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToAddGoal,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.shadow(8.dp, RoundedCornerShape(16.dp))
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Goal")
+            }
+        }
+    ) { padding ->
+        Box(modifier = Modifier.padding(padding)) {
+            if (listState.isLoading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // 1. Featured Card - ALWAYS VISIBLE
+                    item {
+                        FeaturedGoalCard(
+                            featuredGoal = filteredGoals.firstOrNull()?.goal,
+                            selectedFilter = selectedFilter,
+                            onFilterSelected = {
+                                val newFilter = if (it == "Finished") GoalViewmodel.GoalFilter.COMPLETED else GoalViewmodel.GoalFilter.ACTIVE
+                                onFilterChanged(newFilter)
+                            },
+                            onEditGoal = { onNavigateToEditGoal(it.id) }
+                        )
+                    }
+
+                    // 2. Section Header
+                    item {
+                        Text(
+                            text = if (selectedFilter == "Working") "Active Pursuits" else "Achievements",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+
+                    // 3. Content: Either the List OR the Empty State
+                    if (filteredGoals.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 48.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                EmptyGoalsState()
+                            }
+                        }
+                    } else {
+                        items(filteredGoals, key = { it.goal.id }) { item ->
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = fadeIn() + expandVertically(),
+                                exit = fadeOut() + shrinkVertically()
+                            ) {
+                                GoalCard(
+                                    goal = item.goal,
+                                    progressPercent = item.progressPercent,
+                                    onClick = { onNavigateToEditGoal(item.goal.id) },
+                                    onDelete = { onDeleteGoal(item.goal.id) }
+                                )
+                            }
+                        }
+                    }
+
+                    item { Spacer(modifier = Modifier.height(80.dp)) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyGoalsState() {
+    Box(
+        Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                Icons.Default.Flag,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "No goals set yet. Start big!",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.outline
+            )
+        }
+    }
+}
+
+@Composable
 fun GoalCard(
     goal: Goal,
     progressPercent: Int,
@@ -113,12 +202,14 @@ fun GoalCard(
     onDelete: () -> Unit
 ) {
     val progress = progressPercent / 100f
-    
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .shadow(4.dp, RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -129,66 +220,131 @@ fun GoalCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = goal.title,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = goal.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    if (goal.description.isNotBlank()) {
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = goal.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                }
+
+                Row {
+                    IconButton(onClick = onClick) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                     }
                 }
-                
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Delete"
-                    )
-                }
             }
-            
-            Spacer(Modifier.height(16.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 LinearProgressIndicator(
                     progress = { progress },
                     modifier = Modifier
                         .weight(1f)
-                        .height(8.dp),
-                    strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                        .height(8.dp)
+                        .clip(CircleShape),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                 )
-                Spacer(Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = "$progressPercent%",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.labelMedium
                 )
             }
-            
-            Spacer(Modifier.height(12.dp))
-            
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "${goal.currentValue} / ${goal.targetValue} units completed",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun FeaturedGoalCard(
+    featuredGoal: Goal?,
+    selectedFilter: String,
+    onFilterSelected: (String) -> Unit,
+    onEditGoal: (Goal) -> Unit = {}
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(28.dp))
+            .let {
+                if (featuredGoal != null) it.clickable { onEditGoal(featuredGoal) } else it
+            },
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                StatusBadge(status = goal.status)
-                
-                Text(
-                    text = "${goal.currentValue} / ${goal.targetValue}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Work hard",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text =  "to achieve your goals",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Filter Tabs
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(4.dp)
+            ) {
+                FilterTabButton(
+                    text = "Working",
+                    isSelected = selectedFilter == "Working",
+                    onClick = { onFilterSelected("Working") },
+                    modifier = Modifier.weight(1f)
+                )
+                FilterTabButton(
+                    text = "Finished",
+                    isSelected = selectedFilter == "Finished",
+                    onClick = { onFilterSelected("Finished") },
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -196,38 +352,33 @@ fun GoalCard(
 }
 
 @Composable
-fun StatusBadge(status: GoalStatus) {
-    val containerColor = when (status) {
-        GoalStatus.COMPLETED -> Color(0xFFE8F5E9)
-        GoalStatus.IN_PROGRESS -> Color(0xFFE3F2FD)
-        GoalStatus.NOT_STARTED -> Color(0xFFF5F5F5)
-        GoalStatus.ABANDONED -> Color(0xFFFFEBEE)
-    }
-    
-    val contentColor = when (status) {
-        GoalStatus.COMPLETED -> Color(0xFF2E7D32)
-        GoalStatus.IN_PROGRESS -> Color(0xFF1976D2)
-        GoalStatus.NOT_STARTED -> Color(0xFF616161)
-        GoalStatus.ABANDONED -> Color(0xFFC62828)
-    }
+fun FilterTabButton(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor by animateColorAsState(
+        if (isSelected) MaterialTheme.colorScheme.surface else Color.Transparent,
+        label = "bg"
+    )
+    val textColor by animateColorAsState(
+        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "text"
+    )
 
-    val label = when (status) {
-        GoalStatus.COMPLETED -> "Completed"
-        GoalStatus.IN_PROGRESS -> "In Progress"
-        GoalStatus.NOT_STARTED -> "Pending"
-        GoalStatus.ABANDONED -> "Abandoned"
-    }
-
-    Surface(
-        color = containerColor,
-        contentColor = contentColor,
-        shape = MaterialTheme.shapes.small
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center
     ) {
         Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold
+            text = text,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            color = textColor
         )
     }
 }
@@ -236,18 +387,39 @@ fun StatusBadge(status: GoalStatus) {
 @Composable
 fun GoalScreenPreview() {
     MaterialTheme {
-        GoalCard(
-            goal = Goal(
-                id = 1,
-                title = "Learn Jetpack Compose",
-                description = "Master building modern Android UIs with Compose Material 3",
-                status = GoalStatus.IN_PROGRESS,
-                currentValue = 65,
-                targetValue = 100
+        GoalScreenContent(
+            listState = GoalViewmodel.GoalListUiState(
+                goals = listOf(
+                    GoalViewmodel.GoalDisplayItem(
+                        goal = Goal(
+                            id = 1,
+                            title = "Learn Jetpack Compose",
+                            description = "Master building modern Android UIs",
+                            status = GoalStatus.IN_PROGRESS,
+                            currentValue = 65,
+                            targetValue = 100
+                        ),
+                        progressPercent = 65
+                    ),
+                    GoalViewmodel.GoalDisplayItem(
+                        goal = Goal(
+                            id = 2,
+                            title = "Finish Room Database",
+                            description = "Implement local storage",
+                            status = GoalStatus.COMPLETED,
+                            currentValue = 10,
+                            targetValue = 10
+                        ),
+                        progressPercent = 100
+                    )
+                ),
+                isLoading = false
             ),
-            progressPercent = 65,
-            onClick = {},
-            onDelete = {}
+            onNavigateToAddGoal = {},
+            onNavigateToEditGoal = {},
+            onNavigateBack = {},
+            onDeleteGoal = {},
+            onFilterChanged = {}
         )
     }
 }
