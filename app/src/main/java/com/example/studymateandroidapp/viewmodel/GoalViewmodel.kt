@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.model.Goal
 import com.example.studymateandroidapp.data.model.GoalStatus
+import com.example.studymateandroidapp.data.model.CelebrationEvent
+import com.example.studymateandroidapp.data.model.CelebrationType
 import com.example.studymateandroidapp.data.repository.GoalRepository
+import com.example.studymateandroidapp.data.repository.MotivationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +21,8 @@ import java.time.LocalDate
  * ViewModel for Goal List + Add/Edit Goal screens.
  */
 class GoalViewmodel(
-    private val repository: GoalRepository
+    private val repository: GoalRepository,
+    private val motivationRepository: MotivationRepository
 ) : ViewModel() {
 
     // ── List UI State ─────────────────────────────────────
@@ -78,8 +82,12 @@ class GoalViewmodel(
         viewModelScope.launch {
             val goal = repository.getGoalById(goalId).firstOrNull()
             repository.updateProgress(goalId, newValue)
-            // Check if goal just became complete
-            if (goal != null && newValue >= goal.targetValue && goal.currentValue < goal.targetValue) {
+            
+            // Re-fetch to get updated status/values if needed, or just use the logic
+            val updatedGoal = repository.getGoalById(goalId).firstOrNull()
+            
+            // Check if goal just became complete AND XP hasn't been awarded yet
+            if (updatedGoal != null && updatedGoal.status == GoalStatus.COMPLETED && !updatedGoal.isXpAwarded) {
                 val msg = listOf(
                     "🎯 Incredible! Goal crushed!",
                     "🌟 You're unstoppable! Another goal done!",
@@ -87,6 +95,23 @@ class GoalViewmodel(
                     "🚀 Goal achieved! What's next?",
                     "💪 You earned this — brilliant work!"
                 ).random()
+                
+                motivationRepository.addXp(15, "Goal Completed!")
+                
+                motivationRepository.triggerCelebration(
+                    CelebrationEvent(
+                        type = CelebrationType.GOAL_COMPLETED,
+                        title = "Goal Completed",
+                        subtitle = updatedGoal.title,
+                        xpReward = 15,
+                        icon = "🎯"
+                    )
+                )
+
+                // Mark XP as awarded persistently
+                repository.update(updatedGoal.copy(isXpAwarded = true))
+                motivationRepository.checkAndUnlockAchievements()
+
                 _listState.update {
                     it.copy(showEncouragement = true, encouragementMessage = msg, showCelebration = true)
                 }
@@ -116,13 +141,51 @@ class GoalViewmodel(
 
     fun addGoal(goal: Goal) {
         viewModelScope.launch {
-            repository.insert(goal)
+            val isCompleted = goal.status == GoalStatus.COMPLETED || goal.currentValue >= goal.targetValue
+            val finalGoal = if (isCompleted && !goal.isXpAwarded) {
+                motivationRepository.addXp(15, "Goal Completed!")
+                motivationRepository.triggerCelebration(
+                    CelebrationEvent(
+                        type = CelebrationType.GOAL_COMPLETED,
+                        title = "Goal Completed",
+                        subtitle = goal.title,
+                        xpReward = 15,
+                        icon = "🎯"
+                    )
+                )
+                goal.copy(status = GoalStatus.COMPLETED, isXpAwarded = true)
+            } else {
+                goal
+            }
+            repository.insert(finalGoal)
+            if (isCompleted) {
+                motivationRepository.checkAndUnlockAchievements()
+            }
         }
     }
 
     fun updateGoal(goal: Goal) {
         viewModelScope.launch {
-            repository.update(goal)
+            val isCompleted = goal.status == GoalStatus.COMPLETED || goal.currentValue >= goal.targetValue
+            val finalGoal = if (isCompleted && !goal.isXpAwarded) {
+                motivationRepository.addXp(15, "Goal Completed!")
+                motivationRepository.triggerCelebration(
+                    CelebrationEvent(
+                        type = CelebrationType.GOAL_COMPLETED,
+                        title = "Goal Completed",
+                        subtitle = goal.title,
+                        xpReward = 15,
+                        icon = "🎯"
+                    )
+                )
+                goal.copy(status = GoalStatus.COMPLETED, isXpAwarded = true)
+            } else {
+                goal
+            }
+            repository.update(finalGoal)
+            if (isCompleted) {
+                motivationRepository.checkAndUnlockAchievements()
+            }
         }
     }
 

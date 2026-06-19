@@ -14,6 +14,7 @@ class GamificationViewModel(
 ) : ViewModel() {
 
     val xpEvents = repository.xpEvents
+    val celebrationEvents = repository.celebrationEvents
 
     val levelInfo = repository.getLevelInfoFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

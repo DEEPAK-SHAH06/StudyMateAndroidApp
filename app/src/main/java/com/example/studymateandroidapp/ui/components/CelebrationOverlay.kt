@@ -6,8 +6,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,95 +22,110 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
 
+import com.example.studymateandroidapp.data.model.CelebrationEvent
+import com.example.studymateandroidapp.data.model.CelebrationType
+
 /**
  * Celebration overlay that shows a fun confetti-style animation
- * and a message whenever an achievement is unlocked or a goal is completed.
+ * and a contextual message whenever an achievement is unlocked, goal is completed, etc.
  */
 @Composable
 fun CelebrationOverlay(
-    message: String,
+    event: CelebrationEvent,
     isVisible: Boolean,
     onDismiss: () -> Unit
 ) {
     LaunchedEffect(isVisible) {
         if (isVisible) {
-            delay(3000)
+            delay(2000) // Auto-dismiss after 2 seconds
             onDismiss()
         }
     }
 
     AnimatedVisibility(
         visible = isVisible,
-        enter = fadeIn() + scaleIn(initialScale = 0.8f),
-        exit = fadeOut() + scaleOut(targetScale = 0.8f),
+        enter = fadeIn() + slideInVertically(initialOffsetY = { -it }),
+        exit = fadeOut() + slideOutVertically(targetOffsetY = { -it }),
         modifier = Modifier
             .fillMaxSize()
-            .zIndex(10f)
+            .zIndex(200f)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f)),
-            contentAlignment = Alignment.Center
+                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.2f))
+                .padding(top = 48.dp),
+            contentAlignment = Alignment.TopCenter
         ) {
-            // Confetti particles
-            ConfettiLayer()
-
-            // Message card
-            Card(
+            Surface(
                 modifier = Modifier
-                    .padding(32.dp)
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                )
+                    .padding(horizontal = 24.dp)
+                    .fillMaxWidth(0.9f),
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 12.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
             ) {
-                Column(
-                    modifier = Modifier.padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Row(
+                    modifier = Modifier.padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Animated trophy emoji
-                    val scale by rememberInfiniteTransition(label = "trophy").animateFloat(
-                        initialValue = 1f,
-                        targetValue = 1.2f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(600),
-                            repeatMode = RepeatMode.Reverse
-                        ),
-                        label = "trophy_scale"
-                    )
-                    Text(
-                        text = "🎉",
-                        fontSize = (48 * scale).sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        color = Color.Black
-                    )
-
-                    Spacer(Modifier.height(24.dp))
-
-                    Button(
-                        onClick = onDismiss,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF6750A4),
-                            contentColor = Color.White
-                        )
+                    // Modern Emoji/Icon Container
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text("Awesome! 🚀", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = event.icon.ifBlank { "✨" },
+                            fontSize = 22.sp
+                        )
+                    }
+
+                    Spacer(Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (event.type == CelebrationType.TASK_COMPLETED) {
+                                "${event.subtitle} completed"
+                            } else if (event.type == CelebrationType.GOAL_COMPLETED) {
+                                "${event.subtitle} completed"
+                            } else {
+                                event.title
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        
+                        if (event.type != CelebrationType.TASK_COMPLETED && 
+                            event.type != CelebrationType.GOAL_COMPLETED && 
+                            event.subtitle.isNotBlank()) {
+                            Text(
+                                text = event.subtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    if (event.xpReward != null) {
+                        Text(
+                            text = "+${event.xpReward} XP",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -160,7 +179,10 @@ fun EncouragementBanner(
     onDismiss: () -> Unit
 ) {
     val brush = Brush.horizontalGradient(
-        colors = listOf(Color(0xFF6750A4), Color(0xFF9C27B0))
+        colors = listOf(
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.secondary
+        )
     )
     Box(
         modifier = Modifier
@@ -178,11 +200,11 @@ fun EncouragementBanner(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.weight(1f)
             )
             TextButton(onClick = onDismiss) {
-                Text("✕", color = Color.White)
+                Text("✕", color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     }
@@ -198,7 +220,10 @@ fun DailyQuoteCard(
     modifier: Modifier = Modifier
 ) {
     val brush = Brush.linearGradient(
-        colors = listOf(Color(0xFF1A1A2E), Color(0xFF16213E))
+        colors = listOf(
+            MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.surface
+        )
     )
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -214,7 +239,7 @@ fun DailyQuoteCard(
                 Text(
                     text = "✨ Daily Inspiration",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFFE0B0FF),
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
                 )
@@ -222,7 +247,7 @@ fun DailyQuoteCard(
                 Text(
                     text = "\"$quote\"",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,
                     lineHeight = 26.sp
                 )
@@ -230,7 +255,7 @@ fun DailyQuoteCard(
                 Text(
                     text = "— $author",
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color(0xFFB0BEC5),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -277,7 +302,7 @@ fun ReflectionReminderCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF3E5F5)
+            containerColor = MaterialTheme.colorScheme.primaryContainer
         )
     ) {
         Row(
@@ -289,19 +314,19 @@ fun ReflectionReminderCard(
                     "📝 Evening Reflection",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF6750A4)
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
                     "What did you study today?",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF6750A4).copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                 )
             }
             Text(
                 text = "›",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF6750A4)
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
     }

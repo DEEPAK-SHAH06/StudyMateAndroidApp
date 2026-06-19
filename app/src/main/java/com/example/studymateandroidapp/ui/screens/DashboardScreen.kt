@@ -36,7 +36,6 @@ import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Task
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.viewmodel.DashboardViewModel
-import com.example.studymateandroidapp.ui.components.CelebrationOverlay
 import com.example.studymateandroidapp.viewmodel.DashboardViewModel.GoalSummary
 import com.example.studymateandroidapp.ui.components.DailyQuoteCard
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
@@ -55,15 +54,6 @@ fun DashboardScreen(
     onNavigateToAchievements: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    // Celebration overlay
-    if (uiState.showCelebration) {
-        CelebrationOverlay(
-            message = uiState.celebrationMessage,
-            isVisible = uiState.showCelebration,
-            onDismiss = viewModel::dismissCelebration
-        )
-    }
 
     DashboardContent(
         greeting = uiState.greeting,

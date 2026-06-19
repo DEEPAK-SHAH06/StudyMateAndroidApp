@@ -96,12 +96,12 @@ fun AchievementsContent(
                             text = "${achievements.size} Unlocked",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                         Text(
                             text = "of ${allTypes.size} total badges",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.8f)
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                         )
                     }
                 }
@@ -172,7 +172,7 @@ private fun AchievementBadge(
         border = if (isUnlocked)
             null
         else
-            BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f))
+            BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -198,7 +198,7 @@ private fun AchievementBadge(
                     Icon(
                         Icons.Default.Lock,
                         null,
-                        tint = Color.Gray,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -250,7 +250,7 @@ private fun AchievementBadge(
                         .height(6.dp)
                         .clip(RoundedCornerShape(50)),
                     color = MaterialTheme.colorScheme.primary,
-                    trackColor = Color.LightGray.copy(alpha = 0.3f)
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             }
 

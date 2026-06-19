@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.example.studymateandroidapp.data.model.CelebrationEvent
+import com.example.studymateandroidapp.data.model.CelebrationType
 
 class FlashcardViewmodel(
     private val repository: FlashcardRepository,
@@ -52,6 +54,15 @@ class FlashcardViewmodel(
         viewModelScope.launch {
             repository.completeReviewSession(examId, correct, total)
             motivationRepository.addXp(3, "Flashcard Review Complete!")
+            motivationRepository.triggerCelebration(
+                CelebrationEvent(
+                    type = CelebrationType.TASK_COMPLETED,
+                    title = "Flashcard Review Complete",
+                    subtitle = "$correct of $total correct",
+                    xpReward = 3,
+                    icon = "🧠"
+                )
+            )
         }
     }
 }

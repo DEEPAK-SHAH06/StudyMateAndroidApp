@@ -35,8 +35,8 @@ fun XpOverlay(
                 modifier = Modifier
                     .padding(top = 64.dp)
                     .clip(RoundedCornerShape(16.dp)),
-                color = Color.Black.copy(alpha = 0.9f),
-                contentColor = Color.White,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 shadowElevation = 8.dp
             ) {
                 Row(
@@ -48,7 +48,7 @@ fun XpOverlay(
                         text = "✨ +${event.amount} XP",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Black,
-                        color = Color(0xFFFFD700) // Gold
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Column {
                         Text(

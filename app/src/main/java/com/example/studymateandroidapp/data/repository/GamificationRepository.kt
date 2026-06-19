@@ -1,12 +1,15 @@
 package com.example.studymateandroidapp.data.repository
 
 import com.example.studymateandroidapp.data.local.UserProgressDao
+import com.example.studymateandroidapp.data.model.CelebrationEvent
+import com.example.studymateandroidapp.data.model.CelebrationType
 import com.example.studymateandroidapp.data.model.LevelInfo
 import com.example.studymateandroidapp.data.model.UserProgress
 import com.example.studymateandroidapp.data.model.XpEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 
 class GamificationRepository(private val userProgressDao: UserProgressDao) {
@@ -14,11 +17,35 @@ class GamificationRepository(private val userProgressDao: UserProgressDao) {
     private val _xpEvents = MutableSharedFlow<XpEvent>()
     val xpEvents = _xpEvents.asSharedFlow()
 
+    private val _celebrationEvents = MutableSharedFlow<CelebrationEvent>()
+    val celebrationEvents = _celebrationEvents.asSharedFlow()
+
     fun getUserProgress(): Flow<UserProgress?> = userProgressDao.getUserProgress()
 
     suspend fun addXp(amount: Int, message: String) {
+        val oldXp = getTotalXpSync()
         userProgressDao.addXp(amount)
+        val newXp = oldXp + amount
+        
         _xpEvents.emit(XpEvent(amount, message))
+
+        // Detect level up
+        val oldLevel = calculateLevelInfo(oldXp).level
+        val newLevelInfo = calculateLevelInfo(newXp)
+        if (newLevelInfo.level > oldLevel) {
+            triggerCelebration(
+                CelebrationEvent(
+                    type = CelebrationType.LEVEL_UP,
+                    title = "Level Up!",
+                    subtitle = "Reached Level ${newLevelInfo.level}",
+                    icon = "⭐"
+                )
+            )
+        }
+    }
+
+    suspend fun triggerCelebration(event: CelebrationEvent) {
+        _celebrationEvents.emit(event)
     }
 
     suspend fun getTotalXpSync(): Int {

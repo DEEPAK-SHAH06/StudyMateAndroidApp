@@ -26,3 +26,25 @@ data class AchievementProgress(
     val target: Int,
     val isUnlocked: Boolean
 )
+
+/**
+ * Types of celebrations supported by the system.
+ */
+enum class CelebrationType {
+    TASK_COMPLETED,
+    ACHIEVEMENT_UNLOCKED,
+    STREAK_REACHED,
+    LEVEL_UP,
+    GOAL_COMPLETED
+}
+
+/**
+ * Metadata for a contextual celebration.
+ */
+data class CelebrationEvent(
+    val type: CelebrationType,
+    val title: String,
+    val subtitle: String = "",
+    val xpReward: Int? = null,
+    val icon: String = "" // Emoji or icon identifier
+)

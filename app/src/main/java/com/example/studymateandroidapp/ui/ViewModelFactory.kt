@@ -80,7 +80,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             // ── Calendar ───────────────────────────────────────────
             modelClass.isAssignableFrom(CalendarViewModel::class.java) ->
                 CalendarViewModel(
-                    taskRepository = getTaskRepository(db),
+                    taskRepository =  getTaskRepository(db),
                     examRepository = getExamRepository(db)
                 ) as T
 
@@ -104,7 +104,10 @@ object ViewModelFactory : ViewModelProvider.Factory {
 
             // ── Goals ──────────────────────────────────────────────
             modelClass.isAssignableFrom(GoalViewmodel::class.java) ->
-                GoalViewmodel(getGoalRepository(db)) as T
+                GoalViewmodel(
+                    repository = getGoalRepository(db),
+                    motivationRepository = getMotivationRepository(db)
+                ) as T
 
             // ── Notes ──────────────────────────────────────────────
             modelClass.isAssignableFrom(NoteViewmodel::class.java) ->

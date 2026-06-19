@@ -34,6 +34,7 @@ data class Goal(
     val examId: Long? = null,
     val deadline: LocalDate? = null,
     val createdAt: LocalDate = LocalDate.now(),
+    val isXpAwarded: Boolean = false,
 
     // Sync metadata
     val userId: String? = null,

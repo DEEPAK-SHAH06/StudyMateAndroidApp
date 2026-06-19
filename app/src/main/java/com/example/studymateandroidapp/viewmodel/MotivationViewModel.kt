@@ -23,8 +23,6 @@ class MotivationViewModel(
         val dailyQuoteAuthor: String = "",
         val currentStreak: Int = 0,
         val newAchievements: List<Achievement> = emptyList(),
-        val showCelebration: Boolean = false,
-        val celebrationMessage: String = "",
         val todayReflection: DailyReflection? = null,
         val reflectionContent: String = "",
         val reflectionMood: String = "\uD83D\uDE0A",
@@ -89,16 +87,7 @@ class MotivationViewModel(
 
     fun checkAndUnlockAchievements() {
         viewModelScope.launch {
-            val newOnes = repository.checkAndUnlockAchievements()
-            if (newOnes.isNotEmpty()) {
-                _uiState.update {
-                    it.copy(
-                        newAchievements = newOnes,
-                        showCelebration = true,
-                        celebrationMessage = "New Achievement Unlocked: ${newOnes.first().title}!"
-                    )
-                }
-            }
+            repository.checkAndUnlockAchievements()
         }
     }
 
@@ -134,9 +123,7 @@ class MotivationViewModel(
                 it.copy(
                     todayReflection = if (savedToday) reflection else it.todayReflection,
                     editingReflection = null,
-                    isReflectionSaved = true,
-                    showCelebration = true,
-                    celebrationMessage = "Reflection saved!"
+                    isReflectionSaved = true
                 )
             }
             checkAndUnlockAchievements()
@@ -178,12 +165,6 @@ class MotivationViewModel(
                     it
                 }
             }
-        }
-    }
-
-    fun dismissCelebration() {
-        _uiState.update {
-            it.copy(showCelebration = false, newAchievements = emptyList(), celebrationMessage = "")
         }
     }
 
