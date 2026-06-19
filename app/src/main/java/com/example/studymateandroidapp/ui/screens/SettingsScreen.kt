@@ -18,7 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
+import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.ReminderSetting
 import com.example.studymateandroidapp.data.model.ReminderType
 import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
@@ -158,11 +160,22 @@ fun SettingsContent(
                 title = "",
                 onBack = null,
                 actions = {
-                    IconButton(onClick = onAchievementsClick) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements")
+                    IconButton(onClick =  onAchievementsClick) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.achievements),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Achievements",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
+
                     IconButton(onClick = onStatsClick) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Statistics")
+                        Icon(
+                            painter = painterResource(id = R.drawable.statistics),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Statistics",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             )
@@ -289,9 +302,9 @@ fun SettingsContent(
 
                 Button(
                     onClick = onEditProfileClick,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.height(38.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onPrimary)
                     Spacer(modifier = Modifier.width(8.dp))
