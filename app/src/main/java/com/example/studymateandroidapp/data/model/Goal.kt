@@ -40,6 +40,7 @@ data class Goal(
     val deadline: LocalDate? = null,
     val subtasks: List<GoalSubtask> = emptyList(),
     val createdAt: LocalDate = LocalDate.now(),
+    val isXpAwarded: Boolean = false,
 
     // Sync metadata
     val userId: String? = null,

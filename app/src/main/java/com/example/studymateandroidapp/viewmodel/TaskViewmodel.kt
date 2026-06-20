@@ -4,15 +4,16 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.model.Task
+import com.example.studymateandroidapp.data.model.CelebrationEvent
+import com.example.studymateandroidapp.data.model.CelebrationType
 import com.example.studymateandroidapp.data.repository.MotivationRepository
 import com.example.studymateandroidapp.data.repository.TaskRepository
 import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
+import com.example.studymateandroidapp.utils.notification.ReminderScheduler
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
-import com.example.studymateandroidapp.utils.notification.ReminderScheduler
 
 class TaskViewmodel(
     private val repository: TaskRepository,
@@ -43,6 +44,15 @@ class TaskViewmodel(
         viewModelScope.launch {
             val updatedTask = if (task.isCompleted && !task.isXpAwarded) {
                 motivationRepository.addXp(5, "Task Completed!")
+                motivationRepository.triggerCelebration(
+                    CelebrationEvent(
+                        type = CelebrationType.TASK_COMPLETED,
+                        title = "Task Completed",
+                        subtitle = task.title,
+                        xpReward = 5,
+                        icon = "✅"
+                    )
+                )
                 task.copy(isXpAwarded = true)
             } else {
                 task

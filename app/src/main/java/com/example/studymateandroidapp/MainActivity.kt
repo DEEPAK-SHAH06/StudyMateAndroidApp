@@ -12,29 +12,34 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.studymateandroidapp.data.local.PreferenceManager
-import com.example.studymateandroidapp.data.model.XpEvent
 import com.example.studymateandroidapp.ui.ViewModelFactory
-import com.example.studymateandroidapp.ui.components.XpOverlay
 import com.example.studymateandroidapp.ui.navigation.AppNavHost
 import com.example.studymateandroidapp.ui.navigation.BottomNavBar
 import com.example.studymateandroidapp.ui.navigation.Screen
 import com.example.studymateandroidapp.ui.theme.StudyMateAndroidAppTheme
 import com.example.studymateandroidapp.utils.security.BiometricHelper
 import com.example.studymateandroidapp.viewmodel.GamificationViewModel
-import kotlinx.coroutines.delay
+
+import androidx.compose.runtime.mutableStateListOf
+import com.example.studymateandroidapp.ui.components.CelebrationOverlay
+import com.example.studymateandroidapp.data.model.CelebrationEvent
 
 class MainActivity : FragmentActivity() {
     private val requestPermissionLauncher = registerForActivityResult(
@@ -70,26 +75,22 @@ class MainActivity : FragmentActivity() {
             var isAuthenticated by remember { mutableStateOf(false) }
             var authChecked by remember { mutableStateOf(false) }
 
-            // Gamification Overlay Logic
+            // Gamification Logic (Queue-based Overlay)
             val gamificationViewModel: GamificationViewModel = viewModel(factory = ViewModelFactory)
-            val xpQueue = remember { mutableStateListOf<XpEvent>() }
-            var currentXpEvent by remember { mutableStateOf<XpEvent?>(null) }
-            var isXpVisible by remember { mutableStateOf(false) }
+            val celebrationQueue = remember { mutableStateListOf<CelebrationEvent>() }
+            var currentCelebration by remember { mutableStateOf<CelebrationEvent?>(null) }
+            var isCelebrationVisible by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
-                gamificationViewModel.xpEvents.collect { event ->
-                    xpQueue.add(event)
+                gamificationViewModel.celebrationEvents.collect { event ->
+                    celebrationQueue.add(event)
                 }
             }
 
-            LaunchedEffect(xpQueue.size) {
-                if (xpQueue.isNotEmpty() && !isXpVisible) {
-                    currentXpEvent = xpQueue.removeAt(0)
-                    isXpVisible = true
-                    delay(2000) // Increased slightly for better readability + animation
-                    isXpVisible = false
-                    delay(500) // Transition out
-                    currentXpEvent = null
+            LaunchedEffect(celebrationQueue.size, isCelebrationVisible) {
+                if (celebrationQueue.isNotEmpty() && !isCelebrationVisible) {
+                    currentCelebration = celebrationQueue.removeAt(0)
+                    isCelebrationVisible = true
                 }
             }
 
@@ -137,9 +138,16 @@ class MainActivity : FragmentActivity() {
                         }
                     }
 
-                    // Global XP Overlay
-                    currentXpEvent?.let { event ->
-                        XpOverlay(event = event, isVisible = isXpVisible)
+                    // Global Celebration Overlay
+                    currentCelebration?.let { event ->
+                        CelebrationOverlay(
+                            event = event,
+                            isVisible = isCelebrationVisible,
+                            onDismiss = {
+                                isCelebrationVisible = false
+                                currentCelebration = null
+                            }
+                        )
                     }
                 }
             }

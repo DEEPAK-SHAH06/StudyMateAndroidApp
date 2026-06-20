@@ -1,6 +1,8 @@
 package com.example.studymateandroidapp.data.repository
 
 import com.example.studymateandroidapp.data.model.AchievementProgress
+import com.example.studymateandroidapp.data.model.CelebrationEvent
+import com.example.studymateandroidapp.data.model.CelebrationType
 import com.example.studymateandroidapp.data.model.Achievement
 import com.example.studymateandroidapp.data.model.AchievementType
 import com.example.studymateandroidapp.data.model.DailyReflection
@@ -34,6 +36,10 @@ class MotivationRepository(
 
     suspend fun addXp(amount: Int, message: String) {
         gamificationRepository.addXp(amount, message)
+    }
+
+    suspend fun triggerCelebration(event: CelebrationEvent) {
+        gamificationRepository.triggerCelebration(event)
     }
 
     /**
@@ -218,8 +224,46 @@ class MotivationRepository(
      * - Flashcard review session finished
      */
     suspend fun recordStudyActivity() {
-        // Achievement check is the primary side-effect
-        // The streak itself is reactive based on the database content
+        val streak = calculateCurrentStreak()
+        val today = LocalDate.now()
+        
+        // Milestone XP rewards
+        if (streak > 0) {
+            val xpReward = when (streak) {
+                7 -> 50
+                30 -> 100
+                100 -> 250
+                else -> 0
+            }
+            
+            if (xpReward > 0) {
+                // We should ideally track if milestone XP was already given for this specific day/streak combo
+                // to prevent double-awarding if multiple activities happen same day.
+                // For Phase 1/2 simplicity, I'll rely on the trigger point logic.
+                addXp(xpReward, "Streak Milestone Reached!")
+                
+                triggerCelebration(
+                    CelebrationEvent(
+                        type = CelebrationType.STREAK_REACHED,
+                        title = "$streak Day Streak!",
+                        subtitle = "Keep up the momentum!",
+                        icon = "🔥",
+                        xpReward = xpReward
+                    )
+                )
+            } else if (streak == 3 || streak == 14) {
+                // Just celebration for minor milestones
+                triggerCelebration(
+                    CelebrationEvent(
+                        type = CelebrationType.STREAK_REACHED,
+                        title = "$streak Day Streak!",
+                        subtitle = "Keep up the momentum!",
+                        icon = "🔥"
+                    )
+                )
+            }
+        }
+        
         checkAndUnlockAchievements()
     }
 
@@ -246,7 +290,7 @@ class MotivationRepository(
             )
         } else {
             motivationDao.insertReflection(reflection.copy(lastUpdated = System.currentTimeMillis()))
-            addXp(5, "Daily Reflection Saved!")
+            // XP removed for reflections as per refined XP system list
         }
     }
 
@@ -382,6 +426,15 @@ class MotivationRepository(
         )
         motivationDao.insertAchievement(achievement)
         addXp(25, "Achievement Unlocked!")
+        triggerCelebration(
+            CelebrationEvent(
+                type = CelebrationType.ACHIEVEMENT_UNLOCKED,
+                title = "Achievement Unlocked",
+                subtitle = title,
+                xpReward = 25,
+                icon = "🏆"
+            )
+        )
         return achievement
     }
 
