@@ -175,7 +175,7 @@ fun TaskContent(
                 "My Tasks",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color =  MaterialTheme.colorScheme.onBackground,
                 fontSize = 26.sp
             )
             Text(

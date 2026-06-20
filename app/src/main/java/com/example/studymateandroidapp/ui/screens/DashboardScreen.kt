@@ -2,6 +2,7 @@ package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -295,16 +297,17 @@ private fun DashboardContent(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
                 ) {
                     Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Goals", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Goals", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             }
                             
                             if (totalGoalCount == 0) {
-                                Text("No goals yet", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("No goals yet", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                                 Text("Create your first goal to start tracking progress", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                             } else {
                                 Text("${activeGoals.size} active goals", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -321,6 +324,20 @@ private fun DashboardContent(
                             Spacer(Modifier.height(12.dp))
                             Text("View Goals →", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { onNavigateToGoals() })
                         }
+                        val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                        val imageRes = if (isDark) {
+                            R.drawable.focus_dark
+                        } else {
+                            R.drawable.focus
+                        }
+
+                        Image(
+                            painter = painterResource(imageRes),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(90.dp)
+                                .padding(start = 16.dp)
+                        )
                     }
                 }
                 Spacer(Modifier.height(24.dp))

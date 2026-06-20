@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -73,12 +74,15 @@ fun AddGoalContent(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background),
                 title = { Text(if (uiState.isEditMode) "Edit Goal" else "Add Goal") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                        windowInsets = WindowInsets(0, 0, 0, 0)
             )
         }
     ) { padding ->
@@ -86,9 +90,9 @@ fun AddGoalContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
+                .padding(horizontal = 28.dp, vertical = 5.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedTextField(
                 value = uiState.title,
@@ -111,7 +115,7 @@ fun AddGoalContent(
                 minLines = 2
             )
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
             Text("Goal Checklist", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text("Breaking your goal into smaller steps automatically updates your progress.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -190,7 +194,7 @@ fun AddGoalContent(
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(8.dp))
 
             Button(
                 onClick = onSaveGoal,
@@ -201,7 +205,7 @@ fun AddGoalContent(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Save Goal")
+                    Text("Save Goal",color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }

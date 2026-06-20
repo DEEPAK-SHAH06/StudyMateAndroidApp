@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -231,8 +232,15 @@ fun StudyFinishedView(
         verticalArrangement = Arrangement.Center
     ) {
         if (!isEmpty) {
+            val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+            val imageRes = if (isDark) {
+                R.drawable.session_dark
+            } else {
+                R.drawable.session_complete
+            }
+
             Image(
-                painter = painterResource(R.drawable.session_complete),
+                painter = painterResource(imageRes),
                 contentDescription = null,
                 modifier = Modifier.size(160.dp)
             )

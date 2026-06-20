@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -83,22 +84,29 @@ fun AchievementsContent(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(24.dp))
                         .border( 1.dp, Color.DarkGray.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
-                        .background(Color.White)
+                        .background(color = MaterialTheme.colorScheme.background)
                         .padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                        val imageRes = if (isDark) {
+                            R.drawable.achie_dark
+                        } else {
+                            R.drawable.achievement
+                        }
+
                         Image(
-                            painter = painterResource(id = R.drawable.achievement),
+                            painter = painterResource(imageRes),
                             contentDescription = null,
-                            modifier = Modifier.size(100.dp)
+                            modifier = Modifier.size(120.dp)
                         )
-                        Spacer(Modifier.height(5.dp))
+                        Spacer(Modifier.height(10.dp))
                         Text(
                             text = "${achievements.size} Unlocked",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "of ${allTypes.size} total badges",

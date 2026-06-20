@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -110,13 +111,20 @@ fun AddEditExamContent(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(25.dp))
+            val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+            val imageRes = if (isDark) {
+                R.drawable.adde_dark
+            } else {
+                R.drawable.addexam
+            }
 
             Image(
-                painter = painterResource(R.drawable.addexam),
+                painter = painterResource(imageRes),
                 contentDescription = null,
                 modifier = Modifier.fillMaxWidth().height(150.dp)
             )
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = title,
@@ -216,7 +224,7 @@ fun AddEditExamContent(
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black,
+                    containerColor = MaterialTheme.colorScheme.primary,
                     disabledContainerColor = Color.Gray
                 )
             ) {
