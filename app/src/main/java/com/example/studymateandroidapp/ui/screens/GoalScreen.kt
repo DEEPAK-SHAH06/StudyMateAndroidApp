@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,10 +17,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,11 +27,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Goal
 import com.example.studymateandroidapp.data.model.GoalStatus
 import com.example.studymateandroidapp.ui.components.ConfirmDeleteDialog
@@ -85,7 +87,7 @@ fun GoalScreenContent(
     Scaffold(
         topBar = {
             StudyMateTopBar(
-                title = "Study Goals",
+                title = "My Goals",
                 onBack = onNavigateBack
             )
         },
@@ -94,10 +96,10 @@ fun GoalScreenContent(
                 onClick = onNavigateToAddGoal,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.shadow(8.dp, RoundedCornerShape(16.dp))
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.size(50.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Goal")
+                Icon(Icons.Default.Add, contentDescription = "Add Goal", modifier = Modifier.size(35.dp))
             }
         }
     ) { padding ->
@@ -109,7 +111,7 @@ fun GoalScreenContent(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(28.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // 1. Featured Card - ALWAYS VISIBLE
@@ -206,10 +208,11 @@ fun GoalCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick),
+            .shadow(4.dp, RoundedCornerShape(20.dp)),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -285,44 +288,47 @@ fun FeaturedGoalCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(28.dp))
-            .let {
-                if (featuredGoal != null) it.clickable { onEditGoal(featuredGoal) } else it
-            },
+            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(28.dp)),
         shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor =  MaterialTheme.colorScheme.surface)
     ) {
-        Column(modifier = Modifier.padding(24.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column() {
                     Text(
                         text = "Work hard",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color =  MaterialTheme.colorScheme.onBackground,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text =  "to achieve your goals",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color =  MaterialTheme.colorScheme.onBackground,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
 
                 }
+                val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                val imageRes = if (isDark) {
+                    R.drawable.work_dark
+                } else {
+                    R.drawable.work1
+                }
 
-                Spacer(modifier = Modifier.width(16.dp))
-
-
+                Image(
+                    painter = painterResource(imageRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(140.dp)
+                )
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             // Filter Tabs
             Row(
