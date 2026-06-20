@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 18,
-    "identityHash": "1f083646acd839b137ce72ba0ac42c48",
+    "identityHash": "f964188a8638e8e52ef63a54f5334219",
     "entities": [
       {
         "tableName": "exams",
@@ -230,7 +230,7 @@
       },
       {
         "tableName": "goals",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `status` TEXT NOT NULL, `targetValue` INTEGER NOT NULL, `currentValue` INTEGER NOT NULL, `examId` INTEGER, `deadline` INTEGER, `createdAt` INTEGER NOT NULL, `userId` TEXT, `serverId` TEXT, `lastUpdated` INTEGER NOT NULL, FOREIGN KEY(`examId`) REFERENCES `exams`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `status` TEXT NOT NULL, `targetValue` INTEGER NOT NULL, `currentValue` INTEGER NOT NULL, `examId` INTEGER, `deadline` INTEGER, `subtasks` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `userId` TEXT, `serverId` TEXT, `lastUpdated` INTEGER NOT NULL, FOREIGN KEY(`examId`) REFERENCES `exams`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -279,6 +279,12 @@
             "columnName": "deadline",
             "affinity": "INTEGER",
             "notNull": false
+          },
+          {
+            "fieldPath": "subtasks",
+            "columnName": "subtasks",
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "createdAt",
@@ -1014,7 +1020,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1f083646acd839b137ce72ba0ac42c48')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f964188a8638e8e52ef63a54f5334219')"
     ]
   }
 }

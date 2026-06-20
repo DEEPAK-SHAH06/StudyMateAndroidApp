@@ -135,7 +135,7 @@ fun StatisticsContent(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.padding(bottom = 16.dp),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Icon(Icons.Default.FileDownload, contentDescription = "Export PDF")
             }

@@ -12,6 +12,11 @@ import java.time.LocalDate
  * Optionally linked to an [Exam] via [examId] (nullable FK).
  * Deleting the parent Exam sets [examId] to null.
  */
+data class GoalSubtask(
+    val title: String,
+    val isCompleted: Boolean = false
+)
+
 @Entity(
     tableName = "goals",
     foreignKeys = [
@@ -33,6 +38,7 @@ data class Goal(
     val currentValue: Int = 0,
     val examId: Long? = null,
     val deadline: LocalDate? = null,
+    val subtasks: List<GoalSubtask> = emptyList(),
     val createdAt: LocalDate = LocalDate.now(),
     val isXpAwarded: Boolean = false,
 

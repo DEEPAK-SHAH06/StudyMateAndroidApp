@@ -2,18 +2,15 @@ package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,13 +33,13 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import com.example.studymateandroidapp.data.model.StudyProgress
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.luminance
 
 @Composable
 fun ExamScreen(
@@ -123,8 +120,8 @@ fun ExamContent(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddExam,
-                containerColor = Color.Black,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(50.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -142,7 +139,7 @@ fun ExamContent(
                 "Exams :",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 26.sp
             )
 
@@ -155,8 +152,15 @@ fun ExamContent(
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center
             ) {
+                val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                val imageRes = if (isDark) {
+                    R.drawable.exam_dark
+                } else {
+                    R.drawable.exam
+                }
+
                 Image(
-                    painter = painterResource(id = R.drawable.exam),
+                    painter = painterResource(imageRes),
                     contentDescription = null,
                     modifier = Modifier.size(200.dp)
                 )
@@ -167,7 +171,7 @@ fun ExamContent(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.align(Alignment.End),
                 fontSize = 18.sp,
-                color = Color.DarkGray,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium
             )
 

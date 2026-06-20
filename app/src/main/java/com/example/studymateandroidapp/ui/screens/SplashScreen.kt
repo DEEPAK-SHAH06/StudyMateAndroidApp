@@ -15,7 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,9 +42,16 @@ fun SplashScreen(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+            val imageRes = if (isDark) {
+                R.drawable.welcome_dark
+            } else {
+                R.drawable.welcome
+            }
+
             Image(
-                painter = painterResource(id = R.drawable.welcome),
-                contentDescription = "App Logo",
+                painter = painterResource(imageRes),
+                contentDescription = "App logo",
                 modifier = Modifier.size(200.dp)
             )
             

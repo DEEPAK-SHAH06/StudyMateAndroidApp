@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -83,27 +84,35 @@ fun AchievementsContent(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(24.dp))
                         .border( 1.dp, Color.DarkGray.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
-                        .background(Color.White)
+                        .background(color = MaterialTheme.colorScheme.background)
                         .padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                        val imageRes = if (isDark) {
+                            R.drawable.achie_dark
+                        } else {
+                            R.drawable.achievement
+                        }
+
                         Image(
-                            painter = painterResource(id = R.drawable.achievement),
+                            painter = painterResource(imageRes),
                             contentDescription = null,
-                            modifier = Modifier.size(100.dp)
+                            modifier = Modifier.size(120.dp)
                         )
-                        Spacer(Modifier.height(5.dp))
+                        Spacer(Modifier.height(10.dp))
                         Text(
                             text = "${achievements.size} Unlocked",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "of ${allTypes.size} total badges",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                            color = Color.Red.copy(alpha = 0.8f),
+                            fontSize = 14.sp
                         )
                     }
                 }
@@ -174,7 +183,7 @@ private fun AchievementBadge(
         border = if (isUnlocked)
             null
         else
-            BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -200,7 +209,7 @@ private fun AchievementBadge(
                     Icon(
                         Icons.Default.Lock,
                         null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        tint = Color.Gray,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -252,7 +261,7 @@ private fun AchievementBadge(
                         .height(6.dp)
                         .clip(RoundedCornerShape(50)),
                     color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    trackColor = Color.LightGray.copy(alpha = 0.3f)
                 )
             }
 

@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.firebase.database)
     implementation("com.google.firebase:firebase-storage-ktx")
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.gson)
     val composeBom = platform("androidx.compose:compose-bom:2024.04.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)

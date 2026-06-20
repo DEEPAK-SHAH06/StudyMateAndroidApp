@@ -1,11 +1,16 @@
 package com.example.studymateandroidapp.data.repository
 
+import android.content.Context
 import com.example.studymateandroidapp.data.local.GoalDao
 import com.example.studymateandroidapp.data.model.Goal
+import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
-class GoalRepository(private val goalDao: GoalDao) {
+class GoalRepository(
+    private val goalDao: GoalDao,
+    private val context: Context? = null
+) {
 
     fun getAllGoals(): Flow<List<Goal>> = goalDao.getAllGoals()
 
