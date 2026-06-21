@@ -9,5 +9,6 @@ object WidgetUpdateHelper {
         FlashcardWidget().updateAll(context)
         ExamWidget().updateAll(context)
         StatisticsWidget().updateAll(context)
+        GoalWidget().updateAll(context)
     }
 }

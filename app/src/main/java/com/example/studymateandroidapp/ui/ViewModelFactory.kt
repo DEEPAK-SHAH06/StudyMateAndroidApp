@@ -34,8 +34,8 @@ object ViewModelFactory : ViewModelProvider.Factory {
     private fun getExamRepository(db: StudyPlannerDatabase) = 
         examRepository ?: ExamRepository(db.examDao()).also { examRepository = it }
 
-    private fun getGoalRepository(db: StudyPlannerDatabase) = 
-        goalRepository ?: GoalRepository(db.goalDao()).also { goalRepository = it }
+    private fun getGoalRepository(db: StudyPlannerDatabase, context: android.content.Context) = 
+        goalRepository ?: GoalRepository(db.goalDao(), context).also { goalRepository = it }
 
     private fun getMotivationRepository(db: StudyPlannerDatabase): MotivationRepository {
         return motivationRepository ?: MotivationRepository(
@@ -71,7 +71,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
                     taskRepository    = getTaskRepository(db),
                     sessionRepository = getSessionRepository(db),
                     examRepository    = getExamRepository(db),
-                    goalRepository    = getGoalRepository(db),
+                    goalRepository    = getGoalRepository(db, application),
                     motivationRepository = getMotivationRepository(db),
                     authRepository    = AuthRepository(application),
                     preferenceManager = PreferenceManager(application)
@@ -105,7 +105,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             // ── Goals ──────────────────────────────────────────────
             modelClass.isAssignableFrom(GoalViewmodel::class.java) ->
                 GoalViewmodel(
-                    repository = getGoalRepository(db),
+                    repository = getGoalRepository(db, application),
                     motivationRepository = getMotivationRepository(db)
                 ) as T
 
@@ -159,7 +159,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
                     StatisticsRepository(
                         taskRepository    = getTaskRepository(db),
                         sessionRepository = getSessionRepository(db),
-                        goalRepository    = getGoalRepository(db),
+                        goalRepository    = getGoalRepository(db, application),
                         motivationRepository = getMotivationRepository(db),
                         gamificationRepository = getGamificationRepository(db)
                     )
