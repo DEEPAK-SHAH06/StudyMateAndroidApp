@@ -15,7 +15,9 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -66,7 +68,8 @@ fun TaskScreen(
                 completedAt = if (isCompleted) LocalDate.now() else null
             ))
         },
-        onDeleteTask = { taskToDelete = it }
+        onDeleteTask = { taskToDelete = it },
+        onTogglePin = { task -> viewModel.togglePinned(task.id) }
     )
 
     taskToDelete?.let { task ->
@@ -94,7 +97,8 @@ fun TaskContent(
     onAchievementsClick: () -> Unit,
     onTaskClick: (Long) -> Unit,
     onToggleTask: (Task) -> Unit,
-    onDeleteTask: (Task) -> Unit
+    onDeleteTask: (Task) -> Unit,
+    onTogglePin: (Task) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val filters = listOf("Pending", "Completed", "Overdue")
@@ -216,7 +220,8 @@ fun TaskContent(
                     task = task,
                     onToggle = { onToggleTask(task) },
                     onClick = { onTaskClick(task.id) },
-                    onDelete = { onDeleteTask(task) }
+                    onDelete = { onDeleteTask(task) },
+                    onTogglePin = { onTogglePin(task) }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -321,7 +326,8 @@ fun TaskItemView(
     task: Task,
     onToggle: () -> Unit,
     onClick: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onTogglePin: () -> Unit
 ) {
     Surface(
         modifier = Modifier
@@ -329,10 +335,10 @@ fun TaskItemView(
             .height(72.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF2F2F2),
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+            width = if (task.isPinned) 2.dp else 1.dp,
+            color = if (task.isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
         )
     ) {
         Row(
@@ -397,6 +403,39 @@ fun TaskItemView(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
+                    if (task.isPinned) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.height(22.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.PushPin,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(10.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    text = "PINNED",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+                    }
+
                     if (!task.subjectTag.isNullOrBlank()) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
@@ -444,6 +483,17 @@ fun TaskItemView(
                         )
                     }
                 }
+            }
+
+            IconButton(
+                onClick = onTogglePin
+            ) {
+                Icon(
+                    imageVector = if (task.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                    contentDescription = if (task.isPinned) "Unpin" else "Pin",
+                    modifier = Modifier.size(20.dp),
+                    tint = if (task.isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             IconButton(
@@ -547,7 +597,8 @@ fun TaskScreenPreview() {
             onStatsClick = {},
             onAchievementsClick = {},
             onToggleTask = {},
-            onDeleteTask = {}
+            onDeleteTask = {},
+            onTogglePin = {}
         )
     }
 }
