@@ -221,6 +221,9 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
 
         val MIGRATION_18_19 = object : Migration(18, 19) {
             override fun migrate(db: SupportSQLiteDatabase) {
+                // Add subtasks column (expected as TEXT due to TypeConverter)
+                db.execSQL("ALTER TABLE goals ADD COLUMN subtasks TEXT NOT NULL DEFAULT '[]'")
+                // Add isXpAwarded column
                 db.execSQL("ALTER TABLE goals ADD COLUMN isXpAwarded INTEGER NOT NULL DEFAULT 0")
             }
         }

@@ -105,8 +105,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             // ── Goals ──────────────────────────────────────────────
             modelClass.isAssignableFrom(GoalViewmodel::class.java) ->
                 GoalViewmodel(
-                    repository = getGoalRepository(db),
-                    motivationRepository = getMotivationRepository(db)
+                    repository = getGoalRepository(db)
                 ) as T
 
             // ── Notes ──────────────────────────────────────────────
