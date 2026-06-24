@@ -15,7 +15,7 @@ val DarkBorder = Color(0xFF333333)
 
 // --- Professional Light Theme Palette ---
 val LightBackground = Color(0xFFFFFFFF)
-val LightSurface = Color(0xFFFFFFFF)
+val LightSurface = Color(0xFFF7F7F7)
 val LightSurfaceVariant = Color(0xFFF5F5F5)
 val LightPrimary = Color(0xFF000000)
 val LightSecondary = Color(0xFF009688)

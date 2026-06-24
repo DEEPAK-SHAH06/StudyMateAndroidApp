@@ -67,7 +67,7 @@ fun FlashcardStudyContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             if (isFinished || cards.isEmpty()) {
                 StudyFinishedView(
@@ -175,7 +175,8 @@ fun FlashcardView(
                     modifier = Modifier.padding(24.dp),
                     style = MaterialTheme.typography.headlineMedium,
                     textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
             } else {
                 Text(
@@ -255,7 +256,7 @@ fun StudyFinishedView(
             Button(
                 onClick = onRestart,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Restart Session")
             }

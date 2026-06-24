@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.Button
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -33,6 +34,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.ColorFilter
+import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.state.updateAppWidgetState
@@ -89,46 +91,83 @@ class FlashcardWidget : GlanceAppWidget() {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(ColorProvider(day = Color.Black, night = Color.Black))
-                .padding(12.dp),
+                .appWidgetBackground()
+                .background(ColorProvider(day = Color.White, night = Color.White))
+                .cornerRadius(16.dp)
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Header
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                Spacer(modifier = GlanceModifier.width(8.dp))
+                Image(
+                    provider = ImageProvider(R.drawable.flashcard),
+                    contentDescription = null,
+                    modifier = GlanceModifier.size(30.dp),
+                    colorFilter = ColorFilter.tint(ColorProvider(day = Color.Black, night = Color.Black))
+                )
+                
+                Spacer(modifier = GlanceModifier.width(10.dp))
+                
                 Text(
-                    text = "Quick Review",
+                    text = "Flashcard",
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = ColorProvider(day = Color.White, night = Color.White)
+                        fontSize = 18.sp,
+                        color = ColorProvider(day = Color.Black, night = Color.Black)
                     ),
                     modifier = GlanceModifier.defaultWeight()
                 )
             }
 
-            Spacer(modifier = GlanceModifier.height(12.dp))
+            Spacer(modifier = GlanceModifier.height(8.dp))
 
             if (flashcard != null) {
+                // Card Area
                 Box(
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .defaultWeight()
-                        .background(ColorProvider(day = Color.DarkGray, night = Color.DarkGray))
+                        .background(ColorProvider(day = Color(0xFFF5F5F5), night = Color(0xFFF5F5F5)))
+                        .cornerRadius(12.dp)
                         .clickable(actionRunCallback<ToggleAnswerActionCallback>())
-                        .padding(12.dp),
+                        .padding(10.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = if (showAnswer) "A: ${flashcard.answer}" else "Q: ${flashcard.question}",
+                            text = if (showAnswer) "Answer" else "Question",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 12.sp,
+                                color = ColorProvider(day = Color.Gray, night = Color.Gray)
+                            )
+                        )
+                        
+                        Spacer(modifier = GlanceModifier.height(8.dp))
+                        
+                        Text(
+                            text = if (showAnswer) flashcard.answer else flashcard.question,
                             style = TextStyle(
                                 fontWeight = FontWeight.Medium,
-                                fontSize = 15.sp,
-                                color = ColorProvider(day = Color.White, night = Color.White)
+                                fontSize = 18.sp,
+                                color = ColorProvider(day = Color.Black, night = Color.Black)
+                            ),
+                            maxLines = 4
+                        )
+                        
+                        Spacer(modifier = GlanceModifier.height(14.dp))
+                        
+                        Text(
+                            text = "(Tap to flip)",
+                            style = TextStyle(
+                                fontSize = 10.sp,
+                                color = ColorProvider(day = Color.LightGray, night = Color.LightGray)
                             )
                         )
                     }
@@ -136,6 +175,7 @@ class FlashcardWidget : GlanceAppWidget() {
 
                 Spacer(modifier = GlanceModifier.height(8.dp))
 
+                // Bottom Action Bar
                 Row(
                     modifier = GlanceModifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.End,
@@ -143,9 +183,9 @@ class FlashcardWidget : GlanceAppWidget() {
                 ) {
                     Box(
                         modifier = GlanceModifier
-                            .size(36.dp)
+                            .size(25.dp)
                             .background(ColorProvider(day = Color.White, night = Color.White))
-                            .cornerRadius(18.dp)
+                            .cornerRadius(20.dp)
                             .clickable(actionRunCallback<NextFlashcardActionCallback>()),
                         contentAlignment = Alignment.Center
                     ) {
@@ -161,30 +201,22 @@ class FlashcardWidget : GlanceAppWidget() {
                 Box(
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .defaultWeight()
-                        .padding(12.dp),
+                        .defaultWeight(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No flashcards found. Create some in the app!",
-                        style = TextStyle(fontSize = 14.sp, color = GlanceTheme.colors.onSurfaceVariant)
+                        text = "No flashcards found.\nCreate some in the app!",
+                        style = TextStyle(
+                            fontSize = 14.sp, 
+                            color = ColorProvider(day = Color.Gray, night = Color.Gray)
+                        )
                     )
                 }
-                Box(
-                    modifier = GlanceModifier
-                        .size(36.dp)
-                        .background(ColorProvider(day = Color.Black, night = Color.Black))
-                        .cornerRadius(18.dp)
-                        .clickable(actionStartActivity<MainActivity>()),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        provider = ImageProvider(R.drawable.outline_exit_to_app_24),
-                        contentDescription = "Open",
-                        modifier = GlanceModifier.size(20.dp),
-                        colorFilter = ColorFilter.tint(ColorProvider(day = Color.Black, night = Color.Black))
-                    )
-                }
+                
+                Button(
+                    text = "Open App",
+                    onClick = actionStartActivity<MainActivity>()
+                )
             }
         }
     }

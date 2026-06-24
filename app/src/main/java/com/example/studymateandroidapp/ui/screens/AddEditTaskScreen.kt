@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -114,10 +115,16 @@ fun AddEditTaskScreen(
                 }
 
                 Spacer(modifier = Modifier.width(6.dp))
+                val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                val imageRes = if (isDark) {
+                    R.drawable.task_dark
+                } else {
+                    R.drawable.create_task
+                }
 
                 Image(
-                    painter = painterResource(R.drawable.create_task),
-                    contentDescription = null,
+                    painter = painterResource(imageRes),
+                    contentDescription = "App logo",
                     modifier = Modifier.size(100.dp)
                 )
             }

@@ -122,7 +122,7 @@ fun AddEditFlashcardContent(
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 enabled = canSave,
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Save Flashcard", fontWeight = FontWeight.Bold)
             }
