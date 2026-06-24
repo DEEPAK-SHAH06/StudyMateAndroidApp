@@ -63,6 +63,7 @@ class FlashcardViewmodel(
                     icon = "🧠"
                 )
             )
+            motivationRepository.recordStudyActivity()
         }
     }
 }

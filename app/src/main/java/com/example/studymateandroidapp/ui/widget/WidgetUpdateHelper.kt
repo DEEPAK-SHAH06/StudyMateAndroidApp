@@ -10,5 +10,6 @@ object WidgetUpdateHelper {
         ExamWidget().updateAll(context)
         StatisticsWidget().updateAll(context)
         GoalWidget().updateAll(context)
+        HabitWidget().updateAll(context)
     }
 }

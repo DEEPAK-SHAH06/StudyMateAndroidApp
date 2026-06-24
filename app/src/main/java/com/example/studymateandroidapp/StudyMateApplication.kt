@@ -28,7 +28,8 @@ class StudyMateApplication : Application() {
                 goalDao       = db.goalDao(),
                 noteDao       = db.noteDao(),
                 flashcardDao  = db.flashcardDao(),
-                gamificationRepository = gamificationRepository
+                gamificationRepository = gamificationRepository,
+                context = this
                 ),
             gamificationRepository = gamificationRepository
         )

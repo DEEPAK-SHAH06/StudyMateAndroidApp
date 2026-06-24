@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.data.repository
 
+import android.content.Context
 import com.example.studymateandroidapp.data.model.AchievementProgress
 import com.example.studymateandroidapp.data.model.CelebrationEvent
 import com.example.studymateandroidapp.data.model.CelebrationType
@@ -12,6 +13,7 @@ import com.example.studymateandroidapp.data.local.NoteDao
 import com.example.studymateandroidapp.data.local.FlashcardDao
 import com.example.studymateandroidapp.data.local.MotivationDao
 import com.example.studymateandroidapp.data.local.UserProgressDao
+import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate
@@ -28,7 +30,8 @@ class MotivationRepository(
     private val goalDao: GoalDao,
     private val noteDao: NoteDao,
     private val flashcardDao: FlashcardDao,
-    private val gamificationRepository: GamificationRepository
+    private val gamificationRepository: GamificationRepository,
+    private val context: Context
 ) {
     // ── Gamification (XP & Progress) ───────────────────────
 
@@ -265,6 +268,8 @@ class MotivationRepository(
         }
         
         checkAndUnlockAchievements()
+        // Trigger widget updates whenever meaningful activity is recorded
+        WidgetUpdateHelper.updateAllWidgets(context)
     }
 
     // ── Reflections ───────────────────────────────────────

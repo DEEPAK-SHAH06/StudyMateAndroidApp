@@ -404,7 +404,7 @@ fun TaskItemView(
                             color = Color(task.tagColor.toULong()),
                             border = BorderStroke(
                                 1.dp,
-                                MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                                MaterialTheme.colorScheme.outline
                             )
                         ) {
                             Text(

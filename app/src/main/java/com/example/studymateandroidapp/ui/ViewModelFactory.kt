@@ -37,7 +37,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
     private fun getGoalRepository(db: StudyPlannerDatabase, context: android.content.Context) = 
         goalRepository ?: GoalRepository(db.goalDao(), context).also { goalRepository = it }
 
-    private fun getMotivationRepository(db: StudyPlannerDatabase): MotivationRepository {
+    private fun getMotivationRepository(db: StudyPlannerDatabase, context: android.content.Context): MotivationRepository {
         return motivationRepository ?: MotivationRepository(
             motivationDao = db.motivationDao(),
             taskDao = db.taskDao(),
@@ -45,7 +45,8 @@ object ViewModelFactory : ViewModelProvider.Factory {
             goalDao = db.goalDao(),
             noteDao = db.noteDao(),
             flashcardDao = db.flashcardDao(),
-            gamificationRepository = getGamificationRepository(db)
+            gamificationRepository = getGamificationRepository(db),
+            context = context
         ).also { motivationRepository = it }
     }
 
@@ -72,7 +73,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
                     sessionRepository = getSessionRepository(db),
                     examRepository    = getExamRepository(db),
                     goalRepository    = getGoalRepository(db, application),
-                    motivationRepository = getMotivationRepository(db),
+                    motivationRepository = getMotivationRepository(db, application),
                     authRepository    = AuthRepository(application),
                     preferenceManager = PreferenceManager(application)
                 ) as T
@@ -88,7 +89,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(TaskViewmodel::class.java) ->
                 TaskViewmodel(
                     repository = getTaskRepository(db),
-                    motivationRepository = getMotivationRepository(db),
+                    motivationRepository = getMotivationRepository(db, application),
                     reminderScheduler = ReminderScheduler(application),
                     application = application
                 ) as T
@@ -106,7 +107,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(GoalViewmodel::class.java) ->
                 GoalViewmodel(
                     repository = getGoalRepository(db, application),
-                    motivationRepository = getMotivationRepository(db)
+                    motivationRepository = getMotivationRepository(db, application)
                 ) as T
 
             // ── Notes ──────────────────────────────────────────────
@@ -121,7 +122,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(FlashcardViewmodel::class.java) ->
                 FlashcardViewmodel(
                     repository = getFlashcardRepository(db),
-                    motivationRepository = getMotivationRepository(db),
+                    motivationRepository = getMotivationRepository(db, application),
                     application = application
                 ) as T
 
@@ -130,14 +131,14 @@ object ViewModelFactory : ViewModelProvider.Factory {
                 TimerViewmodel(
                     sessionRepository = getSessionRepository(db),
                     studyProgressRepository = getStudyProgressRepository(db),
-                    motivationRepository = getMotivationRepository(db),
+                    motivationRepository = getMotivationRepository(db, application),
                     preferenceManager = PreferenceManager(application),
                     context           = application
                 ) as T
 
             // ── Motivation / Reflection / Achievements ─────────────
             modelClass.isAssignableFrom(MotivationViewModel::class.java) ->
-                MotivationViewModel(getMotivationRepository(db)) as T
+                MotivationViewModel(getMotivationRepository(db, application)) as T
 
             // ── Settings ───────────────────────────────────────────
             modelClass.isAssignableFrom(SettingViewmodel::class.java) ->
@@ -160,7 +161,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
                         taskRepository    = getTaskRepository(db),
                         sessionRepository = getSessionRepository(db),
                         goalRepository    = getGoalRepository(db, application),
-                        motivationRepository = getMotivationRepository(db),
+                        motivationRepository = getMotivationRepository(db, application),
                         gamificationRepository = getGamificationRepository(db)
                     )
                 ) as T
