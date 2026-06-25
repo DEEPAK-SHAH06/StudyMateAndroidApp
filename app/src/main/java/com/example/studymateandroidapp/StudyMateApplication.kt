@@ -20,7 +20,7 @@ class StudyMateApplication : Application() {
         statisticsRepository = StatisticsRepository(
             taskRepository = TaskRepository(db.taskDao()),
             sessionRepository = SessionRepository(db.sessionDao()),
-            goalRepository = GoalRepository(db.goalDao()),
+            goalRepository = GoalRepository(db.goalDao(), this),
             motivationRepository = MotivationRepository(
                 motivationDao = db.motivationDao(),
                 taskDao = db.taskDao(),
@@ -28,7 +28,8 @@ class StudyMateApplication : Application() {
                 goalDao       = db.goalDao(),
                 noteDao       = db.noteDao(),
                 flashcardDao  = db.flashcardDao(),
-                gamificationRepository = gamificationRepository
+                gamificationRepository = gamificationRepository,
+                context = this
                 ),
             gamificationRepository = gamificationRepository
         )

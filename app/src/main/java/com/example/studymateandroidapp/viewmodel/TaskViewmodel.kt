@@ -71,9 +71,10 @@ class TaskViewmodel(
             } else {
                 reminderScheduler.cancelTaskReminders(updatedTask.id)
             }
-            WidgetUpdateHelper.updateAllWidgets(application)
             if (updatedTask.isCompleted) {
-                motivationRepository.checkAndUnlockAchievements()
+                motivationRepository.recordStudyActivity()
+            } else {
+                WidgetUpdateHelper.updateAllWidgets(application)
             }
         }
     }
@@ -82,9 +83,10 @@ class TaskViewmodel(
         viewModelScope.launch {
             repository.delete(task)
             reminderScheduler.cancelTaskReminders(task.id)
-            WidgetUpdateHelper.updateAllWidgets(application)
             if (task.isCompleted) {
-                motivationRepository.checkAndUnlockAchievements()
+                motivationRepository.recordStudyActivity()
+            } else {
+                WidgetUpdateHelper.updateAllWidgets(application)
             }
             onComplete()
         }

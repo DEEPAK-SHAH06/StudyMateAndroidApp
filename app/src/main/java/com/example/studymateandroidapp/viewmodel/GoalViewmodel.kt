@@ -6,6 +6,7 @@ import com.example.studymateandroidapp.data.model.Goal
 import com.example.studymateandroidapp.data.model.GoalStatus
 import com.example.studymateandroidapp.data.model.GoalSubtask
 import com.example.studymateandroidapp.data.repository.GoalRepository
+import com.example.studymateandroidapp.data.repository.MotivationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +27,8 @@ import java.time.LocalDate
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class GoalViewmodel(
-    private val repository: GoalRepository
+    private val repository: GoalRepository,
+    motivationRepository: MotivationRepository
 ) : ViewModel() {
 
     // ── List UI State ─────────────────────────────────────

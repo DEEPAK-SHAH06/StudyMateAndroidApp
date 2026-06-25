@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,13 +37,12 @@ import java.time.format.DateTimeFormatter
 fun AddEditTaskScreen(
     taskId: Long? = null,
     viewModel: TaskViewmodel,
-    onNavigateBack: () -> Unit,
-    prefillDate: LocalDate? = null
+    onNavigateBack: () -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var priority by remember { mutableStateOf(Priority.MEDIUM) }
-    var dueDate by remember { mutableStateOf(prefillDate ?: LocalDate.now()) }
+    var dueDate by remember { mutableStateOf(LocalDate.now()) }
     var dueTime by remember { mutableStateOf(LocalTime.of(9, 0)) }
     var subjectTag by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf(Color.Red) }
@@ -89,6 +89,7 @@ fun AddEditTaskScreen(
                     .padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -112,10 +113,18 @@ fun AddEditTaskScreen(
                         color = Color.Gray
                     )
                 }
+
                 Spacer(modifier = Modifier.width(6.dp))
+                val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                val imageRes = if (isDark) {
+                    R.drawable.task_dark
+                } else {
+                    R.drawable.create_task
+                }
+
                 Image(
-                    painter = painterResource(R.drawable.create_task),
-                    contentDescription = null,
+                    painter = painterResource(imageRes),
+                    contentDescription = "App logo",
                     modifier = Modifier.size(100.dp)
                 )
             }
@@ -192,11 +201,13 @@ fun AddEditTaskScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Priority.entries.forEach { p ->
+
                     val iconRes = when (p) {
                         Priority.HIGH -> R.drawable.high
                         Priority.MEDIUM -> R.drawable.medium
                         Priority.LOW -> R.drawable.low
                     }
+
                     FilterChip(
                         selected = priority == p,
                         onClick = { priority = p },
@@ -207,12 +218,15 @@ fun AddEditTaskScreen(
                                 modifier = Modifier.fillMaxWidth()
                                     .height(62.dp)
                             ) {
+
                                 Icon(
                                     painter = painterResource(iconRes),
                                     contentDescription = p.name,
                                     modifier = Modifier.size(18.dp)
                                 )
+
                                 Spacer(modifier = Modifier.height(4.dp))
+
                                 Text(
                                     text = p.name,
                                     fontSize = 12.sp
@@ -228,6 +242,7 @@ fun AddEditTaskScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+
                 DateTimeFieldSelector(
                     label = "Due Date",
                     value = dueDate.format(

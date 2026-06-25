@@ -80,10 +80,12 @@ fun FlashcardContent(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddCard,
-                containerColor = Color.Black,
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                modifier = Modifier.size(50.dp),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Flashcard")
+                Icon(Icons.Default.Add, contentDescription = "Add Flashcard",modifier = Modifier.size(35.dp))
             }
         }
     ) { paddingValues ->
@@ -97,10 +99,10 @@ fun FlashcardContent(
 
             // Main Study Card
             Surface(
-                modifier = Modifier.fillMaxWidth().height(160.dp),
+                modifier = Modifier.fillMaxWidth().size(170.dp),
                 shape = RoundedCornerShape(24.dp),
-                color = Color(0xFFF7F7F7),
-                border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f))
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.9f))
             ) {
                 Row(
                     modifier = Modifier.padding(24.dp),
@@ -163,7 +165,7 @@ fun FlashcardItem(card: Flashcard, onDelete: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, Color(0xFFEEEEEE))
     ) {
         Row(
@@ -190,8 +192,8 @@ fun StatItem(count: String, label: String, backgroundColor: Color, modifier: Mod
         color = backgroundColor
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.Center) {
-            Text(text = count, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text(text = label, style = MaterialTheme.typography.labelSmall, lineHeight = 14.sp)
+            Text(text = count, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold,color = Color.Black )
+            Text(text = label, style = MaterialTheme.typography.labelSmall, lineHeight = 14.sp, color = Color.Black)
         }
     }
 }

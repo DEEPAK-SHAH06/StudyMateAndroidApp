@@ -385,11 +385,11 @@ fun ExamCard(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onNotes, modifier = Modifier.size(24.dp)) {
-                            Icon(painter = painterResource(id = R.drawable.notes), contentDescription = "Notes")
+                            Icon(painter = painterResource(id = R.drawable.notes), contentDescription = "Notes", tint = Color.Black, modifier = Modifier.size(18.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         IconButton(onClick = onFlashcards, modifier = Modifier.size(24.dp)) {
-                            Icon(painter = painterResource(id = R.drawable.baseline_file_copy_24), contentDescription = "Flashcards")
+                            Icon(painter = painterResource(id = R.drawable.baseline_file_copy_24), contentDescription = "Flashcards", tint = Color.Black, modifier = Modifier.size(20.dp))
                         }
                     }
 

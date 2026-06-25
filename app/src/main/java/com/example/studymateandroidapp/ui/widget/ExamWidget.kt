@@ -8,12 +8,12 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionStartActivity
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.LocalSize
 import androidx.compose.ui.unit.DpSize
 import androidx.glance.background
@@ -34,7 +34,6 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.ColorFilter
 import androidx.glance.appwidget.cornerRadius
-import androidx.glance.action.clickable
 import androidx.glance.layout.size
 import com.example.studymateandroidapp.R
 import androidx.glance.text.TextStyle
@@ -71,7 +70,7 @@ class ExamWidget : GlanceAppWidget() {
             GlanceTheme {
                 ExamWidgetContent(
                     upcomingExams = upcomingExams,
-                    widgetSize = size
+                    widgetSize = size,
                 )
             }
         }
@@ -87,8 +86,10 @@ class ExamWidget : GlanceAppWidget() {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
+                .appWidgetBackground()
                 .background(ColorProvider(day = Color.White, night = Color.White))
-                .padding(if (isSmall) 8.dp else 12.dp),
+                .cornerRadius(16.dp)
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header
@@ -96,135 +97,136 @@ class ExamWidget : GlanceAppWidget() {
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Image(
+                    provider = ImageProvider(R.drawable.exams),
+                    contentDescription = null,
+                    modifier = GlanceModifier.size(if (isSmall) 18.dp else 20.dp),
+                    colorFilter = ColorFilter.tint(ColorProvider(day = Color.Black, night = Color.Black))
+                )
+                
+                Spacer(modifier = GlanceModifier.width(8.dp))
+                
                 Text(
-                    text = "Upcoming Exams",
+                    text = "Exams",
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
-                        fontSize = if (isSmall) 14.sp else 16.sp,
+                        fontSize = if (isSmall) 16.sp else 18.sp,
                         color = ColorProvider(day = Color.Black, night = Color.Black)
                     ),
                     modifier = GlanceModifier.defaultWeight()
                 )
             }
-            Spacer(modifier = GlanceModifier.height(if (isSmall) 4.dp else 8.dp))
+            
+            Spacer(modifier = GlanceModifier.height(12.dp))
 
             if (upcomingExams.isEmpty()) {
                 Box(
-                    modifier = GlanceModifier.fillMaxSize(),
+                    modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "No upcoming exams",
-                        style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.onSurfaceVariant)
-                    )
-                }
-            } else {
-                val nextExam = upcomingExams.first()
-                val daysLeft = ChronoUnit.DAYS.between(
-                    LocalDate.now(),
-                    Instant.ofEpochMilli(nextExam.examDate).atZone(ZoneId.systemDefault()).toLocalDate()
-                )
-
-                Column(
-                    modifier = GlanceModifier
-                        .fillMaxWidth()
-                        .background(ColorProvider(day = Color.LightGray, night = Color.LightGray))
-                        .padding(8.dp)
-                ) {
-                    Text(
-                        text = nextExam.title,
                         style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = ColorProvider(day = Color.Black, night = Color.Black)
-                        ),
-                        maxLines = 1
-                    )
-                    Text(
-                        text = nextExam.subject,
-                        style = TextStyle(fontSize = 12.sp, color = ColorProvider(day = Color.DarkGray, night = Color.DarkGray)),
-                        maxLines = 1
-                    )
-                    Spacer(modifier = GlanceModifier.height(4.dp))
-                    Text(
-                        text = when (daysLeft) {
-                            0L -> "Today!"
-                            1L -> "Tomorrow"
-                            else -> "In $daysLeft days"
-                        },
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            color = ColorProvider(day = Color.Red, night = Color.Red)
+                            fontSize = 13.sp, 
+                            color = ColorProvider(day = Color.Gray, night = Color.Gray)
                         )
                     )
                 }
-
-                if (widgetSize.height > 120.dp && upcomingExams.size > 1) {
-                    Spacer(modifier = GlanceModifier.height(8.dp))
-                    val secondExam = upcomingExams[1]
-                    Text(
-                        text = "Next: ${secondExam.title}",
-                        style = TextStyle(fontSize = 11.sp, color = ColorProvider(day = Color.DarkGray, night = Color.DarkGray)),
-                        maxLines = 1,
-                        modifier = GlanceModifier.fillMaxWidth()
-                    )
+            } else {
+                Column(
+                    modifier = GlanceModifier
+                        .fillMaxWidth()
+                        .defaultWeight()
+                ) {
+                    val displayCount = if (widgetSize.height > 160.dp) 3 else 1
+                    upcomingExams.take(displayCount).forEachIndexed { index, exam ->
+                        ExamItem(exam, isSmall)
+                        if (index < displayCount - 1 && index < upcomingExams.size - 1) {
+                            Spacer(modifier = GlanceModifier.height(8.dp))
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = GlanceModifier.defaultWeight())
-
-            if (widgetSize.height > 60.dp) {
+            if (widgetSize.height > 180.dp) {
+                Spacer(modifier = GlanceModifier.height(8.dp))
                 Row(
                     modifier = GlanceModifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.End,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalAlignment = Alignment.End
                 ) {
-                    if (widgetSize.width > 150.dp) {
-                        Box(
-                            modifier = GlanceModifier
-                                .size(36.dp)
-                                .background(ColorProvider(day = Color.White, night = Color.White))
-                                .cornerRadius(18.dp)
-                                .clickable(androidx.glance.appwidget.action.actionRunCallback<RefreshExamsActionCallback>()),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                provider = ImageProvider(R.drawable.again),
-                                contentDescription = "Refresh",
-                                modifier = GlanceModifier.size(20.dp),
-                                colorFilter = ColorFilter.tint(ColorProvider(day = Color.Black, night = Color.Black))
-                            )
-                        }
-                        Spacer(modifier = GlanceModifier.width(16.dp))
-                    }
                     Box(
                         modifier = GlanceModifier
-                            .size(36.dp)
-                            .background(ColorProvider(day = Color.White, night = Color.White))
-                            .cornerRadius(18.dp)
-                            .clickable(actionStartActivity<MainActivity>()),
-                        contentAlignment = Alignment.Center
+                            .background(ColorProvider(day = Color.Black, night = Color.Black))
+                            .cornerRadius(8.dp)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clickable(actionStartActivity<MainActivity>())
                     ) {
-                        Image(
-                            provider = ImageProvider(R.drawable.outline_exit_to_app_24),
-                            contentDescription = "Open App",
-                            modifier = GlanceModifier.size(20.dp),
-                            colorFilter = ColorFilter.tint(ColorProvider(day = Color.Black, night = Color.Black))
+                        Text(
+                            text = "View All Exams",
+                            style = TextStyle(
+                                color = ColorProvider(day = Color.White, night = Color.White),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp
+                            )
                         )
                     }
                 }
             }
         }
     }
-}
 
-class RefreshExamsActionCallback : ActionCallback {
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters
-    ) {
-        ExamWidget().update(context, glanceId)
+    @Composable
+    private fun ExamItem(exam: Exam, isSmall: Boolean) {
+        val daysLeft = ChronoUnit.DAYS.between(
+            LocalDate.now(),
+            Instant.ofEpochMilli(exam.examDate).atZone(ZoneId.systemDefault()).toLocalDate()
+        )
+
+        Column(
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .background(ColorProvider(day = Color(0xFFF5F5F5), night = Color(0xFFF5F5F5)))
+                .cornerRadius(8.dp)
+                .padding(10.dp)
+        ) {
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = GlanceModifier.defaultWeight()) {
+                    Text(
+                        text = exam.title,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = if (isSmall) 13.sp else 15.sp,
+                            color = ColorProvider(day = Color.Black, night = Color.Black)
+                        ),
+                        maxLines = 1
+                    )
+                    Text(
+                        text = exam.subject,
+                        style = TextStyle(
+                            fontSize = if (isSmall) 11.sp else 12.sp, 
+                            color = ColorProvider(day = Color.Gray, night = Color.Gray)
+                        ),
+                        maxLines = 1
+                    )
+                }
+
+                Text(
+                    text = when {
+                        daysLeft == 0L -> "Today"
+                        daysLeft == 1L -> "Tomw"
+                        daysLeft < 0L -> "Past"
+                        else -> "${daysLeft}d"
+                    },
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = if (isSmall) 12.sp else 14.sp,
+                        color = ColorProvider(day = Color.Black, night = Color.Black)
+                    )
+                )
+            }
+        }
     }
 }

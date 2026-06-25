@@ -1,8 +1,11 @@
 package com.example.studymateandroidapp.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -12,6 +15,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.data.model.Note
@@ -68,47 +74,104 @@ fun NoteContent(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddNote,
-                containerColor = Color.Black,
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.size(50.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Note")
+                Icon(Icons.Default.Add, contentDescription = "Add Note", modifier = Modifier.size(35.dp))
             }
         }
     ) { padding ->
-        if (notes.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("No notes found. Add one!", color = Color.Gray)
-            }
-        } else {
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
+                    .padding(padding)
+                    .padding(horizontal = 16.dp),
                 contentPadding = PaddingValues(16.dp)
             ) {
-                items(notes) { note ->
-                    NoteItem(
-                        note = note,
-                        onEdit = { onEditNote(note.id) },
-                        onDelete = { onDeleteNote(note) }
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().height(200.dp).padding(vertical = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.background
+                        ),
+                        border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                            val imageRes = if (isDark) {
+                                com.example.studymateandroidapp.R.drawable.not_dark
+                            } else {
+                                com.example.studymateandroidapp.R.drawable.not
+                            }
+
+                            Image(
+                                painter = painterResource(imageRes),
+                                contentDescription = null,
+                                modifier = Modifier.size(90.dp)
+                            )
+                            Text(
+                                text = "Add Your Notes",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = "Stay organized and revise smarter for better \nresults.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Notes for Exam :",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(vertical = 8.dp)
                     )
+                }
+                if (notes.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "No notes found. Add one!",
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }else {
+
+                    items(notes) { note ->
+                        NoteItem(
+                            note = note,
+                            onEdit = { onEditNote(note.id) },
+                            onDelete = { onDeleteNote(note) }
+                        )
+                    }
                 }
             }
         }
     }
-}
+
 
 @Composable
 fun NoteItem(note: Note, onEdit: () -> Unit, onDelete: () -> Unit) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(10.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -116,14 +179,15 @@ fun NoteItem(note: Note, onEdit: () -> Unit, onDelete: () -> Unit) {
             Text(
                 text = note.content,
                 style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.weight(1f)
             )
             Row {
                 IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.Gray)
+                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Gray)
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.primary)
                 }
             }
         }
