@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.data.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -12,6 +13,11 @@ import java.time.LocalDate
  * Optionally linked to an [Exam] via [examId] (nullable FK).
  * Deleting the parent Exam sets [examId] to null.
  */
+data class GoalSubtask(
+    val title: String,
+    val isCompleted: Boolean = false
+)
+
 @Entity(
     tableName = "goals",
     foreignKeys = [
@@ -33,7 +39,11 @@ data class Goal(
     val currentValue: Int = 0,
     val examId: Long? = null,
     val deadline: LocalDate? = null,
+    @ColumnInfo(defaultValue = "[]")
+    val subtasks: List<GoalSubtask> = emptyList(),
     val createdAt: LocalDate = LocalDate.now(),
+    @ColumnInfo(defaultValue = "0")
+    val isXpAwarded: Boolean = false,
 
     // Sync metadata
     val userId: String? = null,

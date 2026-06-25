@@ -16,10 +16,14 @@ class StatisticsRepository(
     private val taskRepository: TaskRepository,
     private val sessionRepository: SessionRepository,
     private val goalRepository: GoalRepository,
-    private val motivationRepository: MotivationRepository
+    private val motivationRepository: MotivationRepository,
+    private val gamificationRepository: GamificationRepository
 ) {
 
     // ── Aggregate model ───────────────────────────────────
+
+    fun getLevelInfo() = gamificationRepository.getLevelInfoFlow()
+    fun getXpEvents() = gamificationRepository.xpEvents
 
     data class OverviewStats(
         val totalTasks: Int,

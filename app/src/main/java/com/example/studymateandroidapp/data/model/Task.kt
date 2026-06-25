@@ -1,6 +1,7 @@
 package com.example.studymateandroidapp.data.model
 
 import androidx.compose.ui.graphics.Color
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -39,6 +40,9 @@ data class Task(
     val subjectTag: String? = null, // Cached for display (e.g., "PSYCHOLOGY")
     val isCompleted: Boolean = false,
     val completedAt: LocalDate? = null,
+    val isXpAwarded: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    val isPinned: Boolean = false,
     
     // Sync metadata
     val userId: String? = null,

@@ -39,4 +39,10 @@ class TaskRepository(private val taskDao: TaskDao) {
 
     fun getTotalCount(): Flow<Int> =
         taskDao.getTotalTaskCount()
+
+    suspend fun pinTask(id: Long) = taskDao.pinTask(id)
+
+    suspend fun unpinTask(id: Long) = taskDao.unpinTask(id)
+
+    suspend fun togglePinned(id: Long) = taskDao.togglePinned(id)
 }

@@ -22,9 +22,10 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
         Achievement::class,
         DailyReflection::class,
         StudyProgress::class,
-        FlashcardReview::class
+        FlashcardReview::class,
+        UserProgress::class
     ],
-    version = 17,
+    version = 20,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -39,6 +40,7 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
     abstract fun flashcardDao(): FlashcardDao
     abstract fun motivationDao(): MotivationDao
     abstract fun studyProgressDao(): StudyProgressDao
+    abstract fun userProgressDao(): UserProgressDao
 
     companion object {
 
@@ -200,6 +202,79 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. Create user_progress table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS user_progress (
+                        id INTEGER PRIMARY KEY NOT NULL,
+                        totalXp INTEGER NOT NULL
+                    )
+                """)
+                db.execSQL("INSERT OR IGNORE INTO user_progress (id, totalXp) VALUES (1, 0)")
+
+                // 2. Add isXpAwarded columns for persistent reward tracking
+                db.execSQL("ALTER TABLE tasks ADD COLUMN isXpAwarded INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE study_sessions ADD COLUMN isXpAwarded INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_18_19 = object : Migration(18, 19) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add subtasks column (expected as TEXT due to TypeConverter)
+                db.execSQL("ALTER TABLE goals ADD COLUMN subtasks TEXT NOT NULL DEFAULT '[]'")
+                // Add isXpAwarded column
+                db.execSQL("ALTER TABLE goals ADD COLUMN isXpAwarded INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_19_20 = object : Migration(19, 20) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. Rebuild the goals table to fix the previous schema mismatch
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS goals_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        title TEXT NOT NULL,
+                        description TEXT NOT NULL,
+                        status TEXT NOT NULL,
+                        targetValue INTEGER NOT NULL,
+                        currentValue INTEGER NOT NULL,
+                        examId INTEGER,
+                        deadline INTEGER,
+                        subtasks TEXT NOT NULL DEFAULT '[]',
+                        createdAt INTEGER NOT NULL,
+                        isXpAwarded INTEGER NOT NULL DEFAULT 0,
+                        userId TEXT,
+                        serverId TEXT,
+                        lastUpdated INTEGER NOT NULL,
+                        FOREIGN KEY(examId) REFERENCES exams(id) ON UPDATE NO ACTION ON DELETE SET NULL
+                    )
+                """)
+
+                db.execSQL("""
+                    INSERT INTO goals_new (
+                        id, title, description, status, targetValue, currentValue,
+                        examId, deadline, subtasks, createdAt, isXpAwarded, userId, serverId, lastUpdated
+                    )
+                    SELECT
+                        id, title, description, status, targetValue, currentValue,
+                        examId, deadline, subtasks, createdAt, isXpAwarded, userId, serverId, lastUpdated
+                    FROM goals
+                """)
+
+                db.execSQL("DROP TABLE goals")
+                db.execSQL("ALTER TABLE goals_new RENAME TO goals")
+
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_goals_examId ON goals(examId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_goals_deadline ON goals(deadline)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_goals_userId ON goals(userId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_goals_serverId ON goals(serverId)")
+
+                // 2. Add isPinned column to tasks table (new feature)
+                db.execSQL("ALTER TABLE tasks ADD COLUMN isPinned INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         /**
          * SINGLETON
          */
@@ -245,7 +320,10 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                     MIGRATION_13_14,
                     MIGRATION_14_15,
                     MIGRATION_15_16,
-                    MIGRATION_16_17
+                    MIGRATION_16_17,
+                    MIGRATION_17_18,
+                    MIGRATION_18_19,
+                    MIGRATION_19_20
                 )
                 .build()
         }

@@ -12,9 +12,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -65,7 +68,8 @@ fun TaskScreen(
                 completedAt = if (isCompleted) LocalDate.now() else null
             ))
         },
-        onDeleteTask = { taskToDelete = it }
+        onDeleteTask = { taskToDelete = it },
+        onTogglePin = { task -> viewModel.togglePinned(task.id) }
     )
 
     taskToDelete?.let { task ->
@@ -93,7 +97,8 @@ fun TaskContent(
     onAchievementsClick: () -> Unit,
     onTaskClick: (Long) -> Unit,
     onToggleTask: (Task) -> Unit,
-    onDeleteTask: (Task) -> Unit
+    onDeleteTask: (Task) -> Unit,
+    onTogglePin: (Task) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val filters = listOf("Pending", "Completed", "Overdue")
@@ -130,10 +135,21 @@ fun TaskContent(
                 title = "",
                 actions = {
                     IconButton(onClick = onAchievementsClick) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements")
+                        Icon(
+                        painter = painterResource(id = R.drawable.achievements),
+                            modifier = Modifier.size(20.dp),
+                        contentDescription = "Achievements",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
+
                     IconButton(onClick = onStatsClick) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Statistics")
+                        Icon(
+                            painter = painterResource(id = R.drawable.statistics),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Statistics",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             )
@@ -143,10 +159,10 @@ fun TaskContent(
                 onClick = onAddTask,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(50.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Task")
+                Icon(Icons.Default.Add, contentDescription = "Add Task",  modifier = Modifier.size(35.dp))
 
             }
         }
@@ -163,7 +179,7 @@ fun TaskContent(
                 "My Tasks",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color =  MaterialTheme.colorScheme.onBackground,
                 fontSize = 26.sp
             )
             Text(
@@ -204,7 +220,8 @@ fun TaskContent(
                     task = task,
                     onToggle = { onToggleTask(task) },
                     onClick = { onTaskClick(task.id) },
-                    onDelete = { onDeleteTask(task) }
+                    onDelete = { onDeleteTask(task) },
+                    onTogglePin = { onTogglePin(task) }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -243,19 +260,15 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         value = query,
         onValueChange = onQueryChange,
         modifier = Modifier.fillMaxWidth()
-            .height(48.6.dp)
-            .border(0.8.dp, Color.Black, RoundedCornerShape(40.dp)),
-        placeholder = { Text("Search tasks, subjects...",
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                      },
-
+            .size(49.dp)
+            ,
+        placeholder = { Text("Search tasks, subjects...", fontSize = 13.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        shape = RoundedCornerShape(40.dp),
+        shape = RoundedCornerShape(12.dp),
         singleLine = true,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -309,15 +322,24 @@ fun SectionHeader(title: String, subtitle: String) {
 }
 
 @Composable
-fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit, onDelete: () -> Unit) {
+fun TaskItemView(
+    task: Task,
+    onToggle: () -> Unit,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+    onTogglePin: () -> Unit
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF5F5F5), // Light gray background like in image
-        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f))
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            width = if (task.isPinned) 2.dp else 1.dp,
+            color = if (task.isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+        )
     ) {
         Row(
             modifier = Modifier
@@ -325,81 +347,163 @@ fun TaskItemView(task: Task, onToggle: () -> Unit, onClick: () -> Unit, onDelete
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Custom rounded checkbox
+
+            // Checkbox
             Surface(
                 modifier = Modifier
                     .size(25.dp)
                     .padding(2.dp)
                     .clickable { onToggle() },
                 shape = RoundedCornerShape(6.dp),
-                border = BorderStroke(2.dp, if (task.isCompleted) Color(task.tagColor.toULong()) else Color.LightGray),
-                color = if (task.isCompleted) Color(task.tagColor.toULong()) else Color.White
+
+                border = BorderStroke(
+                    2.dp,
+                    if (task.isCompleted)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.outline
+                ),
+                color =
+                    if (task.isCompleted)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.surface
             ) {
                 if (task.isCompleted) {
-                    Icon(
-                        imageVector = Icons.Default.Add, // Using Add as a placeholder for checkmark or just leave colored
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.padding(2.dp)
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    if (task.isPinned) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.height(22.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.PushPin,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(10.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    text = "PINNED",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+                    }
+
                     if (!task.subjectTag.isNullOrBlank()) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.height(22.dp),
                             color = Color(task.tagColor.toULong()),
-                            border = BorderStroke(1.dp, Color.DarkGray.copy(alpha = 0.8f))
-
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                            )
                         ) {
                             Text(
                                 text = task.subjectTag.uppercase(),
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                modifier = Modifier.padding(
+                                    horizontal = 12.dp,
+                                    vertical = 4.dp
+                                ),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Black
                             )
                         }
+
                         Spacer(modifier = Modifier.width(16.dp))
                     }
 
                     if (task.dueTime != null) {
                         Icon(
-                            painter = painterResource(id = R.drawable.time),
+                            painter = painterResource(R.drawable.time),
                             contentDescription = null,
                             modifier = Modifier.size(14.dp),
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+
                         Spacer(modifier = Modifier.width(4.dp))
+
                         Text(
-                            text = task.dueTime.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a")),
+                            text = task.dueTime.format(
+                                java.time.format.DateTimeFormatter.ofPattern(
+                                    "h:mm a"
+                                )
+                            ),
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
 
-            IconButton(onClick = onDelete) {
+            IconButton(
+                onClick = onTogglePin
+            ) {
+                Icon(
+                    imageVector = if (task.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                    contentDescription = if (task.isPinned) "Unpin" else "Pin",
+                    modifier = Modifier.size(20.dp),
+                    tint = if (task.isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            IconButton(
+                onClick = onDelete
+            ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
                     modifier = Modifier.size(20.dp),
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -493,7 +597,8 @@ fun TaskScreenPreview() {
             onStatsClick = {},
             onAchievementsClick = {},
             onToggleTask = {},
-            onDeleteTask = {}
+            onDeleteTask = {},
+            onTogglePin = {}
         )
     }
 }

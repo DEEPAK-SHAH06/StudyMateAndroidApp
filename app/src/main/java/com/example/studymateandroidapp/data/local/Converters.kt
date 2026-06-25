@@ -6,6 +6,9 @@ import com.example.studymateandroidapp.data.model.GoalStatus
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.ReminderType
 import com.example.studymateandroidapp.data.model.TaskStatus
+import com.example.studymateandroidapp.data.model.GoalSubtask
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -81,4 +84,15 @@ class Converters {
     @TypeConverter
     fun toStringList(data: String?): List<String>? = 
         if (data.isNullOrEmpty()) emptyList() else data.split(",")
+
+    // ── List<GoalSubtask> ↔ String (JSON) ────────────────
+    @TypeConverter
+    fun fromGoalSubtaskList(value: List<GoalSubtask>?): String? = Gson().toJson(value)
+
+    @TypeConverter
+    fun toGoalSubtaskList(value: String?): List<GoalSubtask>? {
+        if (value.isNullOrEmpty()) return emptyList()
+        val type = object : TypeToken<List<GoalSubtask>>() {}.type
+        return Gson().fromJson(value, type)
+    }
 }

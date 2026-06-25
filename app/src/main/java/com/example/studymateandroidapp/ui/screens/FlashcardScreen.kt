@@ -3,7 +3,6 @@ package com.example.studymateandroidapp.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,13 +11,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -109,10 +108,17 @@ fun FlashcardContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
+                        val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                        val imageRes = if (isDark) {
+                            R.drawable.flashcard_dark
+                        } else {
+                            R.drawable.flashcard
+                        }
+
                         Image(
-                            painter = painterResource(id = R.drawable.flashcard),
+                            painter = painterResource(imageRes),
                             contentDescription = null,
-                            modifier = Modifier.size(64.dp)
+                            modifier = Modifier.size(70.dp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(text = "Study All Cards", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)

@@ -37,6 +37,15 @@ interface TaskDao {
     @Query("SELECT DISTINCT completedAt FROM tasks WHERE isCompleted = 1 AND completedAt IS NOT NULL")
     fun getCompletedDates(): Flow<List<LocalDate>>
 
+    @Query("UPDATE tasks SET isPinned = 1, lastUpdated = :lastUpdated WHERE id = :id")
+    suspend fun pinTask(id: Long, lastUpdated: Long = System.currentTimeMillis())
+
+    @Query("UPDATE tasks SET isPinned = 0, lastUpdated = :lastUpdated WHERE id = :id")
+    suspend fun unpinTask(id: Long, lastUpdated: Long = System.currentTimeMillis())
+
+    @Query("UPDATE tasks SET isPinned = NOT isPinned, lastUpdated = :lastUpdated WHERE id = :id")
+    suspend fun togglePinned(id: Long, lastUpdated: Long = System.currentTimeMillis())
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(task: Task): Long
 

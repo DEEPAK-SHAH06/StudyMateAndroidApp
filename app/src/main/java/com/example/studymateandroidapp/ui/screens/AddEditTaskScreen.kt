@@ -45,6 +45,7 @@ fun AddEditTaskScreen(
     var dueTime by remember { mutableStateOf(LocalTime.of(9, 0)) }
     var subjectTag by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf(Color.Red) }
+    var existingTask by remember { mutableStateOf<Task?>(null) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
 
@@ -52,6 +53,7 @@ fun AddEditTaskScreen(
         if (taskId != null) {
             val task = viewModel.getTaskById(taskId)
             if (task != null) {
+                existingTask = task
                 title = task.title
                 description = task.description
                 priority = task.priority
@@ -79,6 +81,7 @@ fun AddEditTaskScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Spacer(modifier = Modifier.width(3.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -90,25 +93,27 @@ fun AddEditTaskScreen(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "NEW ENTRY",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Gray
+                        "NEW ENTRY",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Bold
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Organize Your Study\nStream",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 38.sp
+                        "Organize Your Study Stream",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 32.sp
                     )
+                    Spacer(modifier = Modifier.height(3.dp))
                     Text(
-                        text = "Capture the essence of your next milestone.\nClarity leads to focus.",
-                        fontSize = 10.sp,
+                        "Capture the essence of your next milestone.\nClarity leads to focus.",
+                        style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
 
                 Image(
                     painter = painterResource(R.drawable.create_task),
@@ -116,8 +121,6 @@ fun AddEditTaskScreen(
                     modifier = Modifier.size(100.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = title,
@@ -162,7 +165,7 @@ fun AddEditTaskScreen(
                             .size(34.dp)
                             .background(color, CircleShape)
                             .border(
-                                width = if (selectedColor == color) 3.dp else 1.dp,
+                                width = if (selectedColor == color) 3.dp else 0.7.dp,
                                 color = Color.Black,
                                 shape = CircleShape
                             )
@@ -172,7 +175,7 @@ fun AddEditTaskScreen(
                     )
                 }
             }
-
+            Spacer(modifier = Modifier.height(2.dp))
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -181,12 +184,11 @@ fun AddEditTaskScreen(
                 minLines = 3,
                 shape = RoundedCornerShape(12.dp)
             )
-
+            Spacer(modifier = Modifier.height(1.dp))
             Text(
                 "Priority",
                 style = MaterialTheme.typography.titleSmall
             )
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -207,6 +209,7 @@ fun AddEditTaskScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center,
                                 modifier = Modifier.fillMaxWidth()
+                                    .height(62.dp)
                             ) {
 
                                 Icon(
@@ -227,7 +230,7 @@ fun AddEditTaskScreen(
                     )
                 }
             }
-
+            Spacer(modifier = Modifier.height(2.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -289,25 +292,37 @@ fun AddEditTaskScreen(
             Button(
                 onClick = {
                     if (title.isNotBlank()) {
-                        val task = Task(
-                            id = taskId ?: 0,
-                            title = title,
-                            description = description,
-                            priority = priority,
-                            dueDate = dueDate,
-                            dueTime = dueTime,
-                            subjectTag = subjectTag.uppercase(),
-                            tagColor = selectedColor.value.toLong()
-                        )
+                        val task = if (taskId != null && existingTask != null) {
+                            existingTask!!.copy(
+                                title = title,
+                                description = description,
+                                priority = priority,
+                                dueDate = dueDate,
+                                dueTime = dueTime,
+                                subjectTag = subjectTag.uppercase(),
+                                tagColor = selectedColor.value.toLong()
+                            )
+                        } else {
+                            Task(
+                                id = 0,
+                                title = title,
+                                description = description,
+                                priority = priority,
+                                dueDate = dueDate,
+                                dueTime = dueTime,
+                                subjectTag = subjectTag.uppercase(),
+                                tagColor = selectedColor.value.toLong()
+                            )
+                        }
                         if (taskId == null) viewModel.addTask(task) else viewModel.updateTask(task)
                         onNavigateBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Save Task", fontWeight = FontWeight.Bold)
+                Text("Save Task", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
             }
 
             if (taskId != null) {
@@ -325,7 +340,7 @@ fun AddEditTaskScreen(
                     ConfirmDeleteDialog(
                         itemName = "Task",
                         onConfirm = {
-                            val currentTask = Task(
+                            val taskToDelete = existingTask ?: Task(
                                 id = taskId,
                                 title = title,
                                 description = description,
@@ -335,7 +350,7 @@ fun AddEditTaskScreen(
                                 subjectTag = subjectTag.uppercase(),
                                 tagColor = selectedColor.value.toLong()
                             )
-                            viewModel.deleteTask(currentTask) {
+                            viewModel.deleteTask(taskToDelete) {
                                 onNavigateBack()
                             }
                             showDeleteConfirm = false

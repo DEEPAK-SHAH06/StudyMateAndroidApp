@@ -2,6 +2,7 @@ package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,7 +38,6 @@ import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Task
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.viewmodel.DashboardViewModel
-import com.example.studymateandroidapp.ui.components.CelebrationOverlay
 import com.example.studymateandroidapp.viewmodel.DashboardViewModel.GoalSummary
 import com.example.studymateandroidapp.ui.components.DailyQuoteCard
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
@@ -55,15 +56,6 @@ fun DashboardScreen(
     onNavigateToAchievements: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    // Celebration overlay
-    if (uiState.showCelebration) {
-        CelebrationOverlay(
-            message = uiState.celebrationMessage,
-            isVisible = uiState.showCelebration,
-            onDismiss = viewModel::dismissCelebration
-        )
-    }
 
     DashboardContent(
         greeting = uiState.greeting,
@@ -143,10 +135,20 @@ private fun DashboardContent(
                 onBack = null,
                 actions = {
                     IconButton(onClick = onNavigateToAchievements) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(
+                            painter = painterResource(id = R.drawable.achievements),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Achievements",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                     IconButton(onClick = onNavigateToStats) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Statistics", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(
+                            painter = painterResource(id = R.drawable.statistics),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Statistics",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             )
@@ -156,10 +158,10 @@ private fun DashboardContent(
                 onClick = onNavigateToCalendar,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(50.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Icon(Icons.Default.CalendarMonth, contentDescription = "Calendar")
+                Icon(Icons.Default.CalendarMonth, contentDescription = "Calendar", modifier = Modifier.size(35.dp))
             }
         }
     ) { paddingValues ->
@@ -285,16 +287,17 @@ private fun DashboardContent(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
                 ) {
                     Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Goals", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Goals", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             }
                             
                             if (totalGoalCount == 0) {
-                                Text("No goals yet", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("No goals yet", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                                 Text("Create your first goal to start tracking progress", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                             } else {
                                 Text("${activeGoals.size} active goals", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -311,6 +314,20 @@ private fun DashboardContent(
                             Spacer(Modifier.height(12.dp))
                             Text("View Goals →", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { onNavigateToGoals() })
                         }
+                        val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                        val imageRes = if (isDark) {
+                            R.drawable.focus_dark
+                        } else {
+                            R.drawable.focus
+                        }
+
+                        Image(
+                            painter = painterResource(imageRes),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(90.dp)
+                                .padding(start = 16.dp)
+                        )
                     }
                 }
                 Spacer(Modifier.height(24.dp))
@@ -379,15 +396,21 @@ private fun GoalProgressRow(label: String, progressPercent: Int) {
 }
 
 @Composable
-private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
+private fun AestheticTaskRow(
+    task: Task,
+    onToggle: () -> Unit
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable { onToggle() },
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF5F5F5),
-        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f))
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        )
     ) {
         Row(
             modifier = Modifier
@@ -395,34 +418,63 @@ private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Rounded checkbox
+
+            // Checkbox
             Surface(
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(22.dp),
                 shape = RoundedCornerShape(5.dp),
-                border = BorderStroke(2.dp, if (task.isCompleted) Color(task.tagColor.toULong()) else Color.LightGray),
-                color = if (task.isCompleted) Color(task.tagColor.toULong()) else Color.White
+                border = BorderStroke(
+                    2.dp,
+                    if (task.isCompleted)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.outline
+                ),
+                color =
+                    if (task.isCompleted)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.surface
             ) {
                 if (task.isCompleted) {
-                    Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.padding(2.dp))
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
+
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null
+                    textDecoration =
+                        if (task.isCompleted)
+                            TextDecoration.LineThrough
+                        else
+                            null
                 )
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
                     if (!task.subjectTag.isNullOrBlank()) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
@@ -430,28 +482,39 @@ private fun AestheticTaskRow(task: Task, onToggle: () -> Unit) {
                         ) {
                             Text(
                                 text = task.subjectTag.uppercase(),
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.padding(
+                                    horizontal = 8.dp,
+                                    vertical = 2.dp
+                                ),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Black,
                                 fontSize = 9.sp
                             )
                         }
+
                         Spacer(modifier = Modifier.width(12.dp))
                     }
 
                     if (task.dueTime != null) {
+
                         Icon(
-                            painter = painterResource(id = R.drawable.time),
+                            painter = painterResource(R.drawable.time),
                             contentDescription = null,
                             modifier = Modifier.size(12.dp),
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+
                         Spacer(modifier = Modifier.width(4.dp))
+
                         Text(
-                            text = task.dueTime.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a")),
+                            text = task.dueTime.format(
+                                java.time.format.DateTimeFormatter.ofPattern(
+                                    "h:mm a"
+                                )
+                            ),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold
                         )
                     }

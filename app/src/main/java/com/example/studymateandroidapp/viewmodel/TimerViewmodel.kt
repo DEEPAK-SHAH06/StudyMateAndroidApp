@@ -7,7 +7,8 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.local.PreferenceManager
-import com.example.studymateandroidapp.data.model.StudyProgress
+import com.example.studymateandroidapp.data.model.CelebrationEvent
+import com.example.studymateandroidapp.data.model.CelebrationType
 import com.example.studymateandroidapp.data.model.StudySession
 import com.example.studymateandroidapp.data.repository.SessionRepository
 import com.example.studymateandroidapp.data.repository.StudyProgressRepository
@@ -202,10 +203,23 @@ class TimerViewmodel(
             endTime = LocalDateTime.now(),
             durationSeconds = seconds,
             isCompleted = isCompleted,
-            examId = _uiState.value.examId
+            examId = _uiState.value.examId,
+            isXpAwarded = isCompleted // Award XP immediately if finished naturally
         )
 
         viewModelScope.launch {
+            if (isCompleted) {
+                motivationRepository.addXp(10, "Study Session Complete!")
+                motivationRepository.triggerCelebration(
+                    CelebrationEvent(
+                        type = CelebrationType.TASK_COMPLETED, // Reusing task style for now or I can add new one
+                        title = "Study Session Complete",
+                        subtitle = session.subject,
+                        xpReward = 10,
+                        icon = "📖"
+                    )
+                )
+            }
             sessionRepository.insert(session)
             motivationRepository.recordStudyActivity()
         }

@@ -40,6 +40,7 @@ data class StudySession(
     val durationSeconds: Int = 0,
     val isCompleted: Boolean = false,
     val notes: String = "",
+    val isXpAwarded: Boolean = false,
 
     // Sync metadata
     val userId: String? = null,

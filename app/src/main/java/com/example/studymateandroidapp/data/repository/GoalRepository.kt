@@ -5,7 +5,9 @@ import com.example.studymateandroidapp.data.model.Goal
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
-class GoalRepository(private val goalDao: GoalDao) {
+class GoalRepository(
+    private val goalDao: GoalDao
+) {
 
     fun getAllGoals(): Flow<List<Goal>> = goalDao.getAllGoals()
 

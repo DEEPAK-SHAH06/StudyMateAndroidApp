@@ -4,15 +4,17 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.model.Task
+import com.example.studymateandroidapp.data.model.CelebrationEvent
+import com.example.studymateandroidapp.data.model.CelebrationType
 import com.example.studymateandroidapp.data.repository.MotivationRepository
 import com.example.studymateandroidapp.data.repository.TaskRepository
 import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
+import com.example.studymateandroidapp.utils.notification.ReminderScheduler
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
-import com.example.studymateandroidapp.utils.notification.ReminderScheduler
 
 class TaskViewmodel(
     private val repository: TaskRepository,
@@ -22,6 +24,7 @@ class TaskViewmodel(
 ) : ViewModel() {
 
     val allTasks: StateFlow<List<Task>> = repository.allTasks
+        .map { list -> list.sortedByDescending { it.isPinned } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun addTask(task: Task) {
@@ -41,19 +44,35 @@ class TaskViewmodel(
 
     fun updateTask(task: Task) {
         viewModelScope.launch {
-            repository.update(task)
-            if (task.dueDate != null && task.dueTime != null) {
+            val updatedTask = if (task.isCompleted && !task.isXpAwarded) {
+                motivationRepository.addXp(5, "Task Completed!")
+                motivationRepository.triggerCelebration(
+                    CelebrationEvent(
+                        type = CelebrationType.TASK_COMPLETED,
+                        title = "Task Completed",
+                        subtitle = task.title,
+                        xpReward = 5,
+                        icon = "✅"
+                    )
+                )
+                task.copy(isXpAwarded = true)
+            } else {
+                task
+            }
+            
+            repository.update(updatedTask)
+            if (updatedTask.dueDate != null && updatedTask.dueTime != null) {
                 reminderScheduler.scheduleTaskReminders(
-                    taskId = task.id,
-                    title = task.title,
-                    dueDate = task.dueDate,
-                    dueTime = task.dueTime
+                    taskId = updatedTask.id,
+                    title = updatedTask.title,
+                    dueDate = updatedTask.dueDate,
+                    dueTime = updatedTask.dueTime
                 )
             } else {
-                reminderScheduler.cancelTaskReminders(task.id)
+                reminderScheduler.cancelTaskReminders(updatedTask.id)
             }
             WidgetUpdateHelper.updateAllWidgets(application)
-            if (task.isCompleted) {
+            if (updatedTask.isCompleted) {
                 motivationRepository.checkAndUnlockAchievements()
             }
         }
@@ -72,4 +91,25 @@ class TaskViewmodel(
     }
 
     suspend fun getTaskById(id: Long): Task? = repository.getTaskById(id)
+
+    fun pinTask(id: Long) {
+        viewModelScope.launch {
+            repository.pinTask(id)
+            WidgetUpdateHelper.updateAllWidgets(application)
+        }
+    }
+
+    fun unpinTask(id: Long) {
+        viewModelScope.launch {
+            repository.unpinTask(id)
+            WidgetUpdateHelper.updateAllWidgets(application)
+        }
+    }
+
+    fun togglePinned(id: Long) {
+        viewModelScope.launch {
+            repository.togglePinned(id)
+            WidgetUpdateHelper.updateAllWidgets(application)
+        }
+    }
 }

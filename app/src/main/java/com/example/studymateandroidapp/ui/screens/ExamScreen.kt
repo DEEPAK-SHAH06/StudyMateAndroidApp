@@ -2,18 +2,15 @@ package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,13 +33,13 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import com.example.studymateandroidapp.data.model.StudyProgress
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.luminance
 
 /**
  * Main screen for displaying and managing exams.
@@ -128,10 +125,21 @@ fun ExamContent(
 
                 actions = {
                     IconButton(onClick = onNavigateToAchievements) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(
+                            painter = painterResource(id = R.drawable.achievements),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Achievements",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
+
                     IconButton(onClick = onStatsClick) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Statistics")
+                        Icon(
+                            painter = painterResource(id = R.drawable.statistics),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = "Statistics",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             )
@@ -139,12 +147,12 @@ fun ExamContent(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddExam,
-                containerColor = Color.Black,
-                contentColor = Color.White,
-                modifier = Modifier.size(40.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(50.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Exam")
+                Icon(Icons.Default.Add, contentDescription = "Add Exam", modifier = Modifier.size(35.dp))
             }
         }
     ) { innerPadding ->
@@ -158,13 +166,12 @@ fun ExamContent(
                 "Exams :",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 26.sp
             )
 
             Spacer(Modifier.height(12.dp))
             ExamSearchBar(query = searchQuery, onQueryChange = { searchQuery = it })
-            Spacer(Modifier.height(12.dp))
 
             Box(
                 modifier = Modifier
@@ -172,8 +179,15 @@ fun ExamContent(
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center
             ) {
+                val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                val imageRes = if (isDark) {
+                    R.drawable.exam_dark
+                } else {
+                    R.drawable.exam
+                }
+
                 Image(
-                    painter = painterResource(id = R.drawable.exam),
+                    painter = painterResource(imageRes),
                     contentDescription = null,
                     modifier = Modifier.size(200.dp)
                 )
@@ -184,7 +198,7 @@ fun ExamContent(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.align(Alignment.End),
                 fontSize = 18.sp,
-                color = Color.DarkGray,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium
             )
 
@@ -265,18 +279,17 @@ fun ExamSearchBar(query: String, onQueryChange: (String) -> Unit) {
         value = query,
         onValueChange = onQueryChange,
         modifier = Modifier.fillMaxWidth()
-            .height(48.6.dp)
-            .border(0.8.dp, Color.Black, RoundedCornerShape(40.dp)),
+            .height(49.dp),
         placeholder = { Text("Search exams, subjects...",
-            fontSize = 14.sp,
+            fontSize = 13.5.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
         },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        shape = RoundedCornerShape(40.dp),
+        shape = RoundedCornerShape(12.dp),
         singleLine = true,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,

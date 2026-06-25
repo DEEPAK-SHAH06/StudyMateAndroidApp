@@ -1,186 +1,242 @@
 package com.example.studymateandroidapp.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.studymateandroidapp.data.model.Goal
-import com.example.studymateandroidapp.data.model.GoalStatus
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.studymateandroidapp.data.model.GoalSubtask
 import com.example.studymateandroidapp.viewmodel.GoalViewmodel
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditGoalScreen(
-    goalId: Long? = null,
     viewModel: GoalViewmodel,
+    goalId: Long? = null,
     onNavigateBack: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var progress by remember { mutableFloatStateOf(0f) }
-    var status by remember { mutableStateOf(GoalStatus.NOT_STARTED) }
-    var isLoading by remember { mutableStateOf(goalId != null) }
+    val uiState by viewModel.formState.collectAsStateWithLifecycle()
 
     LaunchedEffect(goalId) {
         if (goalId != null) {
-            val goal = viewModel.getGoalById(goalId)
-            if (goal != null) {
-                title = goal.title
-                description = goal.description
-                progress = goal.currentValue.toFloat()
-                status = goal.status
-            }
-            isLoading = false
+            viewModel.loadGoalForEdit(goalId)
+        } else {
+            viewModel.resetForm()
         }
     }
+
+    // Handle single-event navigation back
+    LaunchedEffect(uiState.isSaved) {
+        if (uiState.isSaved) {
+            onNavigateBack()
+        }
+    }
+
+    AddGoalContent(
+        uiState = uiState,
+        onTitleChanged = viewModel::onTitleChanged,
+        onDescriptionChanged = viewModel::onDescriptionChanged,
+        onAddSubtask = viewModel::onAddSubtask,
+        onToggleSubtask = viewModel::onToggleSubtask,
+        onRemoveSubtask = viewModel::onRemoveSubtask,
+        onSaveGoal = viewModel::onSaveGoal,
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddGoalContent(
+    uiState: GoalViewmodel.GoalFormUiState,
+    onTitleChanged: (String) -> Unit,
+    onDescriptionChanged: (String) -> Unit,
+    onAddSubtask: (String) -> Unit,
+    onToggleSubtask: (Int) -> Unit,
+    onRemoveSubtask: (Int) -> Unit,
+    onSaveGoal: () -> Unit,
+    onNavigateBack: () -> Unit
+) {
+    var newSubtaskTitle by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (goalId == null) "New Goal" else "Edit Goal") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background),
+                title = { Text(if (uiState.isEditMode) "Edit Goal" else "Add Goal") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            val targetGoal = Goal(
-                                id = goalId ?: 0,
-                                title = title,
-                                description = description,
-                                currentValue = progress.toInt(),
-                                targetValue = 100, // Default target for simplicity in this UI
-                                status = status
-                            )
-                            if (goalId == null) {
-                                viewModel.addGoal(targetGoal)
-                            } else {
-                                viewModel.updateGoal(targetGoal)
-                            }
-                            onNavigateBack()
-                        },
-                        enabled = title.isNotBlank()
-                    ) {
-                        Icon(Icons.Default.Check, contentDescription = "Save")
-                    }
-                }
+                        windowInsets = WindowInsets(0, 0, 0, 0)
             )
         }
     ) { padding ->
-        if (isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 28.dp, vertical = 5.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedTextField(
+                value = uiState.title,
+                onValueChange = onTitleChanged,
+                label = { Text("Goal Title") },
+                placeholder = { Text("e.g. Complete 50 Calculus problems") },
+                leadingIcon = { Icon(Icons.Default.Title, null) },
+                isError = uiState.titleError != null,
+                supportingText = uiState.titleError?.let { { Text(it) } },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = uiState.description,
+                onValueChange = onDescriptionChanged,
+                label = { Text("Description (Optional)") },
+                placeholder = { Text("More details about your goal...") },
+                leadingIcon = { Icon(Icons.Default.Description, null) },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+            Text("Goal Checklist", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("Breaking your goal into smaller steps automatically updates your progress.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            // Add Subtask Input
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Goal Title") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
-                )
-
-                Text(
-                    text = "Progress: ${progress.toInt()}%",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Slider(
-                    value = progress,
-                    onValueChange = { progress = it },
-                    valueRange = 0f..100f,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                var expanded by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
-                    OutlinedTextField(
-                        value = status.toDisplayString(),
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Status") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        GoalStatus.entries.forEach { goalStatus ->
-                            DropdownMenuItem(
-                                text = { Text(goalStatus.toDisplayString()) },
-                                onClick = {
-                                    status = goalStatus
-                                    expanded = false
-                                }
-                            )
+                    value = newSubtaskTitle,
+                    onValueChange = { newSubtaskTitle = it },
+                    label = { Text("Add step...") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                    ),
+                    keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                        onDone = {
+                            onAddSubtask(newSubtaskTitle)
+                            newSubtaskTitle = ""
                         }
+                    )
+                )
+                Spacer(Modifier.width(8.dp))
+                IconButton(
+                    onClick = {
+                        onAddSubtask(newSubtaskTitle)
+                        newSubtaskTitle = ""
+                    },
+                    enabled = newSubtaskTitle.isNotBlank()
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Step")
+                }
+            }
+
+            // Subtask List
+            uiState.subtasks.forEachIndexed { index, subtask ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = subtask.isCompleted,
+                        onCheckedChange = { onToggleSubtask(index) }
+                    )
+                    Text(
+                        text = subtask.title,
+                        modifier = Modifier.weight(1f),
+                        style = if (subtask.isCompleted)
+                            MaterialTheme.typography.bodyMedium.copy(textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough)
+                        else
+                            MaterialTheme.typography.bodyMedium
+                    )
+                    IconButton(onClick = { onRemoveSubtask(index) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                     }
                 }
+            }
 
-                Spacer(Modifier.weight(1f))
+            if (uiState.subtasks.isNotEmpty()) {
+                val progress = if (uiState.targetValue > 0) uiState.currentValue.toFloat() / uiState.targetValue else 0f
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    Text("Current Progress: ${(progress * 100).toInt()}%", style = MaterialTheme.typography.labelLarge)
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(androidx.compose.foundation.shape.CircleShape),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    )
+                    Text("${uiState.currentValue} of ${uiState.targetValue} steps completed", style = MaterialTheme.typography.bodySmall)
+                }
+            }
 
-                Button(
-                    onClick = {
-                        val targetGoal = Goal(
-                            id = goalId ?: 0,
-                            title = title,
-                            description = description,
-                            currentValue = progress.toInt(),
-                            targetValue = 100,
-                            status = status
-                        )
-                        if (goalId == null) {
-                            viewModel.addGoal(targetGoal)
-                        } else {
-                            viewModel.updateGoal(targetGoal)
-                        }
-                        onNavigateBack()
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = title.isNotBlank()
-                ) {
-                    Text("Save Goal")
+            Spacer(Modifier.height(8.dp))
+
+            Button(
+                onClick = onSaveGoal,
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                enabled = !uiState.isLoading
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                } else {
+                    Text("Save Goal",color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
     }
 }
 
-private fun GoalStatus.toDisplayString(): String = when (this) {
-    GoalStatus.NOT_STARTED -> "Pending"
-    GoalStatus.IN_PROGRESS -> "In Progress"
-    GoalStatus.COMPLETED -> "Completed"
-    GoalStatus.ABANDONED -> "Abandoned"
+@Preview(showBackground = true)
+@Composable
+fun AddGoalPreview() {
+    MaterialTheme {
+        AddGoalContent(
+            uiState = GoalViewmodel.GoalFormUiState(
+                title = "Learn Quantum Physics",
+                description = "Understand the basics of quantum mechanics.",
+                subtasks = listOf(
+                    GoalSubtask(
+                        "Read Introduction",
+                        true
+                    ),
+                    GoalSubtask("Solve basic problems", false)
+                ),
+                targetValue = 2,
+                currentValue = 1
+            ),
+            onTitleChanged = {},
+            onDescriptionChanged = {},
+            onAddSubtask = {},
+            onToggleSubtask = {},
+            onRemoveSubtask = {},
+            onSaveGoal = {},
+            onNavigateBack = {}
+        )
+    }
 }

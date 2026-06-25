@@ -62,7 +62,10 @@ fun StudyMateTopBar(
         windowInsets = WindowInsets(0, 0, 0, 0),
 
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.background,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface
         ),
 
         modifier = modifier.height(28.dp)
