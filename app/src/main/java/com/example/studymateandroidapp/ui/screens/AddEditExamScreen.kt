@@ -30,11 +30,12 @@ import java.time.format.DateTimeFormatter
 fun AddEditExamScreen(
     examId: Long? = null,
     viewModel: ExamViewmodel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    prefillDate: LocalDate? = null
 ) {
     var initialTitle by remember { mutableStateOf("") }
     var initialSubject by remember { mutableStateOf("") }
-    var initialDate by remember { mutableStateOf(LocalDate.now()) }
+    var initialDate by remember { mutableStateOf(prefillDate ?: LocalDate.now()) }
     var initialTime by remember { mutableStateOf(LocalTime.of(9, 0)) }
 
     if (examId != null) {
@@ -118,14 +119,12 @@ fun AddEditExamContent(
             } else {
                 R.drawable.addexam
             }
-
             Image(
                 painter = painterResource(imageRes),
                 contentDescription = null,
                 modifier = Modifier.fillMaxWidth().height(150.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
-
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -135,7 +134,6 @@ fun AddEditExamContent(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
-
             OutlinedTextField(
                 value = subject,
                 onValueChange = { subject = it },
@@ -145,7 +143,6 @@ fun AddEditExamContent(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
-
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 DateTimeFieldSelector(
                     label = "Exam Date",
@@ -166,7 +163,6 @@ fun AddEditExamContent(
                     leadingIcon = { Icon(painter = painterResource(id = R.drawable.calendar), contentDescription = null, modifier = Modifier.size(20.dp)) },
                     modifier = Modifier.weight(1f)
                 )
-
                 DateTimeFieldSelector(
                     label = "Time",
                     value = examTime.format(DateTimeFormatter.ofPattern("hh:mm a")),
@@ -185,7 +181,6 @@ fun AddEditExamContent(
                     modifier = Modifier.weight(1f)
                 )
             }
-
             OutlinedTextField(
                 value = location,
                 onValueChange = { location = it },
@@ -195,7 +190,6 @@ fun AddEditExamContent(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
-
             OutlinedTextField(
                 value = notes,
                 onValueChange = { notes = it },
@@ -206,9 +200,7 @@ fun AddEditExamContent(
                 minLines = 3,
                 shape = RoundedCornerShape(12.dp)
             )
-
             Spacer(Modifier.height(16.dp))
-
             if (isDateTimeInPast) {
                 Text(
                     text = "Exam date and time must be in the future.",
@@ -217,7 +209,6 @@ fun AddEditExamContent(
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }
-
             Button(
                 onClick = { if (title.isNotBlank() && subject.isNotBlank() && !isDateTimeInPast) onSave(title, subject, examDate, examTime) },
                 enabled = title.isNotBlank() && subject.isNotBlank() && !isDateTimeInPast,
@@ -230,7 +221,6 @@ fun AddEditExamContent(
             ) {
                 Text("Save Exam", fontWeight = FontWeight.Bold)
             }
-            
             Spacer(Modifier.height(32.dp))
         }
     }

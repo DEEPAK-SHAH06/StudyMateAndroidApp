@@ -2,9 +2,9 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
-    id("org.jetbrains.kotlin.plugin.compose")
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
-    // id("com.google.gms.google-services")
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -130,4 +130,8 @@ dependencies {
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("net.zetetic:sqlcipher-android:4.6.1")
     implementation("androidx.sqlite:sqlite-ktx:2.4.0")
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 }
