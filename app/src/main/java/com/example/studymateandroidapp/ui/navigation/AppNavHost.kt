@@ -95,11 +95,17 @@ fun AppNavHost(
         }
 
         // ── Add/Edit Task ─────────────────────────────
-        composable(Screen.AddTask.route) {
+        composable(
+            route = Screen.AddTask.route,
+            arguments = listOf(navArgument("date") { type = NavType.LongType; defaultValue = -1L })
+        ) { backStackEntry ->
             val vm: TaskViewmodel = viewModel(factory = ViewModelFactory)
+            val dateLong = backStackEntry.arguments?.getLong("date") ?: -1L
+            val prefillDate = if (dateLong != -1L) java.time.LocalDate.ofEpochDay(dateLong) else null
             AddEditTaskScreen(
                 viewModel = vm,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                prefillDate = prefillDate
             )
         }
 
@@ -196,11 +202,17 @@ fun AppNavHost(
             )
         }
 
-        composable(Screen.AddExam.route) {
+        composable(
+            route = Screen.AddExam.route,
+            arguments = listOf(navArgument("date") { type = NavType.LongType; defaultValue = -1L })
+        ) { backStackEntry ->
             val vm: ExamViewmodel = viewModel(factory = ViewModelFactory)
+            val dateLong = backStackEntry.arguments?.getLong("date") ?: -1L
+            val prefillDate = if (dateLong != -1L) java.time.LocalDate.ofEpochDay(dateLong) else null
             AddEditExamScreen(
                 viewModel = vm,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                prefillDate = prefillDate
             )
         }
 
@@ -228,7 +240,13 @@ fun AppNavHost(
                 onNavigateToExam = { examId ->
                     navController.navigate(Screen.EditExam.createRoute(examId))
                 },
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onAddTask = { date ->
+                    navController.navigate(Screen.AddTask.createRoute(date))
+                },
+                onAddExam = { date ->
+                    navController.navigate(Screen.AddExam.createRoute(date))
+                },
             )
         }
 

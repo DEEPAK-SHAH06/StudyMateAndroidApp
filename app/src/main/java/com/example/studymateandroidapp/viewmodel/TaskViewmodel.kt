@@ -12,6 +12,7 @@ import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
 import com.example.studymateandroidapp.utils.notification.ReminderScheduler
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -23,6 +24,7 @@ class TaskViewmodel(
 ) : ViewModel() {
 
     val allTasks: StateFlow<List<Task>> = repository.allTasks
+        .map { list -> list.sortedByDescending { it.isPinned } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun addTask(task: Task) {
@@ -91,4 +93,25 @@ class TaskViewmodel(
     }
 
     suspend fun getTaskById(id: Long): Task? = repository.getTaskById(id)
+
+    fun pinTask(id: Long) {
+        viewModelScope.launch {
+            repository.pinTask(id)
+            WidgetUpdateHelper.updateAllWidgets(application)
+        }
+    }
+
+    fun unpinTask(id: Long) {
+        viewModelScope.launch {
+            repository.unpinTask(id)
+            WidgetUpdateHelper.updateAllWidgets(application)
+        }
+    }
+
+    fun togglePinned(id: Long) {
+        viewModelScope.launch {
+            repository.togglePinned(id)
+            WidgetUpdateHelper.updateAllWidgets(application)
+        }
+    }
 }

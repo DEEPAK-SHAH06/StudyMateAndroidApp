@@ -44,11 +44,27 @@ sealed class Screen(
     }
 
     // ── Detail / form destinations ────────────────────────
-    data object AddTask : Screen("add_task", "Add Task")
+    data object AddTask : Screen("add_task?date={date}", "Add Task") {
+        fun createRoute(date: java.time.LocalDate?): String {
+            return if (date != null) {
+                "add_task?date=${date.toEpochDay()}"
+            } else {
+                "add_task"
+            }
+        }
+    }
     data object EditTask : Screen("edit_task/{taskId}", "Edit Task") {
         fun createRoute(taskId: Long) = "edit_task/$taskId"
     }
-    data object AddExam : Screen("add_exam", "Add Exam")
+    data object AddExam : Screen("add_exam?date={date}", "Add Exam") {
+        fun createRoute(date: java.time.LocalDate?): String {
+            return if (date != null) {
+                "add_exam?date=${date.toEpochDay()}"
+            } else {
+                "add_exam"
+            }
+        }
+    }
     data object EditExam : Screen("edit_exam/{examId}", "Edit Exam") {
         fun createRoute(examId: Long) = "edit_exam/$examId"
     }

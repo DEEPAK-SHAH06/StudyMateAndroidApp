@@ -9,12 +9,16 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,7 +41,9 @@ fun CalendarScreen(
     viewModel: CalendarViewModel,
     onNavigateToTask: (Long) -> Unit,
     onNavigateToExam: (Long) -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onAddTask: (LocalDate) -> Unit,
+    onAddExam: (LocalDate) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -48,7 +54,9 @@ fun CalendarScreen(
         onMonthChange = viewModel::onMonthChanged,
         onDateSelected = viewModel::onDateSelected,
         onNavigateToTask = onNavigateToTask,
-        onNavigateToExam = onNavigateToExam
+        onNavigateToExam = onNavigateToExam,
+        onAddTask = onAddTask,
+        onAddExam = onAddExam
     )
 }
 
@@ -60,8 +68,33 @@ fun CalendarContent(
     onMonthChange: (YearMonth) -> Unit,
     onDateSelected: (LocalDate) -> Unit,
     onNavigateToTask: (Long) -> Unit,
-    onNavigateToExam: (Long) -> Unit
+    onNavigateToExam: (Long) -> Unit,
+    onAddTask: (LocalDate) -> Unit,
+    onAddExam: (LocalDate) -> Unit
 ) {
+    var showActionDialog by remember { mutableStateOf(false) }
+    var selectedDateForAction by remember { mutableStateOf<LocalDate?>(null) }
+
+    if (showActionDialog && selectedDateForAction != null) {
+        AlertDialog(
+            onDismissRequest = { showActionDialog = false },
+            title = { Text("Actions for ${selectedDateForAction}") },
+            text = { Text("What would you like to add?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showActionDialog = false
+                    onAddTask(selectedDateForAction!!)
+                }) { Text("Add Task") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showActionDialog = false
+                    onAddExam(selectedDateForAction!!)
+                }) { Text("Add Exam") }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             StudyMateTopBar(
@@ -73,6 +106,14 @@ fun CalendarContent(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { 
+                selectedDateForAction = uiState.selectedDate
+                showActionDialog = true 
+            }) {
+                Icon(Icons.Default.Add, "Add Item")
+            }
         }
     ) { padding ->
         Column(
@@ -89,7 +130,11 @@ fun CalendarContent(
                 currentMonth = uiState.currentMonth,
                 selectedDate = uiState.selectedDate,
                 eventsByDate = uiState.eventsByDate,
-                onDateSelected = onDateSelected
+                onDateSelected = { date ->
+                    onDateSelected(date)
+                    selectedDateForAction = date
+                    showActionDialog = true
+                }
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -344,7 +389,9 @@ fun CalendarPreview() {
             onMonthChange = {},
             onDateSelected = {},
             onNavigateToTask = {},
-            onNavigateToExam = {}
+            onNavigateToExam = {},
+            onAddTask = {},
+            onAddExam = {}
         )
     }
 }
