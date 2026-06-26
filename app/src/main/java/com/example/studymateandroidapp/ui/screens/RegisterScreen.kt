@@ -9,13 +9,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -56,13 +56,19 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(45.dp))
-        Image(
-            painter = painterResource(id = R.drawable.login),
-            contentDescription = "Logo",
-            modifier = Modifier.size(180.dp)
-        )
-        Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+            val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+            val imageRes = if (isDark) {
+                R.drawable.regis_dark
+            } else {
+                R.drawable.regi
+            }
+
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = "App logo",
+                modifier = Modifier.size(180.dp)
+            )
         Text(
             text = "Create Account",
             style = MaterialTheme.typography.headlineMedium,
@@ -70,7 +76,7 @@ fun RegisterScreen(
             fontSize = 24.sp,
             color = MaterialTheme.colorScheme.onBackground
         )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(5.dp))
         Text(
             text = "Join us and start your study journey",
             style = MaterialTheme.typography.bodyMedium,

@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,13 +39,19 @@ fun ForgotPasswordScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(60.dp))
-        Image(
-            painter = painterResource(id = R.drawable.forget),
-            contentDescription = "Logo",
-            modifier = Modifier.size(180.dp)
-        )
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+            val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+            val imageRes = if (isDark) {
+                R.drawable.forget_dark
+            } else {
+                R.drawable.forget
+            }
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = "logo",
+                modifier = Modifier.size(180.dp)
+            )
+        Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = "Forget your password ?",
             style = MaterialTheme.typography.headlineMedium,

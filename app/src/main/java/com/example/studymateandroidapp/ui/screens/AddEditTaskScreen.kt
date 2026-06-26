@@ -37,12 +37,13 @@ import java.time.format.DateTimeFormatter
 fun AddEditTaskScreen(
     taskId: Long? = null,
     viewModel: TaskViewmodel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    prefillDate: LocalDate? = null
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var priority by remember { mutableStateOf(Priority.MEDIUM) }
-    var dueDate by remember { mutableStateOf(LocalDate.now()) }
+    var dueDate by remember { mutableStateOf(prefillDate ?: LocalDate.now()) }
     var dueTime by remember { mutableStateOf(LocalTime.of(9, 0)) }
     var subjectTag by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf(Color.Red) }
