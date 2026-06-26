@@ -6,6 +6,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,10 +16,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -26,14 +31,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studymateandroidapp.R
+import com.example.studymateandroidapp.data.model.AmbientSound
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.TimerViewmodel
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimerScreen(
     viewModel: TimerViewmodel,
@@ -55,10 +63,12 @@ fun TimerScreen(
         onResume = { viewModel.resumeTimer() },
         onStopAndSave = { viewModel.stopAndSave() },
         onReset = { viewModel.resetTimer() },
-        onDeleteSession = { viewModel.deleteSession(it) }
+        onDeleteSession = { viewModel.deleteSession(it) },
+        onSelectAmbientSound = { viewModel.selectAmbientSound(it) }
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimerContent(
     uiState: TimerViewmodel.TimerUiState,
@@ -72,8 +82,10 @@ fun TimerContent(
     onResume: () -> Unit,
     onStopAndSave: () -> Unit,
     onReset: () -> Unit,
-    onDeleteSession: (com.example.studymateandroidapp.data.model.StudySession) -> Unit
+    onDeleteSession: (com.example.studymateandroidapp.data.model.StudySession) -> Unit,
+    onSelectAmbientSound: (AmbientSound?) -> Unit = {}
 ) {
+    var showAmbientSheet by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             StudyMateTopBar(
@@ -223,8 +235,44 @@ fun TimerContent(
                 // Control Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // AMBIENT BUTTON
+                    OutlinedButton(
+                        onClick = { showAmbientSheet = true },
+                        modifier = Modifier.height(52.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(
+                            1.dp,
+                            if (uiState.selectedSound != null) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outline
+                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (uiState.selectedSound != null)
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            else Color.Transparent
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MusicNote,
+                            contentDescription = null,
+                            tint = if (uiState.selectedSound != null)
+                                MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = uiState.selectedSound?.displayName ?: "Ambient",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            color = if (uiState.selectedSound != null)
+                                MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
                     if (!uiState.isRunning && !uiState.isPaused) {
                         // START
                         Button(
@@ -241,7 +289,7 @@ fun TimerContent(
                         // PAUSE
                         Button(
                             onClick = onPause,
-                            modifier = Modifier.weight(1f).height(56.dp),
+                            modifier = Modifier.weight(1f).height(52.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                             shape = RoundedCornerShape(12.dp)
                         ) {
@@ -253,7 +301,7 @@ fun TimerContent(
                         // RESUME
                         Button(
                             onClick = onResume,
-                            modifier = Modifier.weight(1f).height(56.dp),
+                            modifier = Modifier.weight(1f).height(52.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             shape = RoundedCornerShape(12.dp)
                         ) {
@@ -267,7 +315,7 @@ fun TimerContent(
                         // STOP & SAVE
                         IconButton(
                             onClick = onStopAndSave,
-                            modifier = Modifier.size(56.dp).background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(12.dp))
+                            modifier = Modifier.size(52.dp).background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(12.dp))
                         ) {
                             Icon(Icons.Default.Save, contentDescription = "Stop & Save", tint = MaterialTheme.colorScheme.onErrorContainer)
                         }
@@ -329,6 +377,120 @@ fun TimerContent(
                     onDelete = { onDeleteSession(session) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+    }
+
+    // ── Ambient Sound Bottom Sheet ───────────────────────────────
+    if (showAmbientSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showAmbientSheet = false },
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 2.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = "Ambient Sounds",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                // Stop button at top
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onSelectAmbientSound(null)
+                            showAmbientSheet = false
+                        },
+                    color = if (uiState.selectedSound == null)
+                        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(12.dp),
+                    border = if (uiState.selectedSound == null)
+                        BorderStroke(2.dp, MaterialTheme.colorScheme.error)
+                    else null
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Stop,
+                            contentDescription = "Stop ambient sound",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Stop Sound",
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Sound grid
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    modifier = Modifier.heightIn(max = 340.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(AmbientSound.entries.toList()) { sound ->
+                        val isSelected = uiState.selectedSound == sound
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .clickable {
+                                    onSelectAmbientSound(sound)
+                                    showAmbientSheet = false
+                                },
+                            color = if (isSelected)
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(16.dp),
+                            border = if (isSelected)
+                                BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                            else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = sound.icon,
+                                    fontSize = 28.sp
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = sound.displayName,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelected)
+                                        MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -399,6 +561,7 @@ fun formatDuration(totalSeconds: Int): String {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
 fun TimerPreview() {
@@ -415,7 +578,8 @@ fun TimerPreview() {
             onResume = {},
             onStopAndSave = {},
             onReset = {},
-            onDeleteSession = {}
+            onDeleteSession = {},
+            onSelectAmbientSound = {}
         )
     }
 }

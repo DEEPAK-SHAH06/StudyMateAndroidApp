@@ -7,12 +7,14 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.local.PreferenceManager
+import com.example.studymateandroidapp.data.model.AmbientSound
 import com.example.studymateandroidapp.data.model.CelebrationEvent
 import com.example.studymateandroidapp.data.model.CelebrationType
 import com.example.studymateandroidapp.data.model.StudySession
 import com.example.studymateandroidapp.data.repository.SessionRepository
 import com.example.studymateandroidapp.data.repository.StudyProgressRepository
 import com.example.studymateandroidapp.data.repository.MotivationRepository
+import com.example.studymateandroidapp.utils.AmbientSoundManager
 import com.example.studymateandroidapp.utils.notification.NotificationHelper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -35,6 +37,8 @@ class TimerViewmodel(
     private val context: Context
 ) : ViewModel() {
 
+    private val ambientSoundManager = AmbientSoundManager(context)
+
     enum class TimerMode { POMODORO, STOPWATCH }
     enum class PomodoroPhase { WORK, BREAK, LONG_BREAK }
 
@@ -47,7 +51,8 @@ class TimerViewmodel(
         val totalSecondsWorkedToday: Int = 0,
         val studyTitle: String = "",
         val examId: Long? = null,
-        val recentSessions: List<StudySession> = emptyList()
+        val recentSessions: List<StudySession> = emptyList(),
+        val selectedSound: AmbientSound? = null
     )
 
     private val _uiState = MutableStateFlow(TimerUiState())
@@ -92,6 +97,25 @@ class TimerViewmodel(
         _uiState.update { it.copy(phase = phase, timeLeftSeconds = getPhaseDuration(phase)) }
     }
 
+    /**
+     * Select an ambient sound. Pass null to clear / stop.
+     * If the timer is currently running, playback switches immediately.
+     */
+    fun selectAmbientSound(sound: AmbientSound?) {
+        _uiState.update { it.copy(selectedSound = sound) }
+
+        if (_uiState.value.isRunning) {
+            if (sound != null) {
+                ambientSoundManager.play(sound.rawResId)
+            } else {
+                ambientSoundManager.stop()
+            }
+        } else if (!_uiState.value.isPaused) {
+            // Not running and not paused — ensure stopped
+            ambientSoundManager.stop()
+        }
+    }
+
     fun updateStudyTitle(title: String) {
         _uiState.update { it.copy(studyTitle = title) }
     }
@@ -101,6 +125,11 @@ class TimerViewmodel(
         
         _uiState.update { it.copy(isRunning = true, isPaused = false) }
         viewModelScope.launch { preferenceManager.setTimerRunning(true) }
+
+        // Start ambient sound if one is selected
+        _uiState.value.selectedSound?.let { sound ->
+            ambientSoundManager.play(sound.rawResId)
+        }
         
         if (startTime == null) {
             startTime = LocalDateTime.now()
@@ -134,10 +163,14 @@ class TimerViewmodel(
         timerJob?.cancel()
         _uiState.update { it.copy(isRunning = false, isPaused = true) }
         viewModelScope.launch { preferenceManager.setTimerRunning(false) }
+        ambientSoundManager.pause()
     }
 
     fun resumeTimer() {
         if (!_uiState.value.isPaused) return
+        // Resume ambient sound (play will be called again in startTimer if needed,
+        // but resume is more efficient for continuing playback)
+        ambientSoundManager.resume()
         startTimer()
     }
 
@@ -182,6 +215,7 @@ class TimerViewmodel(
             ) 
         }
         viewModelScope.launch { preferenceManager.setTimerRunning(false) }
+        ambientSoundManager.stop()
         startTime = null
     }
 
@@ -255,5 +289,10 @@ class TimerViewmodel(
             PomodoroPhase.BREAK -> 5 * 60
             PomodoroPhase.LONG_BREAK -> 15 * 60
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        ambientSoundManager.release()
     }
 }
