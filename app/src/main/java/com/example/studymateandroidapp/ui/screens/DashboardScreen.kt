@@ -235,7 +235,7 @@ private fun DashboardContent(
             if (dailyQuote.isNotBlank()) {
                 item {
                     DailyQuoteCard(quote = dailyQuote, author = dailyQuoteAuthor)
-                    Spacer(Modifier.height(19.dp))
+                    Spacer(Modifier.height(16.dp))
                 }
             }
 
@@ -297,7 +297,7 @@ private fun DashboardContent(
                             }
                             
                             if (totalGoalCount == 0) {
-                                Text("No goals yet", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                                Text("No goals yet", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                                 Text("Create your first goal to start tracking progress", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                             } else {
                                 Text("${activeGoals.size} active goals", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -316,16 +316,16 @@ private fun DashboardContent(
                         }
                         val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
                         val imageRes = if (isDark) {
-                            R.drawable.focus_dark
+                            R.drawable.go_dark
                         } else {
-                            R.drawable.focus
+                            R.drawable.go
                         }
 
                         Image(
                             painter = painterResource(imageRes),
                             contentDescription = null,
                             modifier = Modifier
-                                .size(90.dp)
+                                .size(100.dp)
                                 .padding(start = 16.dp)
                         )
                     }

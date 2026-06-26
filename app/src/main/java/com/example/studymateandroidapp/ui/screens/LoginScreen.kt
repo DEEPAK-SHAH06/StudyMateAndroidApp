@@ -16,7 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,12 +59,18 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Spacer(modifier = Modifier.height(24.dp))
-        Image(
-            painter = painterResource(id = R.drawable.welcome),
-            contentDescription = "Logo",
-            modifier = Modifier.size(150.dp)
-        )
-        Spacer(modifier = Modifier.height(15.dp))
+            val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+            val imageRes = if (isDark) {
+                R.drawable.log_dark
+            } else {
+                R.drawable.log
+            }
+
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = "App logo",
+                modifier = Modifier.size(200.dp)
+            )
         Text(
             text = "Welcome Back",
             style = MaterialTheme.typography.headlineMedium,

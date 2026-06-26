@@ -4,8 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
@@ -21,7 +19,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -219,46 +216,49 @@ fun DailyQuoteCard(
     author: String,
     modifier: Modifier = Modifier
 ) {
-    val brush = Brush.linearGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.surfaceVariant,
-            MaterialTheme.colorScheme.surface
-        )
-    )
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF101931)
+        ),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Box(
+        Column(
             modifier = Modifier
-                .background(brush)
-                .padding(20.dp)
+                .fillMaxWidth()
+                .padding(24.dp)
         ) {
-            Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "✨ Daily Inspiration",
+                    text = "✨",
+                    fontSize = 16.sp,
+                    color = Color(0xFFFFD700)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "Daily Inspiration",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Color(0xFFC084FC),
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
                 )
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    text = "\"$quote\"",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Medium,
-                    lineHeight = 26.sp
-                )
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    text = "— $author",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.SemiBold
-                )
             }
+            Spacer(Modifier.height(14.dp))
+            Text(
+                text = "\"$quote\"",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Medium,
+                lineHeight = 26.sp
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "— $author",
+                style = MaterialTheme.typography.labelMedium,
+                color = Color(0xFFB0BEC5),
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }
