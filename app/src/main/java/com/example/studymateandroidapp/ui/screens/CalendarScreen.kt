@@ -9,12 +9,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +35,8 @@ import java.util.Locale
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel,
+    onNavigateToAddTask: () -> Unit,
+    onNavigateToAddExam: () -> Unit,
     onNavigateToTask: (Long) -> Unit,
     onNavigateToExam: (Long) -> Unit,
     onNavigateBack: () -> Unit
@@ -47,6 +49,8 @@ fun CalendarScreen(
         onGoToToday = viewModel::onGoToToday,
         onMonthChange = viewModel::onMonthChanged,
         onDateSelected = viewModel::onDateSelected,
+        onNavigateToAddTask = onNavigateToAddTask,
+        onNavigateToAddExam = onNavigateToAddExam,
         onNavigateToTask = onNavigateToTask,
         onNavigateToExam = onNavigateToExam
     )
@@ -59,9 +63,13 @@ fun CalendarContent(
     onGoToToday: () -> Unit,
     onMonthChange: (YearMonth) -> Unit,
     onDateSelected: (LocalDate) -> Unit,
+    onNavigateToAddTask: () -> Unit,
+    onNavigateToAddExam: () -> Unit,
     onNavigateToTask: (Long) -> Unit,
     onNavigateToExam: (Long) -> Unit
 ) {
+    var showAddDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             StudyMateTopBar(
@@ -73,8 +81,37 @@ fun CalendarContent(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                containerColor = Color.Black,
+                contentColor = Color.White,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add")
+            }
         }
     ) { padding ->
+        if (showAddDialog) {
+            AlertDialog(
+                onDismissRequest = { showAddDialog = false },
+                title = { Text("Add Item") },
+                text = { Text("What would you like to add?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showAddDialog = false
+                        onNavigateToAddTask()
+                    }) { Text("Task") }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showAddDialog = false
+                        onNavigateToAddExam()
+                    }) { Text("Exam") }
+                }
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -343,6 +380,8 @@ fun CalendarPreview() {
             onGoToToday = {},
             onMonthChange = {},
             onDateSelected = {},
+            onNavigateToAddTask = {},
+            onNavigateToAddExam = {},
             onNavigateToTask = {},
             onNavigateToExam = {}
         )
