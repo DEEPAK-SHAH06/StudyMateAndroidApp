@@ -32,6 +32,9 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
+/**
+ * Screen that displays a calendar view of tasks and exams.
+ */
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel,
@@ -56,6 +59,9 @@ fun CalendarScreen(
     )
 }
 
+/**
+ * Stateless content for the Calendar screen.
+ */
 @Composable
 fun CalendarContent(
     uiState: CalendarUiState,
@@ -85,11 +91,11 @@ fun CalendarContent(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = Color.Black,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
+                Icon(Icons.Default.Add, contentDescription = "Add Item")
             }
         }
     ) { padding ->

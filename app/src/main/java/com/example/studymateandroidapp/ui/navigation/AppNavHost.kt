@@ -222,6 +222,12 @@ fun AppNavHost(
             val vm: CalendarViewModel = viewModel(factory = ViewModelFactory)
             CalendarScreen(
                 viewModel = vm,
+                onNavigateToAddTask = {
+                    navController.navigate(Screen.AddTask.route)
+                },
+                onNavigateToAddExam = {
+                    navController.navigate(Screen.AddExam.route)
+                },
                 onNavigateToTask = { taskId ->
                     navController.navigate(Screen.EditTask.createRoute(taskId))
                 },
