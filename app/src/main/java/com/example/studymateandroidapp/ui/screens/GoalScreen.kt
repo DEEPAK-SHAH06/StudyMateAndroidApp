@@ -2,6 +2,9 @@ package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -20,6 +23,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -57,7 +62,9 @@ fun GoalScreen(
         onNavigateToEditGoal = onNavigateToEditGoal,
         onNavigateBack = onNavigateBack,
         onDeleteGoal = { goalIdToDelete = it },
-        onFilterChanged = viewModel::onFilterChanged
+        onFilterChanged = viewModel::onFilterChanged,
+        onToggleSubtask = { goalId, index -> viewModel.onToggleSubtaskInList(goalId, index) },
+        onCompleteGoal = { goalId -> viewModel.onCompleteGoalDirectly(goalId) }
     )
 
     goalIdToDelete?.let { goalId ->
@@ -79,7 +86,9 @@ fun GoalScreenContent(
     onNavigateToEditGoal: (Long) -> Unit,
     onNavigateBack: () -> Unit,
     onDeleteGoal: (Long) -> Unit,
-    onFilterChanged: (GoalViewmodel.GoalFilter) -> Unit
+    onFilterChanged: (GoalViewmodel.GoalFilter) -> Unit,
+    onToggleSubtask: (Long, Int) -> Unit,
+    onCompleteGoal: (Long) -> Unit
 ) {
     val selectedFilter = if (listState.filter == GoalViewmodel.GoalFilter.COMPLETED) "Finished" else "Working"
     val filteredGoals = listState.goals
@@ -114,7 +123,6 @@ fun GoalScreenContent(
                     contentPadding = PaddingValues(28.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // 1. Featured Card - ALWAYS VISIBLE
                     item {
                         FeaturedGoalCard(
                             featuredGoal = filteredGoals.firstOrNull()?.goal,
@@ -127,7 +135,6 @@ fun GoalScreenContent(
                         )
                     }
 
-                    // 2. Section Header
                     item {
                         Text(
                             text = if (selectedFilter == "Working") "Active Pursuits" else "Achievements",
@@ -137,7 +144,6 @@ fun GoalScreenContent(
                         )
                     }
 
-                    // 3. Content: Either the List OR the Empty State
                     if (filteredGoals.isEmpty()) {
                         item {
                             Box(
@@ -160,7 +166,9 @@ fun GoalScreenContent(
                                     goal = item.goal,
                                     progressPercent = item.progressPercent,
                                     onClick = { onNavigateToEditGoal(item.goal.id) },
-                                    onDelete = { onDeleteGoal(item.goal.id) }
+                                    onDelete = { onDeleteGoal(item.goal.id) },
+                                    onToggleSubtask = { index -> onToggleSubtask(item.goal.id, index) },
+                                    onCompleteGoal = { onCompleteGoal(item.goal.id) }
                                 )
                             }
                         }
@@ -201,10 +209,10 @@ fun GoalCard(
     goal: Goal,
     progressPercent: Int,
     onClick: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onToggleSubtask: (Int) -> Unit,
+    onCompleteGoal: () -> Unit
 ) {
-    val progress = progressPercent / 100f
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -214,7 +222,11 @@ fun GoalCard(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .animateContentSize()
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -227,13 +239,15 @@ fun GoalCard(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text(
-                        text = goal.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    if (goal.description.isNotBlank()) {
+                        Text(
+                            text = goal.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
 
                 Row {
@@ -246,34 +260,184 @@ fun GoalCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            if (goal.subtasks.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Progress",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    val blocks = buildString {
+                        val filled = if (goal.targetValue > 0) (goal.currentValue * 10) / goal.targetValue else 0
+                        val clampedFilled = filled.coerceIn(0, 10)
+                        repeat(clampedFilled) { append("█") }
+                        repeat(10 - clampedFilled) { append("░") }
+                    }
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$blocks $progressPercent%",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "${goal.currentValue} / ${goal.targetValue} completed",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(6.dp))
+                    
+                    val animatedProgress by animateFloatAsState(
+                        targetValue = if (goal.targetValue > 0) goal.currentValue.toFloat() / goal.targetValue else 0f,
+                        animationSpec = tween(durationMillis = 300),
+                        label = "progress"
+                    )
+                    
+                    LinearProgressIndicator(
+                        progress = { animatedProgress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(CircleShape),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    )
+                }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(8.dp)
-                        .clip(CircleShape),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "$progressPercent%",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.labelMedium
-                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                var isExpanded by remember { mutableStateOf(false) }
+                val limit = 5
+                val hasMore = goal.subtasks.size > limit
+                val visibleSubtasks = if (isExpanded || !hasMore) {
+                    goal.subtasks
+                } else {
+                    goal.subtasks.take(limit)
+                }
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    visibleSubtasks.forEachIndexed { index, subtask ->
+                        val animatedColor by animateColorAsState(
+                            targetValue = if (subtask.isCompleted)
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            else
+                                MaterialTheme.colorScheme.onSurface,
+                            animationSpec = tween(durationMillis = 200),
+                            label = "subtaskTextColor"
+                        )
+                        
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 1.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = subtask.isCompleted,
+                                onCheckedChange = { onToggleSubtask(index) },
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = subtask.title,
+                                style = if (subtask.isCompleted) {
+                                    MaterialTheme.typography.bodyMedium.copy(
+                                        textDecoration = TextDecoration.LineThrough
+                                    )
+                                } else {
+                                    MaterialTheme.typography.bodyMedium
+                                },
+                                color = animatedColor,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+
+                    if (hasMore) {
+                        val remaining = goal.subtasks.size - limit
+                        Text(
+                            text = if (isExpanded) "Show less" else "Show $remaining more...",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .clickable { isExpanded = !isExpanded }
+                                .padding(vertical = 4.dp, horizontal = 8.dp)
+                        )
+                    }
+                }
+            } else {
+                val progress = progressPercent / 100f
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(8.dp)
+                            .clip(CircleShape),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "$progressPercent%",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${goal.currentValue} / ${goal.targetValue} units completed",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    if (goal.status != GoalStatus.COMPLETED) {
+                        Button(
+                            onClick = onCompleteGoal,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Complete", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "${goal.currentValue} / ${goal.targetValue} units completed",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
@@ -425,7 +589,9 @@ fun GoalScreenPreview() {
             onNavigateToEditGoal = {},
             onNavigateBack = {},
             onDeleteGoal = {},
-            onFilterChanged = {}
+            onFilterChanged = {},
+            onToggleSubtask = { _, _ -> },
+            onCompleteGoal = {}
         )
     }
 }

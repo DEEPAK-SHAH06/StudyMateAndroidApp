@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Title
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,7 +21,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.studymateandroidapp.data.model.GoalSubtask
+import com.example.studymateandroidapp.ui.components.DateTimeFieldSelector
 import com.example.studymateandroidapp.viewmodel.GoalViewmodel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun AddEditGoalScreen(
@@ -49,6 +53,7 @@ fun AddEditGoalScreen(
         uiState = uiState,
         onTitleChanged = viewModel::onTitleChanged,
         onDescriptionChanged = viewModel::onDescriptionChanged,
+        onDeadlineChanged = viewModel::onDeadlineChanged,
         onAddSubtask = viewModel::onAddSubtask,
         onToggleSubtask = viewModel::onToggleSubtask,
         onRemoveSubtask = viewModel::onRemoveSubtask,
@@ -63,6 +68,7 @@ fun AddGoalContent(
     uiState: GoalViewmodel.GoalFormUiState,
     onTitleChanged: (String) -> Unit,
     onDescriptionChanged: (String) -> Unit,
+    onDeadlineChanged: (LocalDate?) -> Unit,
     onAddSubtask: (String) -> Unit,
     onToggleSubtask: (Int) -> Unit,
     onRemoveSubtask: (Int) -> Unit,
@@ -70,6 +76,7 @@ fun AddGoalContent(
     onNavigateBack: () -> Unit
 ) {
     var newSubtaskTitle by remember { mutableStateOf("") }
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     Scaffold(
         topBar = {
@@ -82,7 +89,7 @@ fun AddGoalContent(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                        windowInsets = WindowInsets(0, 0, 0, 0)
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         }
     ) { padding ->
@@ -113,6 +120,32 @@ fun AddGoalContent(
                 leadingIcon = { Icon(Icons.Default.Description, null) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2
+            )
+
+            val currentDeadline = uiState.deadline ?: LocalDate.now()
+            val deadlineText = uiState.deadline?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "No Deadline Set"
+
+            DateTimeFieldSelector(
+                label = "Deadline (Optional)",
+                value = deadlineText,
+                onClick = {
+                    android.app.DatePickerDialog(
+                        context,
+                        { _, year, month, day ->
+                            onDeadlineChanged(LocalDate.of(year, month + 1, day))
+                        },
+                        currentDeadline.year,
+                        currentDeadline.monthValue - 1,
+                        currentDeadline.dayOfMonth
+                    ).show()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = "Select Deadline"
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
@@ -232,6 +265,7 @@ fun AddGoalPreview() {
             ),
             onTitleChanged = {},
             onDescriptionChanged = {},
+            onDeadlineChanged = {},
             onAddSubtask = {},
             onToggleSubtask = {},
             onRemoveSubtask = {},

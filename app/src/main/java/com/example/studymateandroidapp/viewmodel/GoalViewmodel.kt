@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.model.Goal
 import com.example.studymateandroidapp.data.model.GoalStatus
 import com.example.studymateandroidapp.data.model.GoalSubtask
+import com.example.studymateandroidapp.data.model.CelebrationEvent
+import com.example.studymateandroidapp.data.model.CelebrationType
 import com.example.studymateandroidapp.data.repository.GoalRepository
 import com.example.studymateandroidapp.data.repository.MotivationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +30,7 @@ import java.time.LocalDate
 @OptIn(ExperimentalCoroutinesApi::class)
 class GoalViewmodel(
     private val repository: GoalRepository,
-    motivationRepository: MotivationRepository
+    private val motivationRepository: MotivationRepository
 ) : ViewModel() {
 
     // ── List UI State ─────────────────────────────────────
@@ -148,6 +150,81 @@ class GoalViewmodel(
                     it.copy(showEncouragement = true, encouragementMessage = msg, showCelebration = true)
                 }
             }
+        }
+    }
+
+    fun onToggleSubtaskInList(goalId: Long, subtaskIndex: Int) {
+        viewModelScope.launch {
+            val goal = repository.getGoalById(goalId).firstOrNull() ?: return@launch
+            val updatedSubtasks = goal.subtasks.toMutableList()
+            if (subtaskIndex in updatedSubtasks.indices) {
+                val subtask = updatedSubtasks[subtaskIndex]
+                updatedSubtasks[subtaskIndex] = subtask.copy(isCompleted = !subtask.isCompleted)
+            }
+            
+            val newCurrentValue = updatedSubtasks.count { it.isCompleted }
+            val newTargetValue = updatedSubtasks.size
+            
+            val allCompleted = newTargetValue > 0 && newCurrentValue == newTargetValue
+            val newStatus = if (allCompleted) GoalStatus.COMPLETED else GoalStatus.IN_PROGRESS
+            
+            val awardXp = allCompleted && !goal.isXpAwarded
+            
+            val updatedGoal = goal.copy(
+                subtasks = updatedSubtasks,
+                currentValue = newCurrentValue,
+                targetValue = newTargetValue,
+                status = newStatus,
+                lastUpdated = System.currentTimeMillis()
+            )
+            
+            val finalGoal = if (awardXp) {
+                motivationRepository.addXp(15, "Goal Completed!")
+                motivationRepository.triggerCelebration(
+                    CelebrationEvent(
+                        type = CelebrationType.GOAL_COMPLETED,
+                        title = "Goal Completed",
+                        subtitle = goal.title,
+                        xpReward = 15,
+                        icon = "🎯"
+                    )
+                )
+                motivationRepository.recordStudyActivity()
+                updatedGoal.copy(isXpAwarded = true)
+            } else {
+                updatedGoal
+            }
+            
+            repository.update(finalGoal)
+        }
+    }
+
+    fun onCompleteGoalDirectly(goalId: Long) {
+        viewModelScope.launch {
+            val goal = repository.getGoalById(goalId).firstOrNull() ?: return@launch
+            val updatedGoal = goal.copy(
+                currentValue = goal.targetValue,
+                status = GoalStatus.COMPLETED,
+                lastUpdated = System.currentTimeMillis()
+            )
+            val awardXp = !goal.isXpAwarded
+            val finalGoal = if (awardXp) {
+                motivationRepository.addXp(15, "Goal Completed!")
+                motivationRepository.triggerCelebration(
+                    CelebrationEvent(
+                        type = CelebrationType.GOAL_COMPLETED,
+                        title = "Goal Completed",
+                        subtitle = goal.title,
+                        xpReward = 15,
+                        icon = "🎯"
+                    )
+                )
+                motivationRepository.recordStudyActivity()
+                updatedGoal.copy(isXpAwarded = true)
+            } else {
+                updatedGoal
+            }
+            repository.update(finalGoal)
         }
     }
 
