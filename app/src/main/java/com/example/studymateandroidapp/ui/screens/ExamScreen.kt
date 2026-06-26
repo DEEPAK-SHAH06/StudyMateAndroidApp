@@ -41,6 +41,18 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.luminance
 
+/**
+ * Main screen for displaying and managing exams.
+ *
+ * @param viewModel The [ExamViewmodel] that provides data and handles actions.
+ * @param onNavigateToAddExam Callback to navigate to the "Add Exam" screen.
+ * @param onNavigateToEditExam Callback to navigate to the "Edit Exam" screen for a specific exam.
+ * @param onStartStudy Callback to begin a study session for a specific exam.
+ * @param onNavigateToNotes Callback to navigate to the notes for a specific exam.
+ * @param onNavigateToFlashcards Callback to navigate to the flashcards for a specific exam.
+ * @param onNavigateToAchievements Callback to navigate to the achievements screen.
+ * @param onStatsClick Callback to navigate to the statistics screen.
+ */
 @Composable
 fun ExamScreen(
     viewModel: ExamViewmodel,
@@ -69,6 +81,20 @@ fun ExamScreen(
     )
 }
 
+/**
+ * The content of the Exam screen, containing the search bar, upcoming exams, and past exams.
+ *
+ * @param exams The list of exams to display.
+ * @param progress A map of exam IDs to their study progress.
+ * @param onNavigateToAchievements Callback for the achievements icon.
+ * @param onStatsClick Callback for the statistics icon.
+ * @param onAddExam Callback for the add exam FAB.
+ * @param onExamClick Callback for clicking an exam card.
+ * @param onDeleteExam Callback for deleting an exam.
+ * @param onStartStudy Callback for starting a study session.
+ * @param onNotesClick Callback for viewing notes.
+ * @param onFlashcardsClick Callback for viewing flashcards.
+ */
 @Composable
 fun ExamContent(
     exams: List<Exam>,
@@ -85,10 +111,11 @@ fun ExamContent(
     var searchQuery by remember { mutableStateOf("") }
 
     val filteredExams = remember(exams, searchQuery) {
-        exams.filter { exam ->
+        val result = exams.filter { exam ->
             exam.title.contains(searchQuery, ignoreCase = true) ||
                     exam.subject.contains(searchQuery, ignoreCase = true)
         }
+        result
     }
 
     Scaffold(
@@ -239,6 +266,12 @@ fun ExamContent(
     }
 }
 
+/**
+ * A search bar for filtering exams by title or subject.
+ *
+ * @param query The current search query.
+ * @param onQueryChange Callback when the search query changes.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExamSearchBar(query: String, onQueryChange: (String) -> Unit) {
@@ -265,6 +298,18 @@ fun ExamSearchBar(query: String, onQueryChange: (String) -> Unit) {
     )
 }
 
+/**
+ * A card representing an exam, showing its details, progress, and actions.
+ *
+ * @param exam The exam to display.
+ * @param progress The study progress for this exam.
+ * @param isPast Whether this is a past exam.
+ * @param onClick Callback when the card is clicked.
+ * @param onDelete Callback when the delete icon is clicked.
+ * @param onStudy Callback when the "Study" button is clicked.
+ * @param onNotes Callback when the notes icon is clicked.
+ * @param onFlashcards Callback when the flashcards icon is clicked.
+ */
 @Composable
 fun ExamCard(
     exam: Exam,

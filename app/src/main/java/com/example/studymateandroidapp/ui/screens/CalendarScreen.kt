@@ -14,11 +14,7 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +32,9 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
+/**
+ * Screen that displays a calendar view of tasks and exams.
+ */
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel,
@@ -60,6 +59,9 @@ fun CalendarScreen(
     )
 }
 
+/**
+ * Stateless content for the Calendar screen.
+ */
 @Composable
 fun CalendarContent(
     uiState: CalendarUiState,
@@ -72,28 +74,7 @@ fun CalendarContent(
     onAddTask: (LocalDate) -> Unit,
     onAddExam: (LocalDate) -> Unit
 ) {
-    var showActionDialog by remember { mutableStateOf(false) }
-    var selectedDateForAction by remember { mutableStateOf<LocalDate?>(null) }
-
-    if (showActionDialog && selectedDateForAction != null) {
-        AlertDialog(
-            onDismissRequest = { showActionDialog = false },
-            title = { Text("Actions for ${selectedDateForAction}") },
-            text = { Text("What would you like to add?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showActionDialog = false
-                    onAddTask(selectedDateForAction!!)
-                }) { Text("Add Task") }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showActionDialog = false
-                    onAddExam(selectedDateForAction!!)
-                }) { Text("Add Exam") }
-            }
-        )
-    }
+    var showAddDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -108,14 +89,35 @@ fun CalendarContent(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { 
-                selectedDateForAction = uiState.selectedDate
-                showActionDialog = true 
-            }) {
-                Icon(Icons.Default.Add, "Add Item")
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Item")
             }
         }
     ) { padding ->
+        if (showAddDialog) {
+            AlertDialog(
+                onDismissRequest = { showAddDialog = false },
+                title = { Text("Add Item") },
+                text = { Text("What would you like to add for ${uiState.selectedDate}?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showAddDialog = false
+                        onAddTask(uiState.selectedDate)
+                    }) { Text("Task") }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showAddDialog = false
+                        onAddExam(uiState.selectedDate)
+                    }) { Text("Exam") }
+                }
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -130,11 +132,7 @@ fun CalendarContent(
                 currentMonth = uiState.currentMonth,
                 selectedDate = uiState.selectedDate,
                 eventsByDate = uiState.eventsByDate,
-                onDateSelected = { date ->
-                    onDateSelected(date)
-                    selectedDateForAction = date
-                    showActionDialog = true
-                }
+                onDateSelected = onDateSelected
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
