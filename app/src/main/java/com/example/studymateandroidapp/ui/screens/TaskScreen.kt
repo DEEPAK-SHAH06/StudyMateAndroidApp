@@ -539,14 +539,17 @@ fun PriorityTaskCard(task: Task) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        color = Color(0xFFE9E9E9)
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
         Row(modifier = Modifier.padding(20.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(modifier = Modifier.weight(1f)) {
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = Color.White,
-                    border = BorderStroke(1.dp, Color.LightGray)
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant
+                    )
                 ) {
                     Text(
                         text = "HIGH PRIORITY",
@@ -559,13 +562,14 @@ fun PriorityTaskCard(task: Task) {
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = task.description.ifBlank { "Focus on this critical task today." },
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -584,17 +588,28 @@ fun OverdueMilestoneCard(task: Task) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        color = Color(0xFFF2F2F2)
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
         Row(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "!", fontSize = 48.sp, fontWeight = FontWeight.Black, color = Color.Red)
+            Text(text = "!",
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Black,
+                color = Color.Red
+            )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Overdue Milestone", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(text = "${task.title} - Overdue!", style = MaterialTheme.typography.bodySmall)
+                Text(text = "Overdue Task",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(text = "${task.title} • Needs attention",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
             Image(
                 painter = painterResource(id = R.drawable.overdue),
