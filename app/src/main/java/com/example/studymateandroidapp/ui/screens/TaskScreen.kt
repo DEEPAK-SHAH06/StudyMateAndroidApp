@@ -5,7 +5,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,7 +52,7 @@ fun TaskScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var taskToDelete by remember { mutableStateOf<Task?>(null) }
-    
+
     TaskContent(
         tasks = tasks,
         snackbarHostState = snackbarHostState,
@@ -109,7 +108,7 @@ fun TaskContent(
         tasks.filter { task ->
             val matchesQuery = task.title.contains(searchQuery, ignoreCase = true) ||
                     (task.subjectTag?.contains(searchQuery, ignoreCase = true) == true)
-            
+
             val matchesFilter = when (selectedFilter) {
                 "Pending" -> !task.isCompleted && !task.isOverdue
                 "Completed" -> task.isCompleted
@@ -137,9 +136,9 @@ fun TaskContent(
                 actions = {
                     IconButton(onClick = onAchievementsClick) {
                         Icon(
-                        painter = painterResource(id = R.drawable.achievements),
+                            painter = painterResource(id = R.drawable.achievements),
                             modifier = Modifier.size(20.dp),
-                        contentDescription = "Achievements",
+                            contentDescription = "Achievements",
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -262,7 +261,7 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         onValueChange = onQueryChange,
         modifier = Modifier.fillMaxWidth()
             .size(49.dp)
-            ,
+        ,
         placeholder = { Text("Search tasks, subjects...", fontSize = 13.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         shape = RoundedCornerShape(12.dp),
@@ -283,7 +282,7 @@ fun FilterChips(filters: List<String>, selectedFilter: String, onFilterSelected:
     Row(
         modifier = Modifier.fillMaxWidth()
             .height(24.dp)
-        .padding(horizontal = 15.dp),
+            .padding(horizontal = 15.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         filters.forEach { filter ->
@@ -437,6 +436,30 @@ fun TaskItemView(
                         Spacer(modifier = Modifier.width(16.dp))
                     }
 
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.height(22.dp),
+                        color = when (task.priority) {
+                            Priority.HIGH -> Color(0xFFFFE5E5)
+                            Priority.MEDIUM -> Color(0xFFFFF3CD)
+                            Priority.LOW -> Color(0xFFE8F5E9)
+                        }
+                    ) {
+                        Text(
+                            text = task.priority.name,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = when (task.priority) {
+                                Priority.HIGH -> Color(0xFFC62828)
+                                Priority.MEDIUM -> Color(0xFFB26A00)
+                                Priority.LOW -> Color(0xFF2E7D32)
+                            },
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
                     if (!task.subjectTag.isNullOrBlank()) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
@@ -444,7 +467,7 @@ fun TaskItemView(
                             color = Color(task.tagColor.toULong()),
                             border = BorderStroke(
                                 1.dp,
-                                MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                                MaterialTheme.colorScheme.outline
                             )
                         ) {
                             Text(
@@ -513,39 +536,36 @@ fun TaskItemView(
 
 @Composable
 fun PriorityTaskCard(task: Task) {
-    val isDark = isSystemInDarkTheme()
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        color = if (isDark) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else Color(0xFFE9E9E9)
+        color = Color(0xFFE9E9E9)
     ) {
         Row(modifier = Modifier.padding(20.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(modifier = Modifier.weight(1f)) {
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = if (isDark) MaterialTheme.colorScheme.secondaryContainer else Color.White,
-                    border = BorderStroke(1.dp, if (isDark) MaterialTheme.colorScheme.outlineVariant else Color.LightGray)
+                    color = Color.White,
+                    border = BorderStroke(1.dp, Color.LightGray)
                 ) {
                     Text(
                         text = "HIGH PRIORITY",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isDark) MaterialTheme.colorScheme.onSecondaryContainer else Color.Black
+                        fontWeight = FontWeight.Bold
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else Color.Black
+                    fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = task.description.ifBlank { "Focus on this critical task today." },
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f) else Color.DarkGray,
+                    color = Color.DarkGray,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -561,35 +581,20 @@ fun PriorityTaskCard(task: Task) {
 
 @Composable
 fun OverdueMilestoneCard(task: Task) {
-    val isDark = isSystemInDarkTheme()
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        color = if (isDark) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f) else Color(0xFFF2F2F2)
+        color = Color(0xFFF2F2F2)
     ) {
         Row(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "!",
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Black,
-                color = if (isDark) MaterialTheme.colorScheme.error else Color.Red
-            )
+            Text(text = "!", fontSize = 48.sp, fontWeight = FontWeight.Black, color = Color.Red)
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Overdue Milestone",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDark) MaterialTheme.colorScheme.onErrorContainer else Color.Black
-                )
-                Text(
-                    text = "${task.title} - Overdue!",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isDark) MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f) else Color.Black
-                )
+                Text(text = "Overdue Milestone", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(text = "${task.title} - Overdue!", style = MaterialTheme.typography.bodySmall)
             }
             Image(
                 painter = painterResource(id = R.drawable.overdue),
@@ -600,13 +605,12 @@ fun OverdueMilestoneCard(task: Task) {
     }
 }
 
-@Preview(name = "Light Mode", showBackground = true)
-@Preview(name = "Dark Mode", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true)
 @Composable
 fun TaskScreenPreview() {
     val mockTasks = listOf(
-        Task(id = 1, title = "Cognitive Psychology Thesis", subjectTag = "PSYCHOLOGY", dueTime = LocalTime.of(13, 0), priority = Priority.HIGH),
-        Task(id = 2, title = "Advanced Calculus Problems", subjectTag = "MATHEMATICS", dueTime = LocalTime.of(14, 45), dueDate = LocalDate.now().minusDays(1))
+        Task(id = 1, title = "Cognitive Psychology Thesis", subjectTag = "PSYCHOLOGY", dueTime = LocalTime.of(13, 0)),
+        Task(id = 2, title = "Advanced Calculus Problems", subjectTag = "MATHEMATICS", dueTime = LocalTime.of(14, 45))
     )
     MaterialTheme {
         TaskContent(
