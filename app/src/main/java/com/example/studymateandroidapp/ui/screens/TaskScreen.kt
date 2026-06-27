@@ -238,13 +238,15 @@ fun TaskContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (highPriorityTask != null) {
-                PriorityTaskCard(highPriorityTask)
+            // Show overdue card everywhere except the Overdue tab
+            if (overdueTask != null && selectedFilter != "Overdue") {
+                OverdueMilestoneCard(overdueTask)
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            if (overdueTask != null) {
-                OverdueMilestoneCard(overdueTask)
+            // Show high priority card everywhere except the Pending tab
+            if (highPriorityTask != null && selectedFilter != "Pending") {
+                PriorityTaskCard(highPriorityTask)
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
