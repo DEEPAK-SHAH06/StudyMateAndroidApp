@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -512,36 +513,39 @@ fun TaskItemView(
 
 @Composable
 fun PriorityTaskCard(task: Task) {
+    val isDark = isSystemInDarkTheme()
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        color = Color(0xFFE9E9E9)
+        color = if (isDark) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else Color(0xFFE9E9E9)
     ) {
         Row(modifier = Modifier.padding(20.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(modifier = Modifier.weight(1f)) {
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = Color.White,
-                    border = BorderStroke(1.dp, Color.LightGray)
+                    color = if (isDark) MaterialTheme.colorScheme.secondaryContainer else Color.White,
+                    border = BorderStroke(1.dp, if (isDark) MaterialTheme.colorScheme.outlineVariant else Color.LightGray)
                 ) {
                     Text(
                         text = "HIGH PRIORITY",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = if (isDark) MaterialTheme.colorScheme.onSecondaryContainer else Color.Black
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else Color.Black
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = task.description.ifBlank { "Focus on this critical task today." },
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray,
+                    color = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f) else Color.DarkGray,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -557,20 +561,35 @@ fun PriorityTaskCard(task: Task) {
 
 @Composable
 fun OverdueMilestoneCard(task: Task) {
+    val isDark = isSystemInDarkTheme()
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        color = Color(0xFFF2F2F2)
+        color = if (isDark) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f) else Color(0xFFF2F2F2)
     ) {
         Row(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "!", fontSize = 48.sp, fontWeight = FontWeight.Black, color = Color.Red)
+            Text(
+                text = "!",
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Black,
+                color = if (isDark) MaterialTheme.colorScheme.error else Color.Red
+            )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Overdue Milestone", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(text = "${task.title} - Overdue!", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = "Overdue Milestone",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isDark) MaterialTheme.colorScheme.onErrorContainer else Color.Black
+                )
+                Text(
+                    text = "${task.title} - Overdue!",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isDark) MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f) else Color.Black
+                )
             }
             Image(
                 painter = painterResource(id = R.drawable.overdue),
@@ -581,12 +600,13 @@ fun OverdueMilestoneCard(task: Task) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "Light Mode", showBackground = true)
+@Preview(name = "Dark Mode", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun TaskScreenPreview() {
     val mockTasks = listOf(
-        Task(id = 1, title = "Cognitive Psychology Thesis", subjectTag = "PSYCHOLOGY", dueTime = LocalTime.of(13, 0)),
-        Task(id = 2, title = "Advanced Calculus Problems", subjectTag = "MATHEMATICS", dueTime = LocalTime.of(14, 45))
+        Task(id = 1, title = "Cognitive Psychology Thesis", subjectTag = "PSYCHOLOGY", dueTime = LocalTime.of(13, 0), priority = Priority.HIGH),
+        Task(id = 2, title = "Advanced Calculus Problems", subjectTag = "MATHEMATICS", dueTime = LocalTime.of(14, 45), dueDate = LocalDate.now().minusDays(1))
     )
     MaterialTheme {
         TaskContent(
