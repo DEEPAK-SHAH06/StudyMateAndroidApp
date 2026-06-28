@@ -270,33 +270,16 @@ fun GoalCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    
-                    val blocks = buildString {
-                        val filled = if (goal.targetValue > 0) (goal.currentValue * 10) / goal.targetValue else 0
-                        val clampedFilled = filled.coerceIn(0, 10)
-                        repeat(clampedFilled) { append("█") }
-                        repeat(10 - clampedFilled) { append("░") }
-                    }
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "$blocks $progressPercent%",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "${goal.currentValue} / ${goal.targetValue} completed",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = "${goal.currentValue} / ${goal.targetValue} completed",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.align(Alignment.End)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
                     
                     val animatedProgress by animateFloatAsState(
                         targetValue = if (goal.targetValue > 0) goal.currentValue.toFloat() / goal.targetValue else 0f,
@@ -482,9 +465,9 @@ fun FeaturedGoalCard(
                 }
                 val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
                 val imageRes = if (isDark) {
-                    R.drawable.work_dark
+                    R.drawable.workhard_dark
                 } else {
-                    R.drawable.work1
+                    R.drawable.workhard
                 }
 
                 Image(

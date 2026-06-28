@@ -115,7 +115,7 @@ fun AddEditExamContent(
             Spacer(modifier = Modifier.height(25.dp))
             val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
             val imageRes = if (isDark) {
-                R.drawable.adde_dark
+                R.drawable.addexam_dark
             } else {
                 R.drawable.addexam
             }

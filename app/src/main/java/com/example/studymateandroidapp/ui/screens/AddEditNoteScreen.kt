@@ -94,9 +94,9 @@ fun AddEditNoteScreen(
                 }
                 val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
                 val imageRes = if (isDark) {
-                    R.drawable.adde_dark
+                    R.drawable.addnote_dark
                 } else {
-                    R.drawable.addn
+                    R.drawable.addnote
                 }
                 Spacer(modifier = Modifier.width(8.dp))
 

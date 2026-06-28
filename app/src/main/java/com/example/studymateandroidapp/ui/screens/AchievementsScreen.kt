@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
@@ -91,7 +90,7 @@ fun AchievementsContent(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
                         val imageRes = if (isDark) {
-                            R.drawable.achie_dark
+                            R.drawable.achievement_dark
                         } else {
                             R.drawable.achievement
                         }

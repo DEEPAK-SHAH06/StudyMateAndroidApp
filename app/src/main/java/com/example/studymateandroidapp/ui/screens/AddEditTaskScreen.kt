@@ -118,9 +118,9 @@ fun AddEditTaskScreen(
                 Spacer(modifier = Modifier.width(6.dp))
                 val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
                 val imageRes = if (isDark) {
-                    R.drawable.task_dark
+                    R.drawable.createtask_dark
                 } else {
-                    R.drawable.create_task
+                    R.drawable.createtask
                 }
 
                 Image(

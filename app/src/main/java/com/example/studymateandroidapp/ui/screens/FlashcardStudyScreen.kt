@@ -237,7 +237,7 @@ fun StudyFinishedView(
             val imageRes = if (isDark) {
                 R.drawable.session_dark
             } else {
-                R.drawable.session_complete
+                R.drawable.sessioncomplete
             }
 
             Image(

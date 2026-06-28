@@ -45,7 +45,6 @@ import com.example.studymateandroidapp.data.local.StudyPlannerDatabase
 import com.example.studymateandroidapp.data.model.Task
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /**
  * Jetpack Glance Widget for Study Planner Tasks.
@@ -123,7 +122,7 @@ class StudyPlannerWidget : GlanceAppWidget() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    provider = ImageProvider(R.drawable.task_dark),
+                    provider = ImageProvider(R.drawable.createtask_dark),
                     contentDescription = null,
                     modifier = GlanceModifier.size(if (isSmall) 18.dp else 22.dp),
                     colorFilter = ColorFilter.tint(ColorProvider(day = Color.Black, night = Color.Black))

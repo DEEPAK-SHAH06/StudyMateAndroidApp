@@ -106,9 +106,9 @@ fun NoteContent(
                         ) {
                             val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
                             val imageRes = if (isDark) {
-                                com.example.studymateandroidapp.R.drawable.not_dark
+                                com.example.studymateandroidapp.R.drawable.studynotes_dark
                             } else {
-                                com.example.studymateandroidapp.R.drawable.not
+                                com.example.studymateandroidapp.R.drawable.studynotes
                             }
 
                             Image(
