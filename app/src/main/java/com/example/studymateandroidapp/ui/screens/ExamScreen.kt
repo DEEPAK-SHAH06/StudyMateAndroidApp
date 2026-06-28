@@ -332,11 +332,18 @@ fun ExamCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        color = if (isPast) Color(0xFFF9F9F9) else if (isMastered) Color(0xFFF1F8E9) else Color(0xFFF2F2F2),
+        color = when {
+            isMastered -> MaterialTheme.colorScheme.secondaryContainer
+            else -> MaterialTheme.colorScheme.surfaceContainer
+        },
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(
             width = if (isMastered) 2.dp else 1.dp,
-            color = if (isMastered) Color(0xFF4CAF50) else if (isPast) Color.LightGray.copy(alpha = 0.3f) else Color.LightGray.copy(alpha = 0.5f)
+            color = when {
+                isMastered -> Color(0xFF4CAF50)
+                isPast -> MaterialTheme.colorScheme.outline
+                else -> MaterialTheme.colorScheme.outlineVariant
+            }
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -344,22 +351,16 @@ fun ExamCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(id = if (isPast) R.drawable.exam else R.drawable.upcoming_exam),
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = if (isMastered && !isPast) Color(0xFF4CAF50) else if (isPast) Color.Gray else Color.Unspecified
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = exam.title,
                             fontWeight = FontWeight.SemiBold,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = if (isPast) Color.Gray else Color.Black
+                            color = if (isPast)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            else
+                                MaterialTheme.colorScheme.onSurface
                         )
                         if (isMastered) {
                             Spacer(Modifier.width(8.dp))
@@ -378,12 +379,12 @@ fun ExamCard(
                             }
                         }
                     }
-                    Text(text = exam.subject, style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
+                    Text(text = exam.subject, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = dateStr, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                        Text(text = dateStr, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (timeStr.isNotEmpty()) {
-                            Text(text = " • ", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-                            Text(text = timeStr, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                            Text(text = " • ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(text = timeStr, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -393,7 +394,7 @@ fun ExamCard(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete",
                         modifier = Modifier.size(20.dp),
-                        tint = if (isPast) Color.LightGray else Color.DarkGray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -406,21 +407,30 @@ fun ExamCard(
                         .fillMaxWidth()
                         .height(4.dp)
                         .clip(RoundedCornerShape(2.dp)),
-                    color = if (isMastered) Color(0xFF4CAF50) else Color.Black,
-                    trackColor = Color.LightGray.copy(alpha = 0.3f)
+                    color =
+                        if (isMastered)
+                            Color(0xFF4CAF50)
+                        else
+                            MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "${(completion * 100).toInt()}% Mastered",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (isMastered) Color(0xFF4CAF50) else Color.Gray,
+                    color = if (isMastered)
+                        Color(0xFF4CAF50)
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = if (isMastered) FontWeight.Bold else FontWeight.Normal
                 )
             }
 
             if (!isPast) {
                 Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.6f))
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
@@ -430,17 +440,25 @@ fun ExamCard(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onNotes, modifier = Modifier.size(24.dp)) {
+
                             Icon(painter = painterResource(id = R.drawable.notes), contentDescription = "Notes", tint = Color.Black, modifier = Modifier.size(18.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         IconButton(onClick = onFlashcards, modifier = Modifier.size(24.dp)) {
                             Icon(painter = painterResource(id = R.drawable.baseline_file_copy_24), contentDescription = "Flashcards", tint = Color.Black, modifier = Modifier.size(20.dp))
+
                         }
                     }
 
                     Button(
                         onClick = onStudy,
-                        colors = ButtonDefaults.buttonColors(containerColor = if (isMastered) Color(0xFF4CAF50) else Color.Black),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor =
+                                if (isMastered)
+                                    Color(0xFF4CAF50)
+                                else
+                                    MaterialTheme.colorScheme.primary
+                        ),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.height(32.dp)
@@ -449,10 +467,10 @@ fun ExamCard(
                             painter = painterResource(id = R.drawable.start),
                             contentDescription = null,
                             modifier = Modifier.size(14.dp),
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Study", style = MaterialTheme.typography.labelLarge, color = Color.White)
+                        Text(text = "Study", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
             }
