@@ -527,7 +527,7 @@ private fun ExamCountdownCard(
 ) {
     Box(
         modifier = Modifier
-            .width(280.dp)
+            .width(230.dp)
             .clip(RoundedCornerShape(32.dp))
             .background(MaterialTheme.colorScheme.primary)
             .clickable { onClick() }
