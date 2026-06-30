@@ -26,5 +26,8 @@ data class StudyProgress(
     val totalStudyTime: Long = 0, // In milliseconds
     val flashcardMastery: Float = 0f, // 0.0 to 1.0
     val completionPercentage: Float = 0f, // 0.0 to 1.0
-    val lastStudiedTimestamp: Long = System.currentTimeMillis()
+    val lastStudiedTimestamp: Long = System.currentTimeMillis(),
+    val userId: String? = null,
+    val serverId: String? = null,
+    val lastUpdated: Long = System.currentTimeMillis()
 )

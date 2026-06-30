@@ -15,11 +15,20 @@ interface UserProgressDao {
     @Transaction
     suspend fun addXp(amount: Int) {
         val currentProgress = getUserProgressSync() ?: UserProgress()
-        val newProgress = currentProgress.copy(totalXp = currentProgress.totalXp + amount)
+        val newProgress = currentProgress.copy(
+            totalXp = currentProgress.totalXp + amount,
+            lastUpdated = System.currentTimeMillis()
+        )
         saveUserProgress(newProgress)
         android.util.Log.d("XP", "Awarded $amount XP. Total XP: ${newProgress.totalXp}")
     }
 
     @Query("SELECT * FROM user_progress WHERE id = 1")
     suspend fun getUserProgressSync(): UserProgress?
+
+    @Query("SELECT * FROM user_progress")
+    suspend fun getUserProgressList(): List<UserProgress>
+
+    @Update
+    suspend fun update(progress: UserProgress)
 }

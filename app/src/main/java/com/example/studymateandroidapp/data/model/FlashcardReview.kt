@@ -14,5 +14,8 @@ data class FlashcardReview(
     val date: LocalDate = LocalDate.now(),
     val cardsReviewed: Int,
     val correctCount: Int,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val userId: String? = null,
+    val serverId: String? = null,
+    val lastUpdated: Long = System.currentTimeMillis()
 )

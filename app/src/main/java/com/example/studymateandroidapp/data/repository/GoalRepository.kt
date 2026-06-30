@@ -31,7 +31,7 @@ class GoalRepository(
     }
 
     suspend fun update(goal: Goal) {
-        goalDao.update(goal)
+        goalDao.update(goal.copy(lastUpdated = System.currentTimeMillis()))
         triggerWidgetUpdate()
     }
 

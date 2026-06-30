@@ -28,4 +28,7 @@ interface ReminderDao {
 
     @Query("UPDATE reminder_settings SET scheduledTime = :time WHERE type = :type")
     suspend fun updateScheduledTime(type: ReminderType, time: java.time.LocalTime)
+
+    @Query("SELECT * FROM reminder_settings")
+    suspend fun getAllSettingsList(): List<ReminderSetting>
 }

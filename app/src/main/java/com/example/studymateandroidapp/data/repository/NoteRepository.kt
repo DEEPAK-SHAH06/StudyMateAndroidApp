@@ -17,7 +17,7 @@ class NoteRepository(private val noteDao: NoteDao) {
     }
 
     suspend fun update(note: Note) {
-        noteDao.update(note)
+        noteDao.update(note.copy(lastUpdated = System.currentTimeMillis()))
     }
 
     suspend fun delete(note: Note) {

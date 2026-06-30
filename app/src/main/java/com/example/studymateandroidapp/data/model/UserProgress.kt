@@ -10,5 +10,8 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "user_progress")
 data class UserProgress(
     @PrimaryKey val id: Long = 1, // Single row entity
-    val totalXp: Int = 0
+    val totalXp: Int = 0,
+    val userId: String? = null,
+    val serverId: String? = null,
+    val lastUpdated: Long = System.currentTimeMillis()
 )

@@ -39,4 +39,7 @@ interface FlashcardDao {
 
     @Query("SELECT DISTINCT date FROM flashcard_reviews")
     fun getReviewDates(): Flow<List<LocalDate>>
+
+    @Query("SELECT * FROM flashcard_reviews")
+    suspend fun getAllReviewsList(): List<FlashcardReview>
 }

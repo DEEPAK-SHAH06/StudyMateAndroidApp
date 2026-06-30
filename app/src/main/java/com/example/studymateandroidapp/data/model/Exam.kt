@@ -13,5 +13,8 @@ data class Exam(
     val subject: String,
     val examDate: Long, // Full date-time timestamp (Epoch millis)
     val isTimeSet: Boolean = false,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val userId: String? = null,
+    val serverId: String? = null,
+    val lastUpdated: Long = System.currentTimeMillis()
 )

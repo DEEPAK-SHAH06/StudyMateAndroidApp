@@ -17,7 +17,7 @@ class ExamRepository(private val examDao: ExamDao) {
     }
 
     suspend fun update(exam: Exam) {
-        examDao.update(exam)
+        examDao.update(exam.copy(lastUpdated = System.currentTimeMillis()))
     }
 
     suspend fun delete(exam: Exam) {

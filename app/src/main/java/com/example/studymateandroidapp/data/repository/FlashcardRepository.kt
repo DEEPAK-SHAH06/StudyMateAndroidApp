@@ -18,7 +18,7 @@ class FlashcardRepository(private val flashcardDao: FlashcardDao) {
     }
 
     suspend fun update(flashcard: Flashcard) {
-        flashcardDao.update(flashcard)
+        flashcardDao.update(flashcard.copy(lastUpdated = System.currentTimeMillis()))
     }
 
     suspend fun delete(flashcard: Flashcard) {

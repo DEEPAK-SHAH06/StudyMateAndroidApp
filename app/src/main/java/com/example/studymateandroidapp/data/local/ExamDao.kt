@@ -25,5 +25,8 @@ interface ExamDao {
 
     @Delete
     suspend fun delete(exam: Exam)
+
+    @Query("SELECT * FROM exams")
+    suspend fun getAllExamsList(): List<Exam>
 }
 
