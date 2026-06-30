@@ -152,7 +152,10 @@ fun ExamDetailContent(
         if (details.notes.isEmpty()) {
             item { Text("No notes linked to this exam.", color = Color.Gray) }
         } else {
-            items(details.notes.take(3), key = { it.id }) { note ->
+            items(
+                details.notes.take(3),
+                key = { note -> "note_${details.exam.id}_${note.id}" }
+            ) { note ->
                 NotePreviewItem(note)
             }
         }
@@ -164,7 +167,10 @@ fun ExamDetailContent(
         if (details.flashcards.isEmpty()) {
             item { Text("No flashcards linked to this exam.", color = Color.Gray) }
         } else {
-            items(details.flashcards.take(3), key = { it.id }) { card ->
+            items(
+                details.flashcards.take(3),
+                key = { card -> "flashcard_${details.exam.id}_${card.id}" }
+            ) { card ->
                 FlashcardPreviewItem(card)
             }
         }
