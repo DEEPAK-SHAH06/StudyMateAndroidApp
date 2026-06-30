@@ -23,6 +23,7 @@ import androidx.room.PrimaryKey
 data class Note(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val examId: Long,
+    val title: String,
     val content: String,
     val imagePath: String? = null,
     val createdAt: Long = System.currentTimeMillis(),

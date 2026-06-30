@@ -215,12 +215,21 @@ fun NotePreviewItem(note: Note) {
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Text(
-            text = note.content,
-            modifier = Modifier.padding(16.dp),
-            maxLines = 2,
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = note.title,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = note.content,
+                maxLines = 2,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        }
     }
 }
 
