@@ -73,7 +73,22 @@ class MainActivity : FragmentActivity() {
             val isAppLockEnabled by preferenceManager.isAppLockEnabled.collectAsState(initial = false)
             
             var isAuthenticated by remember { mutableStateOf(false) }
-            var authChecked by remember { mutableStateOf(false) }
+
+            LaunchedEffect(isAppLockEnabled, isAuthenticated) {
+                if (isAppLockEnabled && !isAuthenticated) {
+                    BiometricHelper.promptBiometricAuth(
+                        activity = this@MainActivity,
+                        title = "Biometric Lock",
+                        subtitle = "Scan to unlock StudyMate",
+                        onSuccess = { 
+                            isAuthenticated = true
+                        },
+                        onError = { 
+                            // Handle failure
+                        }
+                    )
+                }
+            }
 
             // Gamification Logic (Queue-based Overlay)
             val gamificationViewModel: GamificationViewModel = viewModel(factory = ViewModelFactory)
@@ -97,23 +112,6 @@ class MainActivity : FragmentActivity() {
             StudyMateAndroidAppTheme(themeMode = themeMode) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     if (isAppLockEnabled && !isAuthenticated) {
-                        // Show biometric prompt if not authenticated
-                        if (!authChecked) {
-                            BiometricHelper.promptBiometricAuth(
-                                activity = this@MainActivity,
-                                title = "Biometric Lock",
-                                subtitle = "Scan to unlock StudyMate",
-                                onSuccess = { 
-                                    isAuthenticated = true
-                                    authChecked = true
-                                },
-                                onError = { 
-                                    // Handle failure
-                                }
-                            )
-                            authChecked = true
-                        }
-                        
                         // While authenticating, show a blank screen
                         Box(modifier = Modifier.fillMaxSize())
                     } else {

@@ -41,10 +41,11 @@ interface GoalDao {
     @Query(
         """UPDATE goals 
            SET currentValue = :value, 
-               status = CASE WHEN :value >= targetValue THEN 'COMPLETED' ELSE status END 
+               status = CASE WHEN :value >= targetValue THEN 'COMPLETED' ELSE status END,
+               lastUpdated = :lastUpdated
            WHERE id = :id"""
     )
-    suspend fun updateProgress(id: Long, value: Int)
+    suspend fun updateProgress(id: Long, value: Int, lastUpdated: Long = System.currentTimeMillis())
 
     @Delete
     suspend fun delete(goal: Goal)

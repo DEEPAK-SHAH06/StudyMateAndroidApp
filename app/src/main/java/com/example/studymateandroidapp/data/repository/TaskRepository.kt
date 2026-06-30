@@ -21,7 +21,7 @@ class TaskRepository(private val taskDao: TaskDao) {
         taskDao.insert(task)
 
     suspend fun update(task: Task) {
-        taskDao.update(task)
+        taskDao.update(task.copy(lastUpdated = System.currentTimeMillis()))
     }
 
     suspend fun delete(task: Task) {

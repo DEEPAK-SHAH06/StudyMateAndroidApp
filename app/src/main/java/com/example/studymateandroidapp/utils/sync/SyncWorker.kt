@@ -9,6 +9,13 @@ import com.example.studymateandroidapp.data.model.DailyReflection
 import com.example.studymateandroidapp.data.model.Goal
 import com.example.studymateandroidapp.data.model.StudySession
 import com.example.studymateandroidapp.data.model.Task
+import com.example.studymateandroidapp.data.model.Exam
+import com.example.studymateandroidapp.data.model.Note
+import com.example.studymateandroidapp.data.model.Flashcard
+import com.example.studymateandroidapp.data.model.FlashcardReview
+import com.example.studymateandroidapp.data.model.StudyProgress
+import com.example.studymateandroidapp.data.model.UserProgress
+import com.example.studymateandroidapp.data.model.ReminderSetting
 import com.example.studymateandroidapp.data.local.PreferenceManager
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -107,6 +114,112 @@ class SyncWorker(
                 getLastUpdated = { it.lastUpdated },
                 clazz = Achievement::class.java
             )
+
+            syncEntity(
+                userId = userId,
+                collectionName = "exams",
+                getLocalItems = { db.examDao().getAllExamsList() },
+                insertLocal = { db.examDao().insert(it) },
+                updateLocal = { db.examDao().update(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                clazz = Exam::class.java
+            )
+
+            syncEntity(
+                userId = userId,
+                collectionName = "notes",
+                getLocalItems = { db.noteDao().getAllNotesList() },
+                insertLocal = { db.noteDao().insert(it) },
+                updateLocal = { db.noteDao().update(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                clazz = Note::class.java
+            )
+
+            syncEntity(
+                userId = userId,
+                collectionName = "flashcards",
+                getLocalItems = { db.flashcardDao().getAllFlashcardsList() },
+                insertLocal = { db.flashcardDao().insert(it) },
+                updateLocal = { db.flashcardDao().update(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                clazz = Flashcard::class.java
+            )
+
+            syncEntity(
+                userId = userId,
+                collectionName = "flashcard_reviews",
+                getLocalItems = { db.flashcardDao().getAllReviewsList() },
+                insertLocal = { db.flashcardDao().insertReview(it) },
+                updateLocal = { db.flashcardDao().insertReview(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                clazz = FlashcardReview::class.java
+            )
+
+            syncEntity(
+                userId = userId,
+                collectionName = "study_progress",
+                getLocalItems = { db.studyProgressDao().getAllProgressList() },
+                insertLocal = { db.studyProgressDao().insertOrUpdate(it) },
+                updateLocal = { db.studyProgressDao().update(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                clazz = StudyProgress::class.java
+            )
+
+            syncEntity(
+                userId = userId,
+                collectionName = "user_progress",
+                getLocalItems = { db.userProgressDao().getUserProgressList() },
+                insertLocal = { db.userProgressDao().saveUserProgress(it); 1L },
+                updateLocal = { db.userProgressDao().update(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                clazz = UserProgress::class.java
+            )
+
+            // Sync Reminder Settings (Special handling since primary key is Enum)
+            val reminderCollectionRef = firestore.collection("users").document(userId).collection("reminder_settings")
+            val localReminders = db.reminderDao().getAllSettingsList()
+            localReminders.forEach { setting ->
+                val docRef = reminderCollectionRef.document(setting.type.name)
+                val itemToPush = setting.copy(userId = userId, serverId = setting.type.name)
+                docRef.set(itemToPush).await()
+            }
+            
+            val cloudRemindersSnapshot = reminderCollectionRef.get().await()
+            for (doc in cloudRemindersSnapshot.documents) {
+                val cloudSetting = doc.toObject(ReminderSetting::class.java) ?: continue
+                val existingLocal = db.reminderDao().getSettingByType(cloudSetting.type)
+                if (existingLocal == null) {
+                    db.reminderDao().upsertSetting(cloudSetting.copy(userId = userId, serverId = cloudSetting.type.name))
+                } else {
+                    if (cloudSetting.lastUpdated > existingLocal.lastUpdated) {
+                        db.reminderDao().upsertSetting(cloudSetting.copy(userId = userId, serverId = cloudSetting.type.name))
+                    }
+                }
+            }
 
             preferenceManager.setSyncState("IDLE", System.currentTimeMillis())
             Result.success()

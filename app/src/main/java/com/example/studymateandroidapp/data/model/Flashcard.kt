@@ -25,5 +25,8 @@ data class Flashcard(
     val examId: Long,
     val question: String,
     val answer: String,
-    val isLearned: Boolean = false
+    val isLearned: Boolean = false,
+    val userId: String? = null,
+    val serverId: String? = null,
+    val lastUpdated: Long = System.currentTimeMillis()
 )

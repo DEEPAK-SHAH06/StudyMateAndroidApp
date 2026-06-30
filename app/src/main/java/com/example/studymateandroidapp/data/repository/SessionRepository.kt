@@ -33,7 +33,7 @@ class SessionRepository(private val sessionDao: SessionDao) {
         sessionDao.insert(session)
 
     suspend fun update(session: StudySession) =
-        sessionDao.update(session)
+        sessionDao.update(session.copy(lastUpdated = System.currentTimeMillis()))
 
     suspend fun delete(session: StudySession) =
         sessionDao.delete(session)

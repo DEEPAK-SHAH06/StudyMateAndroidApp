@@ -25,5 +25,8 @@ data class Note(
     val examId: Long,
     val content: String,
     val imagePath: String? = null,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val userId: String? = null,
+    val serverId: String? = null,
+    val lastUpdated: Long = System.currentTimeMillis()
 )

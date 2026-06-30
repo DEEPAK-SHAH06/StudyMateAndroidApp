@@ -15,9 +15,15 @@ interface StudyProgressDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(progress: StudyProgress): Long
 
-    @Query("UPDATE study_progress SET totalStudyTime = totalStudyTime + :addedTime, lastStudiedTimestamp = :timestamp WHERE examId = :examId")
-    suspend fun addStudyTime(examId: Long, addedTime: Long, timestamp: Long = System.currentTimeMillis())
+    @Query("UPDATE study_progress SET totalStudyTime = totalStudyTime + :addedTime, lastStudiedTimestamp = :timestamp, lastUpdated = :lastUpdated WHERE examId = :examId")
+    suspend fun addStudyTime(examId: Long, addedTime: Long, timestamp: Long = System.currentTimeMillis(), lastUpdated: Long = System.currentTimeMillis())
 
-    @Query("UPDATE study_progress SET completionPercentage = :percentage WHERE examId = :examId")
-    suspend fun updateCompletion(examId: Long, percentage: Float)
+    @Query("UPDATE study_progress SET completionPercentage = :percentage, lastUpdated = :lastUpdated WHERE examId = :examId")
+    suspend fun updateCompletion(examId: Long, percentage: Float, lastUpdated: Long = System.currentTimeMillis())
+
+    @Query("SELECT * FROM study_progress")
+    suspend fun getAllProgressList(): List<StudyProgress>
+
+    @Update
+    suspend fun update(progress: StudyProgress)
 }
