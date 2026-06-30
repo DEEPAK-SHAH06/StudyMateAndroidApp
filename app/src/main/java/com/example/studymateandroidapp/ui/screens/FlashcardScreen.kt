@@ -3,6 +3,7 @@ package com.example.studymateandroidapp.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,6 +36,7 @@ fun FlashcardScreen(
     examId: Long? = null,
     onStartStudy: (Long) -> Unit,
     onAddCard: () -> Unit,
+    onAddCardWithId: (Long, Long) -> Unit = { _, _ -> },
     onNavigateBack: () -> Unit
 ) {
     val flashcards by viewModel.allFlashcards.collectAsState()
@@ -46,6 +48,10 @@ fun FlashcardScreen(
         onBack = onNavigateBack,
         onAddCard = onAddCard,
         onStartStudy = { onStartStudy(examId ?: -1L) },
+        onEditCard = { card ->
+            // Pass the cardId and examId to the navigation callback
+            onAddCardWithId(card.id, card.examId)
+        },
         onDeleteCard = { cardToDelete = it }
     )
 
@@ -68,6 +74,7 @@ fun FlashcardContent(
     onBack: () -> Unit,
     onAddCard: () -> Unit,
     onStartStudy: () -> Unit,
+    onEditCard: (Flashcard) -> Unit,
     onDeleteCard: (Flashcard) -> Unit
 ) {
     Scaffold(
@@ -152,7 +159,11 @@ fun FlashcardContent(
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(flashcards) { card ->
-                    FlashcardItem(card = card, onDelete = { onDeleteCard(card) })
+                    FlashcardItem(
+                        card = card,
+                        onEdit = { onEditCard(card) },
+                        onDelete = { onDeleteCard(card) }
+                    )
                 }
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
@@ -161,9 +172,9 @@ fun FlashcardContent(
 }
 
 @Composable
-fun FlashcardItem(card: Flashcard, onDelete: () -> Unit) {
+fun FlashcardItem(card: Flashcard, onEdit: () -> Unit, onDelete: () -> Unit) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onEdit),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, Color(0xFFEEEEEE))
@@ -177,8 +188,13 @@ fun FlashcardItem(card: Flashcard, onDelete: () -> Unit) {
                 Text(text = card.question, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                 Text(text = card.answer, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Gray)
+            Row {
+                IconButton(onClick = onEdit) {
+                    Icon(painter = painterResource(id = R.drawable.edit), contentDescription = "Edit", tint = Color.Gray, modifier = Modifier.size(20.dp))
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Gray)
+                }
             }
         }
     }
@@ -207,6 +223,7 @@ fun FlashcardPreview() {
             onBack = {},
             onAddCard = {},
             onStartStudy = {},
+            onEditCard = {},
             onDeleteCard = {}
         )
     }

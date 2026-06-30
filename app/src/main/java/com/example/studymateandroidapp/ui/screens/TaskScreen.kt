@@ -256,13 +256,11 @@ fun TaskContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
-    TextField(
+    OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth()
-            .size(49.dp)
-        ,
-        placeholder = { Text("Search tasks, subjects...", fontSize = 13.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = { Text("Search tasks, subjects...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         shape = RoundedCornerShape(12.dp),
         singleLine = true,
@@ -635,6 +633,7 @@ fun OverdueMilestoneCard(task: Task) {
             } else {
                 R.drawable.overdue
             }
+            Spacer(modifier = Modifier.width(4.dp))
 
             Image(
                 painter = painterResource(imageRes),

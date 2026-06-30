@@ -24,9 +24,24 @@ fun AddEditFlashcardScreen(
     viewModel: FlashcardViewmodel,
     onNavigateBack: () -> Unit
 ) {
+    var initialFront by remember { mutableStateOf("") }
+    var initialBack by remember { mutableStateOf("") }
+
+    LaunchedEffect(cardId) {
+        if (cardId != null) {
+            val card = viewModel.getFlashcardById(cardId)
+            if (card != null) {
+                initialFront = card.question
+                initialBack = card.answer
+            }
+        }
+    }
+
     AddEditFlashcardContent(
         isEdit = cardId != null,
         examId = examId,
+        initialFront = initialFront,
+        initialBack = initialBack,
         onBack = onNavigateBack,
         onSave = { front, back ->
             if (cardId == null) {
@@ -43,11 +58,13 @@ fun AddEditFlashcardScreen(
 fun AddEditFlashcardContent(
     isEdit: Boolean,
     examId: Long,
+    initialFront: String = "",
+    initialBack: String = "",
     onBack: () -> Unit,
     onSave: (String, String) -> Unit
 ) {
-    var front by remember { mutableStateOf("") }
-    var back by remember { mutableStateOf("") }
+    var front by remember(initialFront) { mutableStateOf(initialFront) }
+    var back by remember(initialBack) { mutableStateOf(initialBack) }
     val canSave = front.isNotBlank() && back.isNotBlank() && examId != -1L
 
     Scaffold(
@@ -134,6 +151,13 @@ fun AddEditFlashcardContent(
 @Composable
 fun AddEditFlashcardPreview() {
     MaterialTheme {
-        AddEditFlashcardContent(isEdit = false, examId = 1L, onBack = {}, onSave = { _, _ -> })
+        AddEditFlashcardContent(
+            isEdit = false,
+            examId = 1L,
+            initialFront = "",
+            initialBack = "",
+            onBack = {},
+            onSave = { _, _ -> }
+        )
     }
 }

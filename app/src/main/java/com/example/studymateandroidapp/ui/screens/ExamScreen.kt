@@ -196,7 +196,6 @@ fun ExamContent(
             Text(
                 text = "Upcoming",
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.align(Alignment.End),
                 fontSize = 18.sp,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium
@@ -241,7 +240,6 @@ fun ExamContent(
                         Text(
                             text = "Past Exams",
                             fontSize = 18.sp,
-                            modifier = Modifier.align(Alignment.End),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -275,13 +273,11 @@ fun ExamContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExamSearchBar(query: String, onQueryChange: (String) -> Unit) {
-    TextField(
+    OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth()
-            .height(49.dp),
+        modifier = Modifier.fillMaxWidth(),
         placeholder = { Text("Search exams, subjects...",
-            fontSize = 13.5.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
         },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
