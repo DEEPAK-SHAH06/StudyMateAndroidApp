@@ -362,6 +362,9 @@ fun AppNavHost(
                 onAddCard = {
                     navController.navigate(Screen.AddFlashcard.createRoute(examId = examId))
                 },
+                onAddCardWithId = { cardId, exId ->
+                    navController.navigate(Screen.AddFlashcard.createRoute(cardId = cardId, examId = exId))
+                },
                 onNavigateBack = { navController.popBackStack() }
             )
         }
