@@ -328,6 +328,14 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
             }
         }
 
+        fun preloadDatabase(context: Context) {
+            try {
+                getInstance(context).openHelper.writableDatabase
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
         private fun buildDatabase(context: Context): StudyPlannerDatabase {
 
             val factory = SupportOpenHelperFactory(
