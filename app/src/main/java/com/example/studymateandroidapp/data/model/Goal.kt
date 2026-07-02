@@ -14,7 +14,7 @@ import java.time.LocalDate
  * Deleting the parent Exam sets [examId] to null.
  */
 data class GoalSubtask(
-    val title: String,
+    val title: String = "",
     val isCompleted: Boolean = false
 )
 
@@ -32,7 +32,7 @@ data class GoalSubtask(
 )
 data class Goal(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val title: String,
+    val title: String = "",
     val description: String = "",
     val status: GoalStatus = GoalStatus.NOT_STARTED,
     val targetValue: Int = 100,

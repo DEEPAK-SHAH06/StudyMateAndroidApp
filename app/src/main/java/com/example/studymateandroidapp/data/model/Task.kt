@@ -28,7 +28,7 @@ import java.time.LocalDate
 )
 data class Task(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val title: String,
+    val title: String = "",
     val description: String = "",
     val priority: Priority = Priority.MEDIUM,
     val status: TaskStatus = TaskStatus.TODO,

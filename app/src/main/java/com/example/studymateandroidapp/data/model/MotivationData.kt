@@ -13,8 +13,8 @@ import androidx.room.PrimaryKey
 )
 data class DailyReflection(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val date: Long, // epoch day
-    val content: String,
+    val date: Long = 0L, // epoch day
+    val content: String = "",
     val mood: String = "😊", // emoji mood
     val studyHighlight: String = "",
     val createdAt: Long = System.currentTimeMillis(),
@@ -32,10 +32,10 @@ data class DailyReflection(
 )
 data class Achievement(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val type: AchievementType,
+    val type: AchievementType = AchievementType.FIRST_TASK,
     val unlockedAt: Long = System.currentTimeMillis(),
-    val title: String,
-    val description: String,
+    val title: String = "",
+    val description: String = "",
     val userId: String = "",
     val serverId: String? = null,
     val lastUpdated: Long = System.currentTimeMillis()

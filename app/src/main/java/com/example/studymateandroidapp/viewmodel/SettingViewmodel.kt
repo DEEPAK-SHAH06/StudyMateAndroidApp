@@ -241,7 +241,22 @@ class SettingViewmodel(
     }
 
     fun signOut() {
-        authRepository.signOut()
+        viewModelScope.launch {
+            authRepository.signOut()
+            try {
+                // Clear local database
+                StudyPlannerDatabase.getInstance(authRepository.context).clearAllTables()
+                
+                // Clear preferences
+                preferenceManager.clearAll()
+                
+                // Reset profile state
+                _profileState.value = ProfileState()
+                Log.d(TAG, "Local data cleared after sign out")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to clear local data on sign out", e)
+            }
+        }
     }
 
     fun deleteAccount() {

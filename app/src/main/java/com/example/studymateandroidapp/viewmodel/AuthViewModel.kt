@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymateandroidapp.data.repository.AuthRepository
 import com.example.studymateandroidapp.utils.sync.SyncManager
+import com.example.studymateandroidapp.data.local.PreferenceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
  */
 class AuthViewModel(
     private val authRepository: AuthRepository,
-    private val syncManager: SyncManager
+    private val syncManager: SyncManager,
+    private val preferenceManager: PreferenceManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
@@ -26,6 +28,7 @@ class AuthViewModel(
             _uiState.value = AuthUiState.Loading
             val result = authRepository.signInWithEmail(email, password)
             if (result.isSuccess) {
+                preferenceManager.setSyncEnabled(true)
                 syncManager.triggerImmediateSync()
                 _uiState.value = AuthUiState.Success
             } else {
@@ -39,6 +42,7 @@ class AuthViewModel(
             _uiState.value = AuthUiState.Loading
             val result = authRepository.signUpWithEmail(email, password)
             if (result.isSuccess) {
+                preferenceManager.setSyncEnabled(true)
                 syncManager.triggerImmediateSync()
                 _uiState.value = AuthUiState.Success
             } else {
@@ -64,6 +68,7 @@ class AuthViewModel(
             _uiState.value = AuthUiState.Loading
             val result = authRepository.signInWithGoogle(activity)
             if (result.isSuccess) {
+                preferenceManager.setSyncEnabled(true)
                 syncManager.triggerImmediateSync()
                 _uiState.value = AuthUiState.Success
             } else {

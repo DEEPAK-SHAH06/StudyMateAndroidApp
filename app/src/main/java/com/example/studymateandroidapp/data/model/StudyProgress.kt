@@ -22,7 +22,7 @@ import androidx.room.PrimaryKey
 )
 data class StudyProgress(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val examId: Long,
+    val examId: Long = 0L,
     val totalStudyTime: Long = 0, // In milliseconds
     val flashcardMastery: Float = 0f, // 0.0 to 1.0
     val completionPercentage: Float = 0f, // 0.0 to 1.0

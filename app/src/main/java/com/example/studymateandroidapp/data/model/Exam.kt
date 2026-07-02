@@ -9,9 +9,9 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "exams")
 data class Exam(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val title: String,
-    val subject: String,
-    val examDate: Long, // Full date-time timestamp (Epoch millis)
+    val title: String = "",
+    val subject: String = "",
+    val examDate: Long = 0L, // Full date-time timestamp (Epoch millis)
     val isTimeSet: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
     val userId: String? = null,

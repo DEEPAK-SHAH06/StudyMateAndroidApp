@@ -36,6 +36,10 @@ class StudyMateApplication : Application() {
         super.onCreate()
         NotificationHelper.createChannels(this)
 
+        // Start monitoring sync
+        val syncManager = com.example.studymateandroidapp.utils.sync.SyncManager(this)
+        syncManager.startMonitoring()
+
         // Asynchronously warm up Room database / SQLCipher to avoid main thread block on first access
         CoroutineScope(Dispatchers.IO).launch {
             StudyPlannerDatabase.preloadDatabase(this@StudyMateApplication)
