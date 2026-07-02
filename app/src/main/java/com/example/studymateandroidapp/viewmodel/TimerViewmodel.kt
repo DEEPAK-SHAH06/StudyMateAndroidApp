@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -95,9 +94,6 @@ class TimerViewmodel(
             }
             return
         }
-
-        // Already showing this exam
-        if (_uiState.value.examId == id) return
 
         viewModelScope.launch {
             val exam = examRepository.getExamById(id).firstOrNull()
@@ -242,7 +238,9 @@ class TimerViewmodel(
             it.copy(
                 isRunning = false,
                 isPaused = false,
-                timeLeftSeconds = if (it.mode == TimerMode.POMODORO) getPhaseDuration(it.phase) else 0
+                timeLeftSeconds = if (it.mode == TimerMode.POMODORO) getPhaseDuration(it.phase) else 0,
+                examId = null,
+                studyTitle = ""
             )
         }
         viewModelScope.launch { preferenceManager.setTimerRunning(false) }

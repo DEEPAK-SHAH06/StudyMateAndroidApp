@@ -45,7 +45,7 @@ fun BottomNavBar(
                             // Pop up to the start destination to avoid stacking
                             popUpTo(Screen.Dashboard.route) { saveState = true }
                             launchSingleTop = true
-                            restoreState = true
+                            restoreState = screen !is Screen.StudyTimer
                         }
                     }
                 },

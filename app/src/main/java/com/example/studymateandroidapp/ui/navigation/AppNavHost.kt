@@ -54,7 +54,7 @@ fun AppNavHost(
                     navController.navigate("study_timer") {
                         popUpTo(Screen.Dashboard.route) { saveState = true }
                         launchSingleTop = true
-                        restoreState = true
+                        restoreState = false
                     }
                 },
                 onNavigateToExams = {
@@ -159,7 +159,6 @@ fun AppNavHost(
                 onNavigateToEditExam = { examId ->
                     navController.navigate(Screen.ExamDetail.createRoute(examId))
                 },
-
                 onStartStudy = { examId ->
                     navController.navigate(Screen.StudyTimer.createRoute(examId)) {
                         popUpTo(Screen.Dashboard.route) { saveState = true }
