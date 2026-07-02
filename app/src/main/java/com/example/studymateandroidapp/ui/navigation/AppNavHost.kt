@@ -129,21 +129,10 @@ fun AppNavHost(
                 navArgument("examId") {
                     type = NavType.LongType
                     defaultValue = -1L
-                },
-                navArgument("examTitle") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
                 }
             )
         ) { backStackEntry ->
             val examIdArg = backStackEntry.arguments?.getLong("examId")?.takeIf { it != -1L }
-            val examTitleArg = backStackEntry.arguments?.getString("examTitle")
-
-            androidx.compose.runtime.LaunchedEffect(examIdArg, examTitleArg) {
-                sharedTimerVm.setExamId(examIdArg)
-                examTitleArg?.let { sharedTimerVm.updateStudyTitle(it) }
-            }
 
             TimerScreen(
                 viewModel = sharedTimerVm,
@@ -170,11 +159,10 @@ fun AppNavHost(
                 onNavigateToEditExam = { examId ->
                     navController.navigate(Screen.ExamDetail.createRoute(examId))
                 },
-                onStartStudy = { examId, examTitle ->
-                    navController.navigate(Screen.StudyTimer.createRoute(examId, examTitle)) {
+                onStartStudy = { examId ->
+                    navController.navigate(Screen.StudyTimer.createRoute(examId)) {
                         popUpTo(Screen.Dashboard.route) { saveState = true }
                         launchSingleTop = true
-                        restoreState = true
                     }
                 },
                 onNavigateToNotes = { examId ->
@@ -198,11 +186,10 @@ fun AppNavHost(
                 onNavigateToEdit = { id -> navController.navigate(Screen.EditExam.createRoute(id)) },
                 onNavigateToNotes = { id -> navController.navigate(Screen.Notes.createRoute(id)) },
                 onNavigateToFlashcards = { id -> navController.navigate(Screen.Flashcards.createRoute(id)) },
-                onStartStudy = { id, title ->
-                    navController.navigate(Screen.StudyTimer.createRoute(id, title)) {
+                onStartStudy = { id ->
+                    navController.navigate(Screen.StudyTimer.createRoute(id)) {
                         popUpTo(Screen.Dashboard.route) { saveState = true }
                         launchSingleTop = true
-                        restoreState = true
                     }
                 },
                 onBack = { navController.popBackStack() }
@@ -368,6 +355,9 @@ fun AppNavHost(
                 },
                 onAddCard = {
                     navController.navigate(Screen.AddFlashcard.createRoute(examId = examId))
+                },
+                onAddCardWithId = { cardId, exId ->
+                    navController.navigate(Screen.AddFlashcard.createRoute(cardId = cardId, examId = exId))
                 },
                 onNavigateBack = { navController.popBackStack() }
             )
