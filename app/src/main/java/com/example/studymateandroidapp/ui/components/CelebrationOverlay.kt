@@ -217,10 +217,10 @@ fun DailyQuoteCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().height(170.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF101931)
+            containerColor = Color(0xFF0C121F)
         ),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
@@ -238,7 +238,7 @@ fun DailyQuoteCard(
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = "Daily Inspiration",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelLarge,
                     color = Color(0xFFC084FC),
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp

@@ -13,6 +13,7 @@ val DarkOnSurface = Color(0xFFE1E1E1)
 val DarkOnPrimary = Color(0xFF000000)
 val DarkBorder = Color(0xFF333333)
 val DarkBlue = Color(0xFF0B0C23)
+val DarkSurfaceVariantColor = Color(0xFF6C6363)
 
 // --- Professional Light Theme Palette ---
 val LightBackground = Color(0xFFFFFFFF)
@@ -24,6 +25,7 @@ val LightOnBackground = Color(0xFF121212)
 val LightOnSurface = Color(0xFF121212)
 val LightOnPrimary = Color(0xFFFFFFFF)
 val LightBorder = Color(0xFFEEEEEE)
+val LightSurfaceVariantColor = Color(0xFF0C121F)
 
 // --- Shared Semantic Colors ---
 val ErrorRed = Color(0xFFCF6679)
@@ -36,3 +38,4 @@ val PrimaryIndigo = Color(0xFF3F51B5)
 val TealAccent = Color(0xFF009688)
 val TextGray = Color(0xFF757575)
 val Pink = Color(0xFFEF5099)
+// Dark gray (dark theme)
