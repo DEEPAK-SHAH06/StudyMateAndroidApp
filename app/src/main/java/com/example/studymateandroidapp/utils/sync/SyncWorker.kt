@@ -9,10 +9,18 @@ import com.example.studymateandroidapp.data.model.DailyReflection
 import com.example.studymateandroidapp.data.model.Goal
 import com.example.studymateandroidapp.data.model.StudySession
 import com.example.studymateandroidapp.data.model.Task
+import com.example.studymateandroidapp.data.model.Exam
+import com.example.studymateandroidapp.data.model.Note
+import com.example.studymateandroidapp.data.model.Flashcard
+import com.example.studymateandroidapp.data.model.FlashcardReview
+import com.example.studymateandroidapp.data.model.StudyProgress
+import com.example.studymateandroidapp.data.model.UserProgress
+import com.example.studymateandroidapp.data.model.ReminderSetting
 import com.example.studymateandroidapp.data.local.PreferenceManager
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.Firebase
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -31,13 +39,36 @@ class SyncWorker(
     override suspend fun doWork(): Result {
         val userId = auth.currentUser?.uid
         if (userId == null) {
-            preferenceManager.setSyncState("ERROR")
-            return Result.failure()
+            // Quietly succeed if user is guest (not logged in)
+            return Result.success()
+        }
+
+        val isSyncEnabled = preferenceManager.isSyncEnabled.first()
+        if (!isSyncEnabled) {
+            // Quietly succeed if sync is disabled
+            return Result.success()
         }
 
         preferenceManager.setSyncState("SYNCING")
 
         return try {
+            // 1. Sync Exams (Parent of tasks, goals, notes, sessions, progress, flashcards)
+            syncEntity(
+                userId = userId,
+                collectionName = "exams",
+                getLocalItems = { db.examDao().getAllExamsList() },
+                insertLocal = { db.examDao().insert(it) },
+                updateLocal = { db.examDao().update(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                toFirestoreMap = { it.toFirestoreMap() },
+                fromFirestoreMap = { map, sId -> map.toExam(sId) }
+            )
+
+            // 2. Sync Tasks (Parent of sessions)
             syncEntity(
                 userId = userId,
                 collectionName = "tasks",
@@ -49,9 +80,11 @@ class SyncWorker(
                 getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
                 copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
                 getLastUpdated = { it.lastUpdated },
-                clazz = Task::class.java
+                toFirestoreMap = { it.toFirestoreMap() },
+                fromFirestoreMap = { map, sId -> map.toTask(sId) }
             )
 
+            // 3. Sync Goals
             syncEntity(
                 userId = userId,
                 collectionName = "goals",
@@ -63,9 +96,11 @@ class SyncWorker(
                 getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
                 copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
                 getLastUpdated = { it.lastUpdated },
-                clazz = Goal::class.java
+                toFirestoreMap = { it.toFirestoreMap() },
+                fromFirestoreMap = { map, sId -> map.toGoal(sId) }
             )
 
+            // 4. Sync Sessions (Linked to tasks and exams)
             syncEntity(
                 userId = userId,
                 collectionName = "sessions",
@@ -77,9 +112,11 @@ class SyncWorker(
                 getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
                 copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
                 getLastUpdated = { it.lastUpdated },
-                clazz = StudySession::class.java
+                toFirestoreMap = { it.toFirestoreMap() },
+                fromFirestoreMap = { map, sId -> map.toStudySession(sId) }
             )
 
+            // 5. Sync Reflections
             syncEntity(
                 userId = userId,
                 collectionName = "reflections",
@@ -91,22 +128,128 @@ class SyncWorker(
                 getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
                 copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
                 getLastUpdated = { it.lastUpdated },
-                clazz = DailyReflection::class.java
+                toFirestoreMap = { it.toFirestoreMap() },
+                fromFirestoreMap = { map, sId -> map.toDailyReflection(sId) }
             )
 
+            // 6. Sync Achievements
             syncEntity(
                 userId = userId,
                 collectionName = "achievements",
                 getLocalItems = { db.motivationDao().getAllAchievementsList() },
                 insertLocal = { db.motivationDao().insertAchievement(it) },
-                updateLocal = { db.motivationDao().insertAchievement(it) }, // MotivationDao has no update for achievements, re-insert or ignore
+                updateLocal = { db.motivationDao().insertAchievement(it) },
                 getId = { it.id },
                 getServerId = { it.serverId },
                 getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
                 copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
                 getLastUpdated = { it.lastUpdated },
-                clazz = Achievement::class.java
+                toFirestoreMap = { it.toFirestoreMap() },
+                fromFirestoreMap = { map, sId -> map.toAchievement(sId) }
             )
+
+            // 7. Sync Notes
+            syncEntity(
+                userId = userId,
+                collectionName = "notes",
+                getLocalItems = { db.noteDao().getAllNotesList() },
+                insertLocal = { db.noteDao().insert(it) },
+                updateLocal = { db.noteDao().update(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                toFirestoreMap = { it.toFirestoreMap() },
+                fromFirestoreMap = { map, sId -> map.toNote(sId) }
+            )
+
+            // 8. Sync Flashcards
+            syncEntity(
+                userId = userId,
+                collectionName = "flashcards",
+                getLocalItems = { db.flashcardDao().getAllFlashcardsList() },
+                insertLocal = { db.flashcardDao().insert(it) },
+                updateLocal = { db.flashcardDao().update(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                toFirestoreMap = { it.toFirestoreMap() },
+                fromFirestoreMap = { map, sId -> map.toFlashcard(sId) }
+            )
+
+            // 9. Sync Flashcard Reviews
+            syncEntity(
+                userId = userId,
+                collectionName = "flashcard_reviews",
+                getLocalItems = { db.flashcardDao().getAllReviewsList() },
+                insertLocal = { db.flashcardDao().insertReview(it) },
+                updateLocal = { db.flashcardDao().insertReview(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                toFirestoreMap = { it.toFirestoreMap() },
+                fromFirestoreMap = { map, sId -> map.toFlashcardReview(sId) }
+            )
+
+            // 10. Sync Study Progress
+            syncEntity(
+                userId = userId,
+                collectionName = "study_progress",
+                getLocalItems = { db.studyProgressDao().getAllProgressList() },
+                insertLocal = { db.studyProgressDao().insertOrUpdate(it) },
+                updateLocal = { db.studyProgressDao().update(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                toFirestoreMap = { it.toFirestoreMap() },
+                fromFirestoreMap = { map, sId -> map.toStudyProgress(sId) }
+            )
+
+            // 11. Sync User Progress
+            syncEntity(
+                userId = userId,
+                collectionName = "user_progress",
+                getLocalItems = { db.userProgressDao().getUserProgressList() },
+                insertLocal = { db.userProgressDao().saveUserProgress(it); 1L },
+                updateLocal = { db.userProgressDao().update(it) },
+                getId = { it.id },
+                getServerId = { it.serverId },
+                getWithServerId = { item, sId -> item.copy(userId = userId, serverId = sId) },
+                copyLocalId = { cloud, localId -> cloud.copy(id = localId) },
+                getLastUpdated = { it.lastUpdated },
+                toFirestoreMap = { it.toFirestoreMap() },
+                fromFirestoreMap = { map, sId -> map.toUserProgress(sId) }
+            )
+
+            // 12. Sync Reminder Settings (Special handling since primary key is Enum)
+            val reminderCollectionRef = firestore.collection("users").document(userId).collection("reminder_settings")
+            val localReminders = db.reminderDao().getAllSettingsList()
+            localReminders.forEach { setting ->
+                val docRef = reminderCollectionRef.document(setting.type.name)
+                val itemToPush = setting.copy(userId = userId, serverId = setting.type.name)
+                docRef.set(itemToPush.toFirestoreMap()).await()
+            }
+            
+            val cloudRemindersSnapshot = reminderCollectionRef.get().await()
+            for (doc in cloudRemindersSnapshot.documents) {
+                val data = doc.data ?: continue
+                val cloudSetting = data.toReminderSetting(doc.id)
+                val existingLocal = db.reminderDao().getSettingByType(cloudSetting.type)
+                if (existingLocal == null) {
+                    db.reminderDao().upsertSetting(cloudSetting.copy(userId = userId, serverId = cloudSetting.type.name))
+                } else {
+                    if (cloudSetting.lastUpdated > existingLocal.lastUpdated) {
+                        db.reminderDao().upsertSetting(cloudSetting.copy(userId = userId, serverId = cloudSetting.type.name))
+                    }
+                }
+            }
 
             preferenceManager.setSyncState("IDLE", System.currentTimeMillis())
             Result.success()
@@ -128,7 +271,8 @@ class SyncWorker(
         getWithServerId: (T, String) -> T,
         copyLocalId: (T, Long) -> T,
         getLastUpdated: (T) -> Long,
-        clazz: Class<T>
+        toFirestoreMap: (T) -> Map<String, Any?>,
+        fromFirestoreMap: (Map<String, Any?>, String) -> T
     ) {
         val collectionRef = firestore.collection("users").document(userId).collection(collectionName)
 
@@ -143,7 +287,7 @@ class SyncWorker(
             }
 
             val itemToPush = getWithServerId(localItem, docRef.id)
-            docRef.set(itemToPush).await()
+            docRef.set(toFirestoreMap(itemToPush)).await()
 
             if (serverId == null) {
                 updateLocal(itemToPush)
@@ -159,14 +303,15 @@ class SyncWorker(
         }.toMap()
 
         for (doc in cloudSnapshot.documents) {
-            val cloudItem = doc.toObject(clazz) ?: continue
+            val data = doc.data ?: continue
             val docId = doc.id
-            val fullySyncedCloudItem = getWithServerId(cloudItem, docId)
+            val fullySyncedCloudItem = fromFirestoreMap(data, docId)
 
             val existingLocal = localItemsByServerId[docId]
             if (existingLocal == null) {
-                // Must ensure id = 0 to autogenerate
-                insertLocal(copyLocalId(fullySyncedCloudItem, 0L))
+                // Keep the original local ID of the cloud item (getId(fullySyncedCloudItem))
+                // instead of replacing it with 0L. This preserves relation foreign keys.
+                insertLocal(copyLocalId(fullySyncedCloudItem, getId(fullySyncedCloudItem)))
             } else {
                 if (getLastUpdated(fullySyncedCloudItem) > getLastUpdated(existingLocal)) {
                     // Overwrite local keeping its primary key id

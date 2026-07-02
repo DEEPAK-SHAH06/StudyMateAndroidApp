@@ -43,7 +43,10 @@ class AuthRepository(val context: Context) {
 
             // 1. Delete Firestore Data
             val firestore = Firebase.firestore
-            val collections = listOf("tasks", "goals", "sessions", "reflections", "achievements")
+            val collections = listOf(
+                "tasks", "goals", "sessions", "reflections", "achievements",
+                "exams", "notes", "flashcards", "flashcard_reviews", "study_progress", "user_progress", "reminder_settings"
+            )
             
             for (collectionName in collections) {
                 val snapshot = firestore.collection("users").document(userId)

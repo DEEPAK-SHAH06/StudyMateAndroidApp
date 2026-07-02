@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -90,7 +91,9 @@ fun LoginScreen(
             onValueChange = { email = it },
             label = { Text("Email") },
             leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("email_field"),
             shape = RoundedCornerShape(12.dp),
             singleLine = true
         )
@@ -108,7 +111,9 @@ fun LoginScreen(
                 }
             },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("password_field"),
             shape = RoundedCornerShape(12.dp),
             singleLine = true
         )
@@ -133,7 +138,8 @@ fun LoginScreen(
                 onClick = { viewModel.signInWithEmail(email, password) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(56.dp)
+                    .testTag("login_button"),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
@@ -148,7 +154,8 @@ fun LoginScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(56.dp)
+                    .testTag("google_login_button"),
                 shape = RoundedCornerShape(12.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
@@ -177,7 +184,9 @@ fun LoginScreen(
             Text(text = "Don't have an account? ", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
             Text(
                 text = "Register",
-                modifier = Modifier.clickable { onNavigateToRegister() },
+                modifier = Modifier
+                    .clickable { onNavigateToRegister() }
+                    .testTag("go_to_register"),
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )

@@ -29,10 +29,17 @@ fun AppNavHost(
     ) {
         // ── Splash ────────────────────────────────────
         composable(Screen.Splash.route) {
+            val authViewModel: AuthViewModel = viewModel(factory = ViewModelFactory)
             SplashScreen(
                 onNavigateToDashboard = {
-                    navController.navigate(Screen.Dashboard.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    if (authViewModel.currentUser.value != null) {
+                        navController.navigate(Screen.Dashboard.route) {
+                            popUpTo(Screen.Splash.route) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Splash.route) { inclusive = true }
+                        }
                     }
                 }
             )
@@ -355,6 +362,9 @@ fun AppNavHost(
                 },
                 onAddCard = {
                     navController.navigate(Screen.AddFlashcard.createRoute(examId = examId))
+                },
+                onAddCardWithId = { cardId, exId ->
+                    navController.navigate(Screen.AddFlashcard.createRoute(cardId = cardId, examId = exId))
                 },
                 onNavigateBack = { navController.popBackStack() }
             )

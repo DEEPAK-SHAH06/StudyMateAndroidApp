@@ -6,9 +6,12 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 
 /**
  * Manages the timing and triggering of data synchronization.
@@ -32,6 +35,8 @@ class SyncManager(private val context: Context) {
                 triggerImmediateSync()
             }
         })
+
+        schedulePeriodicSync()
     }
 
     /**
@@ -47,5 +52,24 @@ class SyncManager(private val context: Context) {
             .build()
 
         workManager.enqueue(syncRequest)
+    }
+
+    /**
+     * Schedules a periodic background sync task (every 15 minutes) with the WorkManager.
+     */
+    fun schedulePeriodicSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val periodicSyncRequest = PeriodicWorkRequestBuilder<SyncWorker>(15, TimeUnit.MINUTES)
+            .setConstraints(constraints)
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            "PeriodicSyncWork",
+            ExistingPeriodicWorkPolicy.KEEP,
+            periodicSyncRequest
+        )
     }
 }

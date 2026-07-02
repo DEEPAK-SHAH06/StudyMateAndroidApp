@@ -22,8 +22,11 @@ import androidx.room.PrimaryKey
 )
 data class Flashcard(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val examId: Long,
-    val question: String,
-    val answer: String,
-    val isLearned: Boolean = false
+    val examId: Long = 0L,
+    val question: String = "",
+    val answer: String = "",
+    val isLearned: Boolean = false,
+    val userId: String? = null,
+    val serverId: String? = null,
+    val lastUpdated: Long = System.currentTimeMillis()
 )

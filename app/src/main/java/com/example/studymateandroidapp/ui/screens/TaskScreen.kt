@@ -3,7 +3,6 @@ package com.example.studymateandroidapp.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,10 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.PushPin
@@ -23,12 +20,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.testTag
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.Task
@@ -134,7 +133,10 @@ fun TaskContent(
             StudyMateTopBar(
                 title = "",
                 actions = {
-                    IconButton(onClick = onAchievementsClick) {
+                    IconButton(
+                        onClick = onAchievementsClick,
+                        modifier = Modifier.testTag("achievements_button")
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.achievements),
                             modifier = Modifier.size(20.dp),
@@ -143,7 +145,10 @@ fun TaskContent(
                         )
                     }
 
-                    IconButton(onClick = onStatsClick) {
+                    IconButton(
+                        onClick = onStatsClick,
+                        modifier = Modifier.testTag("statistics_button")
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.statistics),
                             modifier = Modifier.size(20.dp),
@@ -159,7 +164,7 @@ fun TaskContent(
                 onClick = onAddTask,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(50.dp),
+                modifier = Modifier.size(50.dp).testTag("add_task_fab"),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Task",  modifier = Modifier.size(35.dp))
@@ -258,13 +263,11 @@ fun TaskContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
-    TextField(
+    OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth()
-            .size(49.dp)
-        ,
-        placeholder = { Text("Search tasks, subjects...", fontSize = 13.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+        modifier = Modifier.fillMaxWidth().testTag("task_search_bar"),
+        placeholder = { Text("Search tasks, subjects...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         shape = RoundedCornerShape(12.dp),
         singleLine = true,
@@ -293,7 +296,8 @@ fun FilterChips(filters: List<String>, selectedFilter: String, onFilterSelected:
                 modifier = Modifier
                     .weight(1f)
                     .height(36.dp)
-                    .clickable { onFilterSelected(filter) },
+                    .clickable { onFilterSelected(filter) }
+                    .testTag("filter_chip_$filter"),
                 shape = RoundedCornerShape(18.dp),
                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
             ) {
@@ -335,7 +339,8 @@ fun TaskItemView(
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp)
-            .clickable { onClick() },
+            .clickable { onClick() }
+            .testTag("task_item_${task.title}"),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
@@ -355,7 +360,8 @@ fun TaskItemView(
                 modifier = Modifier
                     .size(25.dp)
                     .padding(2.dp)
-                    .clickable { onToggle() },
+                    .clickable { onToggle() }
+                    .testTag("task_checkbox_${task.title}"),
                 shape = RoundedCornerShape(6.dp),
 
                 border = BorderStroke(
@@ -512,7 +518,8 @@ fun TaskItemView(
             }
 
             IconButton(
-                onClick = onTogglePin
+                onClick = onTogglePin,
+                modifier = Modifier.testTag("task_pin_${task.title}")
             ) {
                 Icon(
                     imageVector = if (task.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
@@ -523,7 +530,8 @@ fun TaskItemView(
             }
 
             IconButton(
-                onClick = onDelete
+                onClick = onDelete,
+                modifier = Modifier.testTag("task_delete_${task.title}")
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
@@ -560,14 +568,18 @@ fun PriorityTaskCard(task: Task) {
                         fontWeight = FontWeight.Bold
                     )
                 }
+
                 Spacer(modifier = Modifier.height(12.dp))
+
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
                     text = task.description.ifBlank { "Focus on this critical task today." },
                     style = MaterialTheme.typography.bodySmall,
@@ -576,8 +588,17 @@ fun PriorityTaskCard(task: Task) {
                     overflow = TextOverflow.Ellipsis
                 )
             }
+
+            val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
+            val imageRes = if (isDark) {
+                R.drawable.hpriority_dark
+            } else {
+                R.drawable.hpriority
+            }
+
             Image(
-                painter = painterResource(id = R.drawable.review),
+                painter = painterResource(imageRes),
                 contentDescription = null,
                 modifier = Modifier.size(80.dp)
             )
@@ -601,20 +622,33 @@ fun OverdueMilestoneCard(task: Task) {
                 fontWeight = FontWeight.Black,
                 color = Color.Red
             )
+
             Spacer(modifier = Modifier.width(16.dp))
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "Overdue Task",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+
                 Text(text = "${task.title} • Needs attention",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
+
+            val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
+            val imageRes = if (isDark) {
+                R.drawable.overdue_dark
+            } else {
+                R.drawable.overdue
+            }
+            Spacer(modifier = Modifier.width(4.dp))
+
             Image(
-                painter = painterResource(id = R.drawable.overdue),
+                painter = painterResource(imageRes),
                 contentDescription = null,
                 modifier = Modifier.size(64.dp)
             )

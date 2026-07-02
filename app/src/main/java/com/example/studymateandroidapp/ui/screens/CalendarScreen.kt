@@ -121,6 +121,7 @@ fun CalendarContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(10.dp)
                 .padding(padding)
         ) {
             MonthSelector(
@@ -155,7 +156,7 @@ private fun MonthSelector(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(18.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

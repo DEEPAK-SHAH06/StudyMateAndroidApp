@@ -197,7 +197,6 @@ fun ExamContent(
             Text(
                 text = "Upcoming",
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.align(Alignment.End),
                 fontSize = 18.sp,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium
@@ -242,7 +241,6 @@ fun ExamContent(
                         Text(
                             text = "Past Exams",
                             fontSize = 18.sp,
-                            modifier = Modifier.align(Alignment.End),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -276,13 +274,11 @@ fun ExamContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExamSearchBar(query: String, onQueryChange: (String) -> Unit) {
-    TextField(
+    OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth()
-            .height(49.dp),
+        modifier = Modifier.fillMaxWidth(),
         placeholder = { Text("Search exams, subjects...",
-            fontSize = 13.5.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
         },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
@@ -334,8 +330,8 @@ fun ExamCard(
             .fillMaxWidth()
             .clickable { onClick() },
         color = when {
-            isMastered -> MaterialTheme.colorScheme.secondaryContainer
-            else -> MaterialTheme.colorScheme.surfaceContainer
+            isMastered -> MaterialTheme.colorScheme.surfaceVariant
+            else -> MaterialTheme.colorScheme.surfaceVariant
         },
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(
@@ -460,11 +456,11 @@ fun ExamCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onNotes, modifier = Modifier.size(24.dp)) {
 
-                            Icon(painter = painterResource(id = R.drawable.notes), contentDescription = "Notes", tint = Color.Black, modifier = Modifier.size(18.dp))
+                            Icon(painter = painterResource(id = R.drawable.notes), contentDescription = "Notes", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         IconButton(onClick = onFlashcards, modifier = Modifier.size(24.dp)) {
-                            Icon(painter = painterResource(id = R.drawable.baseline_file_copy_24), contentDescription = "Flashcards", tint = Color.Black, modifier = Modifier.size(20.dp))
+                            Icon(painter = painterResource(id = R.drawable.baseline_file_copy_24), contentDescription = "Flashcards", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
 
                         }
                     }

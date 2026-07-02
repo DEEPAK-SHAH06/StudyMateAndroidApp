@@ -12,7 +12,7 @@ class StudyProgressRepository(private val studyProgressDao: StudyProgressDao) {
         studyProgressDao.getAllProgress()
 
     suspend fun updateProgress(progress: StudyProgress) {
-        studyProgressDao.insertOrUpdate(progress)
+        studyProgressDao.insertOrUpdate(progress.copy(lastUpdated = System.currentTimeMillis()))
     }
 
     suspend fun addStudyTime(examId: Long, addedTimeMs: Long) {

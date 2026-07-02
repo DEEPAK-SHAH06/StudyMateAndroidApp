@@ -12,7 +12,7 @@ import java.time.LocalTime
  */
 @Entity(tableName = "reminder_settings")
 data class ReminderSetting(
-    @PrimaryKey val type: ReminderType,
+    @PrimaryKey val type: ReminderType = ReminderType.TASK,
     val isEnabled: Boolean = true,
     val scheduledTime: LocalTime? = null,
     val daysBefore: Int? = null, // Used for exams (e.g. 1 day before, 3 days before)

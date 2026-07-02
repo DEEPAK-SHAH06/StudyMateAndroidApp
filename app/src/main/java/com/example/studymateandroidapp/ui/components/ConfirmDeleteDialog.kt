@@ -5,6 +5,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
 
 /**
@@ -31,6 +33,7 @@ fun ConfirmDeleteDialog(
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
+                modifier = Modifier.testTag("confirm_delete_button"),
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = Color.Red
                 )
@@ -40,7 +43,8 @@ fun ConfirmDeleteDialog(
         },
         dismissButton = {
             TextButton(
-                onClick = onDismiss
+                onClick = onDismiss,
+                modifier = Modifier.testTag("cancel_delete_button")
             ) {
                 Text(text = "Cancel")
             }

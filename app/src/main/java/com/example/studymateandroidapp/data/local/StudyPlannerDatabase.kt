@@ -25,7 +25,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
         FlashcardReview::class,
         UserProgress::class
     ],
-    version = 20,
+    version = 22,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -275,6 +275,46 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_20_21 = object : Migration(20, 21) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add columns to exams
+                db.execSQL("ALTER TABLE exams ADD COLUMN userId TEXT")
+                db.execSQL("ALTER TABLE exams ADD COLUMN serverId TEXT")
+                db.execSQL("ALTER TABLE exams ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT 0")
+
+                // Add columns to notes
+                db.execSQL("ALTER TABLE notes ADD COLUMN userId TEXT")
+                db.execSQL("ALTER TABLE notes ADD COLUMN serverId TEXT")
+                db.execSQL("ALTER TABLE notes ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT 0")
+
+                // Add columns to flashcards
+                db.execSQL("ALTER TABLE flashcards ADD COLUMN userId TEXT")
+                db.execSQL("ALTER TABLE flashcards ADD COLUMN serverId TEXT")
+                db.execSQL("ALTER TABLE flashcards ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT 0")
+
+                // Add columns to flashcard_reviews
+                db.execSQL("ALTER TABLE flashcard_reviews ADD COLUMN userId TEXT")
+                db.execSQL("ALTER TABLE flashcard_reviews ADD COLUMN serverId TEXT")
+                db.execSQL("ALTER TABLE flashcard_reviews ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT 0")
+
+                // Add columns to study_progress
+                db.execSQL("ALTER TABLE study_progress ADD COLUMN userId TEXT")
+                db.execSQL("ALTER TABLE study_progress ADD COLUMN serverId TEXT")
+                db.execSQL("ALTER TABLE study_progress ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT 0")
+
+                // Add columns to user_progress
+                db.execSQL("ALTER TABLE user_progress ADD COLUMN userId TEXT")
+                db.execSQL("ALTER TABLE user_progress ADD COLUMN serverId TEXT")
+                db.execSQL("ALTER TABLE user_progress ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_21_22 = object : Migration(21, 22) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE notes ADD COLUMN title TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
         /**
          * SINGLETON
          */
@@ -291,6 +331,14 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
         fun getInstance(context: Context): StudyPlannerDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
+            }
+        }
+
+        fun preloadDatabase(context: Context) {
+            try {
+                getInstance(context).openHelper.writableDatabase
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
 
@@ -323,7 +371,9 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                     MIGRATION_16_17,
                     MIGRATION_17_18,
                     MIGRATION_18_19,
-                    MIGRATION_19_20
+                    MIGRATION_19_20,
+                    MIGRATION_20_21,
+                    MIGRATION_21_22
                 )
                 .build()
         }

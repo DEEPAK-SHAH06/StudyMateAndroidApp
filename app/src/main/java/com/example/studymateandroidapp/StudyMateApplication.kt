@@ -4,20 +4,17 @@ import android.app.Application
 import com.example.studymateandroidapp.data.local.StudyPlannerDatabase
 import com.example.studymateandroidapp.data.repository.*
 import com.example.studymateandroidapp.utils.notification.NotificationHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class StudyMateApplication : Application() {
 
-    lateinit var statisticsRepository: StatisticsRepository
-        private set
-
-    override fun onCreate() {
-        super.onCreate()
-        NotificationHelper.createChannels(this)
-
+    val statisticsRepository: StatisticsRepository by lazy {
         val db = StudyPlannerDatabase.getInstance(this)
         val gamificationRepository = GamificationRepository(db.userProgressDao())
         
-        statisticsRepository = StatisticsRepository(
+        StatisticsRepository(
             taskRepository = TaskRepository(db.taskDao()),
             sessionRepository = SessionRepository(db.sessionDao()),
             goalRepository = GoalRepository(db.goalDao(), this),
@@ -30,8 +27,22 @@ class StudyMateApplication : Application() {
                 flashcardDao  = db.flashcardDao(),
                 gamificationRepository = gamificationRepository,
                 context = this
-                ),
+            ),
             gamificationRepository = gamificationRepository
         )
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        NotificationHelper.createChannels(this)
+
+        // Start monitoring sync
+        val syncManager = com.example.studymateandroidapp.utils.sync.SyncManager(this)
+        syncManager.startMonitoring()
+
+        // Asynchronously warm up Room database / SQLCipher to avoid main thread block on first access
+        CoroutineScope(Dispatchers.IO).launch {
+            StudyPlannerDatabase.preloadDatabase(this@StudyMateApplication)
+        }
     }
 }

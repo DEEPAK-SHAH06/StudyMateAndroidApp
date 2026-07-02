@@ -22,8 +22,12 @@ import androidx.room.PrimaryKey
 )
 data class Note(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val examId: Long,
-    val content: String,
+    val examId: Long = 0L,
+    val title: String = "",
+    val content: String = "",
     val imagePath: String? = null,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val userId: String? = null,
+    val serverId: String? = null,
+    val lastUpdated: Long = System.currentTimeMillis()
 )

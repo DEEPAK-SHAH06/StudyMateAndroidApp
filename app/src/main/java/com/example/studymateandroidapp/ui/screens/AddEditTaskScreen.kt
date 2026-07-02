@@ -299,37 +299,38 @@ fun AddEditTaskScreen(
 
             Button(
                 onClick = {
-                    val task = if (taskId != null && existingTask != null) {
-                        existingTask!!.copy(
-                            title = title,
-                            description = description,
-                            priority = priority,
-                            dueDate = dueDate,
-                            dueTime = dueTime,
-                            subjectTag = subjectTag.uppercase(),
-                            tagColor = selectedColor.value.toLong()
-                        )
-                    } else {
-                        Task(
-                            id = 0,
-                            title = title,
-                            description = description,
-                            priority = priority,
-                            dueDate = dueDate,
-                            dueTime = dueTime,
-                            subjectTag = subjectTag.uppercase(),
-                            tagColor = selectedColor.value.toLong()
-                        )
+                    if (title.isNotBlank()) {
+                        val task = if (taskId != null && existingTask != null) {
+                            existingTask!!.copy(
+                                title = title,
+                                description = description,
+                                priority = priority,
+                                dueDate = dueDate,
+                                dueTime = dueTime,
+                                subjectTag = subjectTag.uppercase(),
+                                tagColor = selectedColor.value.toLong()
+                            )
+                        } else {
+                            Task(
+                                id = 0,
+                                title = title,
+                                description = description,
+                                priority = priority,
+                                dueDate = dueDate,
+                                dueTime = dueTime,
+                                subjectTag = subjectTag.uppercase(),
+                                tagColor = selectedColor.value.toLong()
+                            )
+                        }
+                        if (taskId == null) viewModel.addTask(task) else viewModel.updateTask(task)
+                        onNavigateBack()
                     }
-                    if (taskId == null) viewModel.addTask(task) else viewModel.updateTask(task)
-                    onNavigateBack()
                 },
-                enabled = title.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Save Task", fontWeight = FontWeight.Bold)
+                Text("Save Task", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
             }
 
             if (taskId != null) {
