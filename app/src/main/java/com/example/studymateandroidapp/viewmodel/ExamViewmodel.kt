@@ -8,7 +8,9 @@ import com.example.studymateandroidapp.data.model.StudyProgress
 import com.example.studymateandroidapp.data.model.relations.ExamWithDetails
 import com.example.studymateandroidapp.data.repository.ExamRepository
 import com.example.studymateandroidapp.data.repository.StudyProgressRepository
+import com.example.studymateandroidapp.data.repository.SessionRepository
 import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -27,12 +29,14 @@ import java.time.ZoneId
  *
  * @property repository The repository to access exam data.
  * @property studyProgressRepository The repository to access study progress data.
+ * @property sessionRepository The repository to access study session data.
  * @property reminderScheduler Helper to schedule or cancel notifications for exams.
  * @property application The application context, used for widget updates.
  */
 class ExamViewmodel(
     private val repository: ExamRepository,
     private val studyProgressRepository: StudyProgressRepository,
+    private val sessionRepository: SessionRepository,
     private val reminderScheduler: ReminderScheduler,
     private val application: Application
 ) : ViewModel() {
@@ -59,6 +63,15 @@ class ExamViewmodel(
     fun getExamWithDetails(id: Long) = repository.getExamWithDetails(id)
 
     /**
+     * Retrieves the total study seconds for a specific exam by its ID.
+     *
+     * @param examId The ID of the exam.
+     * @return A Flow emitting the total study seconds.
+     */
+    fun getStudySecondsForExam(examId: Long): Flow<Int> =
+        sessionRepository.getStudySecondsForExam(examId)
+
+    /**
      * Adds a new exam to the database, schedules reminders, and updates widgets.
      *
      * @param exam The exam to be added.
@@ -69,7 +82,7 @@ class ExamViewmodel(
             val ldt = Instant.ofEpochMilli(exam.examDate)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime()
-            
+
             reminderScheduler.scheduleExamReminders(
                 examId = id,
                 title = exam.title,
@@ -92,7 +105,7 @@ class ExamViewmodel(
             val ldt = Instant.ofEpochMilli(exam.examDate)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime()
-            
+
             reminderScheduler.scheduleExamReminders(
                 examId = exam.id,
                 title = exam.title,

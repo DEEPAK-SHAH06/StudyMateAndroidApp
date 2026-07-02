@@ -33,7 +33,7 @@ class SessionRepository(private val sessionDao: SessionDao) {
         sessionDao.insert(session)
 
     suspend fun update(session: StudySession) =
-        sessionDao.update(session)
+        sessionDao.update(session.copy(lastUpdated = System.currentTimeMillis()))
 
     suspend fun delete(session: StudySession) =
         sessionDao.delete(session)
@@ -54,4 +54,7 @@ class SessionRepository(private val sessionDao: SessionDao) {
 
     fun getCompletedPomodoroCount(): Flow<Int> =
         sessionDao.getCompletedPomodoroCount()
+
+    fun getStudySecondsForExam(examId: Long): Flow<Int> =
+        sessionDao.getStudySecondsForExam(examId)
 }

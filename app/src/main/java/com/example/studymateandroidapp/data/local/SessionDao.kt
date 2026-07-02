@@ -73,4 +73,11 @@ interface SessionDao {
 
     @Query("SELECT COUNT(*) FROM study_sessions WHERE isCompleted = 1")
     fun getCompletedPomodoroCount(): Flow<Int>
+
+    @Query("""
+        SELECT COALESCE(SUM(durationSeconds), 0)
+        FROM study_sessions
+        WHERE examId = :examId
+    """)
+    fun getStudySecondsForExam(examId: Long): Flow<Int>
 }
