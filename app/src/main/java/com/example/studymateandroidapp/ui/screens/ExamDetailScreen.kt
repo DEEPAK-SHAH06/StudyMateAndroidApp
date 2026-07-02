@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.data.model.Flashcard
 import com.example.studymateandroidapp.data.model.Note
@@ -113,12 +115,12 @@ fun ExamDetailContent(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = paddingValues.calculateTopPadding())
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 26.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
         contentPadding = PaddingValues(bottom = 100.dp)
     ) {
         item {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(15.dp))
             
             // Header Info
             Text(text = details.exam.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
@@ -152,7 +154,7 @@ fun ExamDetailContent(
         if (details.notes.isEmpty()) {
             item { Text("No notes linked to this exam.", color = Color.Gray) }
         } else {
-            items(details.notes.take(3), key = { it.id }) { note ->
+            items(details.notes.take(3), key = { "note_${it.id}" }) { note ->
                 NotePreviewItem(note)
             }
         }
@@ -164,7 +166,7 @@ fun ExamDetailContent(
         if (details.flashcards.isEmpty()) {
             item { Text("No flashcards linked to this exam.", color = Color.Gray) }
         } else {
-            items(details.flashcards.take(3), key = { it.id }) { card ->
+            items(details.flashcards.take(3), key = { "card_${it.id}" }) { card ->
                 FlashcardPreviewItem(card)
             }
         }
@@ -190,11 +192,11 @@ fun SectionHeaderWithAction(title: String, onAction: () -> Unit) {
 fun DetailStatCard(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        color = Color(0xFFF5F5F5),
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
-            Icon(icon, contentDescription = null, tint = Color.Black)
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(8.dp))
             Text(text = value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Text(text = label, style = MaterialTheme.typography.labelMedium, color = Color.Gray)
@@ -206,7 +208,7 @@ fun DetailStatCard(label: String, value: String, icon: androidx.compose.ui.graph
 fun NotePreviewItem(note: Note) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp)
     ) {
         Text(
@@ -222,12 +224,46 @@ fun NotePreviewItem(note: Note) {
 fun FlashcardPreviewItem(card: Flashcard) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(text = "Q: ${card.question}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
             Text(text = "A: ${card.answer}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ExamDetailPreview() {
+    val mockExam = com.example.studymateandroidapp.data.model.Exam(
+        id = 1,
+        title = "Final Exam",
+        subject = "Mathematics",
+        examDate = System.currentTimeMillis() + 86400000,
+        isTimeSet = true
+    )
+    val mockNotes = listOf(
+        Note(id = 1, examId = 1, content = "Key formulas for calculus."),
+        Note(id = 2, examId = 1, content = "Review integration by parts.")
+    )
+    val mockFlashcards = listOf(
+        Flashcard(id = 1, examId = 1, question = "What is the derivative of sin(x)?", answer = "cos(x)"),
+        Flashcard(id = 2, examId = 1, question = "What is the integral of 1/x?", answer = "ln|x| + C")
+    )
+    val details = ExamWithDetails(
+        exam = mockExam,
+        notes = mockNotes,
+        flashcards = mockFlashcards
+    )
+
+    MaterialTheme {
+        ExamDetailContent(
+            details = details,
+            paddingValues = PaddingValues(0.dp),
+            onAddNote = {},
+            onAddFlashcard = {}
+        )
     }
 }

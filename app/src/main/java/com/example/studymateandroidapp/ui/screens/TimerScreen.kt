@@ -264,7 +264,7 @@ fun TimerContent(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = uiState.selectedSound?.displayName ?: "Ambient",
+                            text = uiState.selectedSound?.displayName ?: "Music",
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
                             color = if (uiState.selectedSound != null)
