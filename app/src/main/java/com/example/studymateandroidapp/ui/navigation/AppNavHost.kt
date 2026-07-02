@@ -193,7 +193,7 @@ fun AppNavHost(
                 onNavigateToEdit = { id -> navController.navigate(Screen.EditExam.createRoute(id)) },
                 onNavigateToNotes = { id -> navController.navigate(Screen.Notes.createRoute(id)) },
                 onNavigateToFlashcards = { id -> navController.navigate(Screen.Flashcards.createRoute(id)) },
-                onStartStudy = { id, _ ->
+                onStartStudy = { id ->
                     navController.navigate(Screen.StudyTimer.createRoute(id)) {
                         popUpTo(Screen.Dashboard.route) { saveState = true }
                         launchSingleTop = true

@@ -20,4 +20,22 @@ interface StudyProgressDao {
 
     @Query("UPDATE study_progress SET completionPercentage = :percentage WHERE examId = :examId")
     suspend fun updateCompletion(examId: Long, percentage: Float)
+
+    @Query("SELECT SUM(durationSeconds) FROM study_sessions WHERE examId = :examId")
+    suspend fun getTotalStudyTimeForExam(examId: Long): Long?
+
+    @Query("SELECT SUM(correctCount) FROM flashcard_reviews WHERE examId = :examId")
+    suspend fun getTotalCorrectFlashcardsForExam(examId: Long): Int?
+
+    @Query("SELECT SUM(cardsReviewed) FROM flashcard_reviews WHERE examId = :examId")
+    suspend fun getTotalReviewedFlashcardsForExam(examId: Long): Int?
+
+    @Query("SELECT * FROM study_progress WHERE examId = :examId")
+    suspend fun getProgressByExamIdSync(examId: Long): StudyProgress?
+
+    @Query("SELECT * FROM study_progress")
+    suspend fun getAllProgressList(): List<StudyProgress>
+
+    @Update
+    suspend fun update(progress: StudyProgress)
 }
