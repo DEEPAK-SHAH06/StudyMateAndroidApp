@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.testTag
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.Task
@@ -134,7 +135,7 @@ fun AddEditTaskScreen(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("Task Title") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("task_title_field"),
                 shape = RoundedCornerShape(12.dp)
             )
 
@@ -143,7 +144,7 @@ fun AddEditTaskScreen(
                 onValueChange = { subjectTag = it },
                 label = { Text("Subject / Tag") },
                 placeholder = { Text("e.g. BIOLOGY") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("task_subject_field"),
                 shape = RoundedCornerShape(12.dp)
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -167,7 +168,7 @@ fun AddEditTaskScreen(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                colors.forEach { color ->
+                colors.forEachIndexed { index, color ->
                     Box(
                         modifier = Modifier
                             .size(34.dp)
@@ -180,6 +181,7 @@ fun AddEditTaskScreen(
                             .clickable {
                                 selectedColor = color
                             }
+                            .testTag("color_option_$index")
                     )
                 }
             }
@@ -188,7 +190,7 @@ fun AddEditTaskScreen(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("task_description_field"),
                 minLines = 3,
                 shape = RoundedCornerShape(12.dp)
             )
@@ -234,7 +236,7 @@ fun AddEditTaskScreen(
                                 )
                             }
                         },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).testTag("priority_${p.name.lowercase()}")
                     )
                 }
             }
@@ -266,7 +268,7 @@ fun AddEditTaskScreen(
                             contentDescription = null
                         )
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).testTag("due_date_selector")
                 )
 
                 DateTimeFieldSelector(
@@ -291,7 +293,7 @@ fun AddEditTaskScreen(
                             contentDescription = null
                         )
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).testTag("due_time_selector")
                 )
             }
 
@@ -326,7 +328,7 @@ fun AddEditTaskScreen(
                         onNavigateBack()
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp).testTag("save_task_button"),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
@@ -338,7 +340,7 @@ fun AddEditTaskScreen(
 
                 TextButton(
                     onClick = { showDeleteConfirm = true },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("delete_task_button"),
                     colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
                 ) {
                     Text("Delete Task", fontWeight = FontWeight.Bold)

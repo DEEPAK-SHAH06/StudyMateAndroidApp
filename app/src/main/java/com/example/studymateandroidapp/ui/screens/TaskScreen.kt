@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.testTag
 import com.example.studymateandroidapp.R
 import com.example.studymateandroidapp.data.model.Priority
 import com.example.studymateandroidapp.data.model.Task
@@ -132,7 +133,10 @@ fun TaskContent(
             StudyMateTopBar(
                 title = "",
                 actions = {
-                    IconButton(onClick = onAchievementsClick) {
+                    IconButton(
+                        onClick = onAchievementsClick,
+                        modifier = Modifier.testTag("achievements_button")
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.achievements),
                             modifier = Modifier.size(20.dp),
@@ -141,7 +145,10 @@ fun TaskContent(
                         )
                     }
 
-                    IconButton(onClick = onStatsClick) {
+                    IconButton(
+                        onClick = onStatsClick,
+                        modifier = Modifier.testTag("statistics_button")
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.statistics),
                             modifier = Modifier.size(20.dp),
@@ -157,7 +164,7 @@ fun TaskContent(
                 onClick = onAddTask,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(50.dp),
+                modifier = Modifier.size(50.dp).testTag("add_task_fab"),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Task",  modifier = Modifier.size(35.dp))
@@ -259,7 +266,7 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("task_search_bar"),
         placeholder = { Text("Search tasks, subjects...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         shape = RoundedCornerShape(12.dp),
@@ -289,7 +296,8 @@ fun FilterChips(filters: List<String>, selectedFilter: String, onFilterSelected:
                 modifier = Modifier
                     .weight(1f)
                     .height(36.dp)
-                    .clickable { onFilterSelected(filter) },
+                    .clickable { onFilterSelected(filter) }
+                    .testTag("filter_chip_$filter"),
                 shape = RoundedCornerShape(18.dp),
                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
             ) {
@@ -331,7 +339,8 @@ fun TaskItemView(
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp)
-            .clickable { onClick() },
+            .clickable { onClick() }
+            .testTag("task_item_${task.title}"),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
@@ -351,7 +360,8 @@ fun TaskItemView(
                 modifier = Modifier
                     .size(25.dp)
                     .padding(2.dp)
-                    .clickable { onToggle() },
+                    .clickable { onToggle() }
+                    .testTag("task_checkbox_${task.title}"),
                 shape = RoundedCornerShape(6.dp),
 
                 border = BorderStroke(
@@ -508,7 +518,8 @@ fun TaskItemView(
             }
 
             IconButton(
-                onClick = onTogglePin
+                onClick = onTogglePin,
+                modifier = Modifier.testTag("task_pin_${task.title}")
             ) {
                 Icon(
                     imageVector = if (task.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
@@ -519,7 +530,8 @@ fun TaskItemView(
             }
 
             IconButton(
-                onClick = onDelete
+                onClick = onDelete,
+                modifier = Modifier.testTag("task_delete_${task.title}")
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,

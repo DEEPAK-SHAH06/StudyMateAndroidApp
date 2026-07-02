@@ -23,6 +23,8 @@ class AuthViewModel(
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
+    val currentUser = authRepository.currentUser
+
     fun signInWithEmail(email: String, password: String) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
