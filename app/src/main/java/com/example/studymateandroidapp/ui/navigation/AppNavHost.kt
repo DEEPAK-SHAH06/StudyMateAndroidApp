@@ -159,7 +159,7 @@ fun AppNavHost(
                 onNavigateToEditExam = { examId ->
                     navController.navigate(Screen.ExamDetail.createRoute(examId))
                 },
-                onStartStudy = { examId ->
+                onStartStudy = { examId, _ ->
                     navController.navigate(Screen.StudyTimer.createRoute(examId)) {
                         popUpTo(Screen.Dashboard.route) { saveState = true }
                         launchSingleTop = true
@@ -186,7 +186,7 @@ fun AppNavHost(
                 onNavigateToEdit = { id -> navController.navigate(Screen.EditExam.createRoute(id)) },
                 onNavigateToNotes = { id -> navController.navigate(Screen.Notes.createRoute(id)) },
                 onNavigateToFlashcards = { id -> navController.navigate(Screen.Flashcards.createRoute(id)) },
-                onStartStudy = { id ->
+                onStartStudy = { id, _ ->
                     navController.navigate(Screen.StudyTimer.createRoute(id)) {
                         popUpTo(Screen.Dashboard.route) { saveState = true }
                         launchSingleTop = true
@@ -355,9 +355,6 @@ fun AppNavHost(
                 },
                 onAddCard = {
                     navController.navigate(Screen.AddFlashcard.createRoute(examId = examId))
-                },
-                onAddCardWithId = { cardId, exId ->
-                    navController.navigate(Screen.AddFlashcard.createRoute(cardId = cardId, examId = exId))
                 },
                 onNavigateBack = { navController.popBackStack() }
             )
