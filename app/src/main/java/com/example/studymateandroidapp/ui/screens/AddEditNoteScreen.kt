@@ -28,6 +28,7 @@ fun AddEditNoteScreen(
     onNavigateBack: () -> Unit
 ) {
     val exams by viewModel.allExams.collectAsState()
+    var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var existingNote by remember { mutableStateOf<Note?>(null) }
     var selectedExamId by remember(examId) { mutableStateOf(examId) }
@@ -37,13 +38,13 @@ fun AddEditNoteScreen(
             val note = viewModel.getNoteById(noteId)
             if (note != null) {
                 existingNote = note
+                title = note.title
                 content = note.content
                 selectedExamId = note.examId
             }
         }
     }
 
-    // Automatically select the first exam if none provided and exams are available
     LaunchedEffect(exams) {
         if (selectedExamId == null && exams.isNotEmpty()) {
             selectedExamId = exams.first().id
@@ -58,24 +59,23 @@ fun AddEditNoteScreen(
             )
         }
     ) { padding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(start = 28.dp,
+                .padding(
+                    start = 28.dp,
                     end = 28.dp,
                     top = 0.dp,
-                    bottom = padding.calculateBottomPadding())
+                    bottom = padding.calculateBottomPadding()
+                )
                 .verticalScroll(rememberScrollState())
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f))
-                {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = if (noteId == null) "NEW NOTE" else "EDIT NOTE",
                         fontSize = 16.sp,
@@ -84,20 +84,19 @@ fun AddEditNoteScreen(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = if (noteId == null)
-                            "Capture Your Thoughts"
-                        else
-                            "Update Your Thoughts",
+                        text = if (noteId == null) "Capture Your Thoughts" else "Update Your Thoughts",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
+
                 val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
                 val imageRes = if (isDark) {
                     R.drawable.addnote_dark
                 } else {
                     R.drawable.addnote
                 }
+
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Image(
@@ -106,6 +105,7 @@ fun AddEditNoteScreen(
                     modifier = Modifier.size(120.dp)
                 )
             }
+
             Spacer(modifier = Modifier.height(10.dp))
 
             if (selectedExamId == null) {
@@ -114,7 +114,19 @@ fun AddEditNoteScreen(
                     color = Color.Red,
                     style = MaterialTheme.typography.bodyMedium
                 )
+                Spacer(modifier = Modifier.height(12.dp))
             }
+
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Note Title") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = content,
@@ -125,46 +137,48 @@ fun AddEditNoteScreen(
                     .heightIn(min = 150.dp),
                 shape = RoundedCornerShape(12.dp)
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             Button(
                 onClick = {
                     val finalExamId = selectedExamId
-                    if (content.isNotBlank() && finalExamId != null) {
+                    if (title.isNotBlank() && content.isNotBlank() && finalExamId != null) {
                         if (noteId == null) {
                             viewModel.addNote(
                                 Note(
-                                    content = content,
+                                    title = title.trim(),
+                                    content = content.trim(),
                                     examId = finalExamId
                                 )
                             )
                         } else {
-                            existingNote?.let {
+                            existingNote?.let { note ->
                                 viewModel.updateNote(
-                                    it.copy(
-                                        content = content,
+                                    note.copy(
+                                        title = title.trim(),
+                                        content = content.trim(),
                                         examId = finalExamId
-                                            )
-                                        )
-                                    }
-                                }
-                                onNavigateBack()
+                                    )
+                                )
                             }
-                        },
-                        enabled = content.isNotBlank() && selectedExamId != null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) {
-                        Text(
-                            "Save Note",
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
+                        }
+                        onNavigateBack()
                     }
+                },
+                enabled = title.isNotBlank() && content.isNotBlank() && selectedExamId != null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text(
+                    "Save Note",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
-
-
     }
 }
