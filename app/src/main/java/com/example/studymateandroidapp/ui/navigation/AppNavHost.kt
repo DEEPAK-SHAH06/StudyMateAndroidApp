@@ -29,16 +29,11 @@ fun AppNavHost(
     ) {
         // ── Splash ────────────────────────────────────
         composable(Screen.Splash.route) {
-            val authViewModel: AuthViewModel = viewModel(factory = ViewModelFactory)
             SplashScreen(
                 onNavigateToDashboard = {
-                    if (authViewModel.currentUser.value != null) {
-                        navController.navigate(Screen.Dashboard.route) {
-                            popUpTo(Screen.Splash.route) { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(Screen.Splash.route) { inclusive = true }
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Splash.route) {
+                            inclusive = true
                         }
                     }
                 }
