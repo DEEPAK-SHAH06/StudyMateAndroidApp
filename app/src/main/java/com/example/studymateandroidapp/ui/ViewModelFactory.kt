@@ -99,6 +99,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
                 ExamViewmodel(
                     repository = getExamRepository(db),
                     studyProgressRepository = getStudyProgressRepository(db),
+                    sessionRepository = getSessionRepository(db),
                     reminderScheduler = ReminderScheduler(application),
                     application = application
                 ) as T
@@ -123,7 +124,8 @@ object ViewModelFactory : ViewModelProvider.Factory {
                 FlashcardViewmodel(
                     repository = getFlashcardRepository(db),
                     motivationRepository = getMotivationRepository(db, application),
-                    application = application) as T
+                    application = application
+                ) as T
 
             // ── Timer ──────────────────────────────────────────────
             modelClass.isAssignableFrom(TimerViewmodel::class.java) ->
