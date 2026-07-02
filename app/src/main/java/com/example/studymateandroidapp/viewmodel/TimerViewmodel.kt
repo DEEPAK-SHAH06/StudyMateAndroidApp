@@ -14,6 +14,7 @@ import com.example.studymateandroidapp.data.model.StudySession
 import com.example.studymateandroidapp.data.repository.SessionRepository
 import com.example.studymateandroidapp.data.repository.StudyProgressRepository
 import com.example.studymateandroidapp.data.repository.MotivationRepository
+import com.example.studymateandroidapp.data.repository.ExamRepository
 import com.example.studymateandroidapp.utils.AmbientSoundManager
 import com.example.studymateandroidapp.utils.notification.NotificationHelper
 import kotlinx.coroutines.Job
@@ -21,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,6 +35,7 @@ class TimerViewmodel(
     private val sessionRepository: SessionRepository,
     private val studyProgressRepository: StudyProgressRepository,
     private val motivationRepository: MotivationRepository,
+    private val examRepository: ExamRepository,
     private val preferenceManager: PreferenceManager,
     private val context: Context
 ) : ViewModel() {
@@ -70,8 +73,8 @@ class TimerViewmodel(
         viewModelScope.launch {
             sessionRepository.getAllSessions().collect { sessions ->
                 _uiState.update { it.copy(recentSessions = sessions.take(10)) }
-                val todaySeconds = sessions.filter { 
-                    it.startTime.toLocalDate() == java.time.LocalDate.now() 
+                val todaySeconds = sessions.filter {
+                    it.startTime.toLocalDate() == java.time.LocalDate.now()
                 }.sumOf { it.durationSeconds }
                 _uiState.update { it.copy(totalSecondsWorkedToday = todaySeconds) }
             }
@@ -79,16 +82,42 @@ class TimerViewmodel(
     }
 
     fun setExamId(id: Long?) {
-        _uiState.update { it.copy(examId = id) }
+        // Don't overwrite while a study session is active
+        if (_uiState.value.isRunning || _uiState.value.isPaused) return
+
+        // Opened timer normally (not from an exam)
+        if (id == null) {
+            _uiState.update {
+                it.copy(
+                    examId = null,
+                    studyTitle = ""
+                )
+            }
+            return
+        }
+
+        // Already showing this exam
+        if (_uiState.value.examId == id) return
+
+        viewModelScope.launch {
+            val exam = examRepository.getExamById(id).firstOrNull()
+
+            _uiState.update {
+                it.copy(
+                    examId = id,
+                    studyTitle = exam?.title ?: ""
+                )
+            }
+        }
     }
 
     fun setMode(mode: TimerMode) {
         if (_uiState.value.isRunning || _uiState.value.isPaused) return
-        _uiState.update { 
+        _uiState.update {
             it.copy(
-                mode = mode, 
-                timeLeftSeconds = if (mode == TimerMode.POMODORO) getPhaseDuration(it.phase) else 0 
-            ) 
+                mode = mode,
+                timeLeftSeconds = if (mode == TimerMode.POMODORO) getPhaseDuration(it.phase) else 0
+            )
         }
     }
 
@@ -117,12 +146,14 @@ class TimerViewmodel(
     }
 
     fun updateStudyTitle(title: String) {
-        _uiState.update { it.copy(studyTitle = title) }
+        _uiState.update {
+            it.copy(studyTitle = title)
+        }
     }
 
     fun startTimer() {
         if (_uiState.value.isRunning) return
-        
+
         _uiState.update { it.copy(isRunning = true, isPaused = false) }
         viewModelScope.launch { preferenceManager.setTimerRunning(true) }
 
@@ -130,7 +161,7 @@ class TimerViewmodel(
         _uiState.value.selectedSound?.let { sound ->
             ambientSoundManager.play(sound.rawResId)
         }
-        
+
         if (startTime == null) {
             startTime = LocalDateTime.now()
         }
@@ -149,7 +180,7 @@ class TimerViewmodel(
                         state.copy(timeLeftSeconds = state.timeLeftSeconds + 1)
                     }
                 }
-                
+
                 if (_uiState.value.mode == TimerMode.POMODORO && _uiState.value.timeLeftSeconds == 0) {
                     onTimerFinished()
                     break
@@ -207,12 +238,12 @@ class TimerViewmodel(
     }
 
     private fun resetTimerInternal() {
-        _uiState.update { 
+        _uiState.update {
             it.copy(
                 isRunning = false,
                 isPaused = false,
-                timeLeftSeconds = if (it.mode == TimerMode.POMODORO) getPhaseDuration(it.phase) else 0 
-            ) 
+                timeLeftSeconds = if (it.mode == TimerMode.POMODORO) getPhaseDuration(it.phase) else 0
+            )
         }
         viewModelScope.launch { preferenceManager.setTimerRunning(false) }
         ambientSoundManager.stop()
@@ -221,11 +252,11 @@ class TimerViewmodel(
 
     private fun onTimerFinished() {
         val durationSeconds = getPhaseDuration(_uiState.value.phase)
-        
+
         if (_uiState.value.phase == PomodoroPhase.WORK) {
             saveSession(durationSeconds, isCompleted = true)
         }
-        
+
         triggerCompletionAlert()
         resetTimerInternal()
     }
@@ -255,7 +286,6 @@ class TimerViewmodel(
                 )
             }
             sessionRepository.insert(session)
-            session.examId?.let { studyProgressRepository.refreshProgress(it) }
             motivationRepository.recordStudyActivity()
         }
     }

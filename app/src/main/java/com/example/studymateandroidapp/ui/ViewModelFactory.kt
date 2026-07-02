@@ -22,19 +22,19 @@ object ViewModelFactory : ViewModelProvider.Factory {
     private var noteRepository: NoteRepository? = null
     private var flashcardRepository: FlashcardRepository? = null
 
-    private fun getGamificationRepository(db: StudyPlannerDatabase) = 
+    private fun getGamificationRepository(db: StudyPlannerDatabase) =
         gamificationRepository ?: GamificationRepository(db.userProgressDao()).also { gamificationRepository = it }
 
-    private fun getTaskRepository(db: StudyPlannerDatabase) = 
+    private fun getTaskRepository(db: StudyPlannerDatabase) =
         taskRepository ?: TaskRepository(db.taskDao()).also { taskRepository = it }
 
-    private fun getSessionRepository(db: StudyPlannerDatabase) = 
+    private fun getSessionRepository(db: StudyPlannerDatabase) =
         sessionRepository ?: SessionRepository(db.sessionDao()).also { sessionRepository = it }
 
-    private fun getExamRepository(db: StudyPlannerDatabase) = 
+    private fun getExamRepository(db: StudyPlannerDatabase) =
         examRepository ?: ExamRepository(db.examDao()).also { examRepository = it }
 
-    private fun getGoalRepository(db: StudyPlannerDatabase, context: android.content.Context) = 
+    private fun getGoalRepository(db: StudyPlannerDatabase, context: android.content.Context) =
         goalRepository ?: GoalRepository(db.goalDao(), context).also { goalRepository = it }
 
     private fun getMotivationRepository(db: StudyPlannerDatabase, context: android.content.Context): MotivationRepository {
@@ -50,13 +50,13 @@ object ViewModelFactory : ViewModelProvider.Factory {
         ).also { motivationRepository = it }
     }
 
-    private fun getStudyProgressRepository(db: StudyPlannerDatabase) = 
+    private fun getStudyProgressRepository(db: StudyPlannerDatabase) =
         studyProgressRepository ?: StudyProgressRepository(db.studyProgressDao()).also { studyProgressRepository = it }
 
-    private fun getNoteRepository(db: StudyPlannerDatabase) = 
+    private fun getNoteRepository(db: StudyPlannerDatabase) =
         noteRepository ?: NoteRepository(db.noteDao()).also { noteRepository = it }
 
-    private fun getFlashcardRepository(db: StudyPlannerDatabase) = 
+    private fun getFlashcardRepository(db: StudyPlannerDatabase) =
         flashcardRepository ?: FlashcardRepository(db.flashcardDao()).also { flashcardRepository = it }
 
     @Suppress("UNCHECKED_CAST")
@@ -122,10 +122,8 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(FlashcardViewmodel::class.java) ->
                 FlashcardViewmodel(
                     repository = getFlashcardRepository(db),
-                    studyProgressRepository = getStudyProgressRepository(db),
                     motivationRepository = getMotivationRepository(db, application),
-                    application = application
-                ) as T
+                    application = application) as T
 
             // ── Timer ──────────────────────────────────────────────
             modelClass.isAssignableFrom(TimerViewmodel::class.java) ->
@@ -133,6 +131,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
                     sessionRepository = getSessionRepository(db),
                     studyProgressRepository = getStudyProgressRepository(db),
                     motivationRepository = getMotivationRepository(db, application),
+                    examRepository = getExamRepository(db),
                     preferenceManager = PreferenceManager(application),
                     context           = application
                 ) as T

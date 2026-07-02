@@ -13,9 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -50,6 +48,10 @@ fun TimerScreen(
     onStatsClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(examId) {
+        viewModel.setExamId(examId)
+    }
 
     TimerContent(
         uiState = uiState,
@@ -264,7 +266,7 @@ fun TimerContent(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = uiState.selectedSound?.displayName ?: "Ambient",
+                            text = uiState.selectedSound?.displayName ?: "Music",
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
                             color = if (uiState.selectedSound != null)
@@ -553,7 +555,7 @@ fun formatDuration(totalSeconds: Int): String {
     val h = totalSeconds / 3600
     val m = (totalSeconds % 3600) / 60
     val s = totalSeconds % 60
-    
+
     return when {
         h > 0 -> "${h}h ${m}m ${s}s"
         m > 0 -> "${m}m ${s}s"

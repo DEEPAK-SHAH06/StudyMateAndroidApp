@@ -159,6 +159,7 @@ fun AppNavHost(
                 onNavigateToEditExam = { examId ->
                     navController.navigate(Screen.ExamDetail.createRoute(examId))
                 },
+
                 onStartStudy = { examId ->
                     navController.navigate(Screen.StudyTimer.createRoute(examId)) {
                         popUpTo(Screen.Dashboard.route) { saveState = true }
