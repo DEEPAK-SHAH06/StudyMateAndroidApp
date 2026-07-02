@@ -1,12 +1,19 @@
 package com.example.studymateandroidapp.ui.screens
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -14,11 +21,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.data.model.Flashcard
 import com.example.studymateandroidapp.data.model.Note
+import com.example.studymateandroidapp.data.model.StudyProgress
 import com.example.studymateandroidapp.data.model.relations.ExamWithDetails
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.ExamViewmodel
@@ -30,7 +41,7 @@ fun ExamDetailScreen(
     onNavigateToEdit: (Long) -> Unit,
     onNavigateToNotes: (Long) -> Unit,
     onNavigateToFlashcards: (Long) -> Unit,
-    onStartStudy: (Long) -> Unit,
+    onStartStudy: (Long, String) -> Unit,
     onBack: () -> Unit
 ) {
     val examWithDetails by remember(examId) { 
@@ -51,8 +62,9 @@ fun ExamDetailScreen(
         },
         floatingActionButton = {
             if (examWithDetails != null) {
+                val details = examWithDetails!!
                 ExtendedFloatingActionButton(
-                    onClick = { onStartStudy(examId) },
+                    onClick = { onStartStudy(examId, details.exam.title) },
                     icon = { Icon(Icons.Default.Timer, contentDescription = null) },
                     text = { Text("Start Study Session") },
                     containerColor = Color.Black,
@@ -145,6 +157,11 @@ fun ExamDetailContent(
             }
         }
 
+        // Study Progress
+        item {
+            StudyProgressCard(progress = details.progress)
+        }
+
         // Notes Preview
         item {
             SectionHeaderWithAction("Notes", onAddNote)
@@ -166,6 +183,101 @@ fun ExamDetailContent(
         } else {
             items(details.flashcards.take(3), key = { it.id }) { card ->
                 FlashcardPreviewItem(card)
+            }
+        }
+    }
+}
+
+@Composable
+fun StudyProgressCard(progress: StudyProgress?) {
+    val completion = progress?.completionPercentage ?: 0f
+    val progressPercent = (completion * 100).toInt()
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(4.dp, RoundedCornerShape(20.dp)),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .animateContentSize()
+        ) {
+            Text(
+                text = "Study Progress",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Progress",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                val blocks = buildString {
+                    val filled = (completion * 10).toInt()
+                    val clampedFilled = filled.coerceIn(0, 10)
+                    repeat(clampedFilled) { append("█") }
+                    repeat(10 - clampedFilled) { append("░") }
+                }
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "$blocks $progressPercent%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = if (completion >= 1f) "Mastered" else "In Progress",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(6.dp))
+                
+                val animatedProgress by animateFloatAsState(
+                    targetValue = completion,
+                    animationSpec = tween(durationMillis = 300),
+                    label = "progress"
+                )
+                
+                LinearProgressIndicator(
+                    progress = { animatedProgress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(CircleShape),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                )
+            }
+            
+            if (progress != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                val hours = progress.totalStudyTime / 3600000
+                val minutes = (progress.totalStudyTime % 3600000) / 60000
+                Text(
+                    text = "Total study time: ${hours}h ${minutes}m",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

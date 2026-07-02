@@ -27,12 +27,17 @@ sealed class Screen(
     // ── Bottom nav destinations ───────────────────────────
     data object Dashboard : Screen("dashboard", "Home", Icons.Default.Home)
     data object Tasks : Screen("tasks", "Tasks", Icons.Default.CheckCircle)
-    data object StudyTimer : Screen("study_timer?examId={examId}", "Timer", Icons.Default.Timer) {
-        fun createRoute(examId: Long? = null): String {
-            return if (examId != null) {
-                "study_timer?examId=$examId"
-            } else {
-                "study_timer"
+    data object StudyTimer : Screen("study_timer?examId={examId}&examTitle={examTitle}", "Timer", Icons.Default.Timer) {
+        fun createRoute(examId: Long? = null, examTitle: String? = null): String {
+            return buildString {
+                append("study_timer")
+                val params = mutableListOf<String>()
+                if (examId != null) params.add("examId=$examId")
+                if (examTitle != null) params.add("examTitle=$examTitle")
+                if (params.isNotEmpty()) {
+                    append("?")
+                    append(params.joinToString("&"))
+                }
             }
         }
     }

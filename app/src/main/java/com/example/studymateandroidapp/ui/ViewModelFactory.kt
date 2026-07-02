@@ -122,6 +122,7 @@ object ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(FlashcardViewmodel::class.java) ->
                 FlashcardViewmodel(
                     repository = getFlashcardRepository(db),
+                    studyProgressRepository = getStudyProgressRepository(db),
                     motivationRepository = getMotivationRepository(db, application),
                     application = application
                 ) as T

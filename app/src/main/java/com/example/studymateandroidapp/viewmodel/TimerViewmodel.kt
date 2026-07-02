@@ -255,6 +255,7 @@ class TimerViewmodel(
                 )
             }
             sessionRepository.insert(session)
+            session.examId?.let { studyProgressRepository.refreshProgress(it) }
             motivationRepository.recordStudyActivity()
         }
     }

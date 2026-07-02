@@ -7,6 +7,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -58,7 +59,7 @@ fun ExamScreen(
     viewModel: ExamViewmodel,
     onNavigateToAddExam: () -> Unit,
     onNavigateToEditExam: (Long) -> Unit,
-    onStartStudy: (Long) -> Unit,
+    onStartStudy: (Long, String) -> Unit,
     onNavigateToNotes: (Long) -> Unit,
     onNavigateToFlashcards: (Long) -> Unit,
     onNavigateToAchievements: () -> Unit,
@@ -104,7 +105,7 @@ fun ExamContent(
     onAddExam: () -> Unit,
     onExamClick: (Long) -> Unit,
     onDeleteExam: (Exam) -> Unit,
-    onStartStudy: (Long) -> Unit,
+    onStartStudy: (Long, String) -> Unit,
     onNotesClick: (Long) -> Unit,
     onFlashcardsClick: (Long) -> Unit
 ) {
@@ -228,7 +229,7 @@ fun ExamContent(
                             progress = progress[exam.id],
                             onClick = { onExamClick(exam.id) },
                             onDelete = { onDeleteExam(exam) },
-                            onStudy = { onStartStudy(exam.id) },
+                            onStudy = { onStartStudy(exam.id, exam.title) },
                             onNotes = { onNotesClick(exam.id) },
                             onFlashcards = { onFlashcardsClick(exam.id) }
                         )
@@ -255,7 +256,7 @@ fun ExamContent(
                             isPast = true,
                             onClick = { onExamClick(exam.id) },
                             onDelete = { onDeleteExam(exam) },
-                            onStudy = { onStartStudy(exam.id) },
+                            onStudy = { onStartStudy(exam.id, exam.title) },
                             onNotes = { onNotesClick(exam.id) },
                             onFlashcards = { onFlashcardsClick(exam.id) }
                         )
@@ -401,28 +402,46 @@ fun ExamCard(
 
             if (completion > 0f) {
                 Spacer(modifier = Modifier.height(12.dp))
+                
+                val blocks = buildString {
+                    val filled = (completion * 10).toInt()
+                    val clampedFilled = filled.coerceIn(0, 10)
+                    repeat(clampedFilled) { append("█") }
+                    repeat(10 - clampedFilled) { append("░") }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "$blocks ${(completion * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isMastered) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = if (isMastered) "Mastered" else "In Progress",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
                 LinearProgressIndicator(
                     progress = { completion },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp)),
+                        .height(8.dp)
+                        .clip(CircleShape),
                     color =
                         if (isMastered)
                             Color(0xFF4CAF50)
                         else
                             MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "${(completion * 100).toInt()}% Mastered",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isMastered)
-                        Color(0xFF4CAF50)
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = if (isMastered) FontWeight.Bold else FontWeight.Normal
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                 )
             }
 
@@ -494,7 +513,7 @@ fun ExamScreenPreview() {
             onAddExam = {},
             onExamClick = {},
             onDeleteExam = {},
-            onStartStudy = {},
+            onStartStudy = { _, _ -> },
             onNavigateToAchievements = {},
             onStatsClick = {},
             onNotesClick = {},

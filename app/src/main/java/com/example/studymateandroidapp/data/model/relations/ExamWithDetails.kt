@@ -5,6 +5,7 @@ import androidx.room.Relation
 import com.example.studymateandroidapp.data.model.Exam
 import com.example.studymateandroidapp.data.model.Flashcard
 import com.example.studymateandroidapp.data.model.Note
+import com.example.studymateandroidapp.data.model.StudyProgress
 
 data class ExamWithDetails(
     @Embedded val exam: Exam,
@@ -17,5 +18,10 @@ data class ExamWithDetails(
         parentColumn = "id",
         entityColumn = "examId"
     )
-    val flashcards: List<Flashcard>
+    val flashcards: List<Flashcard>,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "examId"
+    )
+    val progress: StudyProgress?
 )
