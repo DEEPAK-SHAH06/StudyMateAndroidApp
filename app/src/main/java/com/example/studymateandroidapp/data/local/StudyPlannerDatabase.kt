@@ -330,7 +330,32 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
 
         fun getInstance(context: Context): StudyPlannerDatabase {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
+                INSTANCE ?: try {
+                    val db = buildDatabase(context)
+                    db.openHelper.writableDatabase
+                    db
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    deleteDatabaseFiles(context)
+                    buildDatabase(context)
+                }.also { INSTANCE = it }
+            }
+        }
+
+        private fun deleteDatabaseFiles(context: Context) {
+            try {
+                context.deleteDatabase(DATABASE_NAME)
+                val dbFile = context.getDatabasePath(DATABASE_NAME)
+                val walFile = java.io.File(dbFile.path + "-wal")
+                if (walFile.exists()) {
+                    walFile.delete()
+                }
+                val shmFile = java.io.File(dbFile.path + "-shm")
+                if (shmFile.exists()) {
+                    shmFile.delete()
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
             }
         }
 
