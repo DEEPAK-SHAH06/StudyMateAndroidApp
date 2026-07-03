@@ -243,35 +243,33 @@ fun TimerContent(
                     // AMBIENT BUTTON
                     OutlinedButton(
                         onClick = { showAmbientSheet = true },
-                        modifier = Modifier.height(52.dp),
+                        modifier = Modifier.size(52.dp),
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(
                             1.dp,
-                            if (uiState.selectedSound != null) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.outline
+                            if (uiState.selectedSound != null)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.outline
                         ),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = if (uiState.selectedSound != null)
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                            else Color.Transparent
-                        )
+                            containerColor =
+                                if (uiState.selectedSound != null)
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                                else
+                                    Color.Transparent
+                        ),
+                        contentPadding = PaddingValues(0.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.MusicNote,
-                            contentDescription = null,
-                            tint = if (uiState.selectedSound != null)
-                                MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = uiState.selectedSound?.displayName ?: "Music",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            color = if (uiState.selectedSound != null)
-                                MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant
+                            contentDescription = "Ambient Sounds",
+                            modifier = Modifier.size(22.dp),
+                            tint =
+                                if (uiState.selectedSound != null)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 

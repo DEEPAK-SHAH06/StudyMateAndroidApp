@@ -1,6 +1,7 @@
 package com.example.studymateandroidapp.data.repository
 
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import com.example.studymateandroidapp.data.model.AchievementProgress
 import com.example.studymateandroidapp.data.model.CelebrationEvent
 import com.example.studymateandroidapp.data.model.CelebrationType
@@ -12,12 +13,10 @@ import com.example.studymateandroidapp.data.local.GoalDao
 import com.example.studymateandroidapp.data.local.NoteDao
 import com.example.studymateandroidapp.data.local.FlashcardDao
 import com.example.studymateandroidapp.data.local.MotivationDao
-import com.example.studymateandroidapp.data.local.UserProgressDao
 import com.example.studymateandroidapp.ui.widget.WidgetUpdateHelper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate
-import java.time.LocalTime
 
 import com.example.studymateandroidapp.data.local.SessionDao
 import kotlinx.coroutines.flow.combine
@@ -33,8 +32,16 @@ class MotivationRepository(
     private val gamificationRepository: GamificationRepository,
     private val context: Context
 ) {
-    // ── Gamification (XP & Progress) ───────────────────────
+    private val prefs =
+        context.getSharedPreferences("motivation_prefs", MODE_PRIVATE)
 
+    private companion object {
+        const val LAST_STREAK_POPUP_DATE = "last_streak_popup_date"
+        const val LAST_STREAK_MILESTONE = "last_streak_milestone"
+        const val LAST_STREAK_MILESTONE_DATE = "last_streak_milestone_date"
+    }
+
+    // ── Gamification (XP & Progress) ───────────────────────
     fun getUserProgress() = gamificationRepository.getUserProgress()
 
     suspend fun addXp(amount: Int, message: String) {
@@ -228,42 +235,69 @@ class MotivationRepository(
      */
     suspend fun recordStudyActivity() {
         val streak = calculateCurrentStreak()
-        val today = LocalDate.now()
+        val todayString = LocalDate.now().toString()
         
         // Milestone XP rewards
         if (streak > 0) {
-            val xpReward = when (streak) {
-                7 -> 50
-                30 -> 100
-                100 -> 250
-                else -> 0
-            }
-            
-            if (xpReward > 0) {
-                // We should ideally track if milestone XP was already given for this specific day/streak combo
-                // to prevent double-awarding if multiple activities happen same day.
-                // For Phase 1/2 simplicity, I'll rely on the trigger point logic.
-                addXp(xpReward, "Streak Milestone Reached!")
-                
+            val lastPopupDate = prefs.getString(LAST_STREAK_POPUP_DATE, null)
+
+            // Only show the streak popup once each day
+            if (lastPopupDate != todayString) {
                 triggerCelebration(
                     CelebrationEvent(
                         type = CelebrationType.STREAK_REACHED,
-                        title = "$streak Day Streak!",
-                        subtitle = "Keep up the momentum!",
-                        icon = "🔥",
-                        xpReward = xpReward
-                    )
-                )
-            } else if (streak == 3 || streak == 14) {
-                // Just celebration for minor milestones
-                triggerCelebration(
-                    CelebrationEvent(
-                        type = CelebrationType.STREAK_REACHED,
-                        title = "$streak Day Streak!",
-                        subtitle = "Keep up the momentum!",
+                        title = "Streak Extended!",
+                        subtitle = "$streak Day Streak 🔥",
                         icon = "🔥"
                     )
                 )
+
+                prefs.edit()
+                    .putString(LAST_STREAK_POPUP_DATE, todayString)
+                    .apply()
+            }
+
+            // Milestone rewards
+            val lastMilestone = prefs.getInt(LAST_STREAK_MILESTONE, 0)
+            val lastMilestoneDate =
+                prefs.getString(LAST_STREAK_MILESTONE_DATE, null)
+
+            val reachedMilestone =
+                streak == 3 ||
+                        streak == 7 ||
+                        streak == 14 ||
+                        streak == 30 ||
+                        streak == 100
+
+            if (
+                reachedMilestone &&
+                (lastMilestone != streak || lastMilestoneDate != todayString)
+            ) {
+                val xpReward = when (streak) {
+                    7 -> 50
+                    30 -> 100
+                    100 -> 250
+                    else -> 0
+                }
+
+                if (xpReward > 0) {
+                    addXp(xpReward, "Streak Milestone Reached!")
+                }
+
+                triggerCelebration(
+                    CelebrationEvent(
+                        type = CelebrationType.STREAK_REACHED,
+                        title = "$streak Day Milestone!",
+                        subtitle = "Amazing consistency!",
+                        icon = "🏆",
+                        xpReward = xpReward
+                    )
+                )
+
+                prefs.edit()
+                    .putInt(LAST_STREAK_MILESTONE, streak)
+                    .putString(LAST_STREAK_MILESTONE_DATE, todayString)
+                    .apply()
             }
         }
         

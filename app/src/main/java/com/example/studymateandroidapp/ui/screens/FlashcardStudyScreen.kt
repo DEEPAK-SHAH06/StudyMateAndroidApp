@@ -1,5 +1,6 @@
 package com.example.studymateandroidapp.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -33,8 +34,11 @@ fun FlashcardStudyScreen(
     onNavigateBack: () -> Unit
 ) {
     val flashcards by viewModel.allFlashcards.collectAsState()
-    val examCards = flashcards.filter { it.examId == examId }
-
+    val examCards = remember(flashcards, examId) {
+        flashcards
+            .filter { it.examId == examId }
+            .shuffled()
+    }
     FlashcardStudyContent(
         cards = examCards,
         onBack = onNavigateBack,
@@ -54,6 +58,8 @@ fun FlashcardStudyContent(
     var correctCount by remember { mutableIntStateOf(0) }
     var isFlipped by remember { mutableStateOf(false) }
     var isFinished by remember { mutableStateOf(false) }
+    var shuffledCards by remember(cards) { mutableStateOf(cards.shuffled()) }
+    var reviewCount by remember { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -71,7 +77,10 @@ fun FlashcardStudyContent(
         ) {
             if (isFinished || cards.isEmpty()) {
                 StudyFinishedView(
+                    correct = correctCount,
+                    total = cards.size,
                     onRestart = {
+                        shuffledCards = cards.shuffled()
                         currentIndex = 0
                         correctCount = 0
                         isFlipped = false
@@ -81,7 +90,7 @@ fun FlashcardStudyContent(
                     isEmpty = cards.isEmpty()
                 )
             } else {
-                val currentCard = cards[currentIndex]
+                val currentCard = shuffledCards[currentIndex]
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -90,11 +99,13 @@ fun FlashcardStudyContent(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Card ${currentIndex + 1} of ${cards.size}",
+                        text = "Card ${currentIndex + 1} of ${shuffledCards.size}",
                         style = MaterialTheme.typography.labelLarge,
-                        color = Color.Gray
+                        color = Color.Gray,
+                        fontWeight = FontWeight.SemiBold
                     )
-                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Spacer(modifier = Modifier.height(28.dp))
 
                     FlashcardView(
                         card = currentCard,
@@ -105,32 +116,47 @@ fun FlashcardStudyContent(
                     Spacer(modifier = Modifier.height(48.dp))
 
                     if (isFlipped) {
-                        StudyControls(
-                            onCorrect = {
-                                val newCorrect = correctCount + 1
-                                correctCount = newCorrect
-                                if (currentIndex < cards.size - 1) {
-                                    currentIndex++
-                                    isFlipped = false
-                                } else {
-                                    isFinished = true
-                                    onSessionComplete(newCorrect, cards.size)
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Did you remember it?",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            StudyControls(
+                                onCorrect = {
+                                    val newCorrect = correctCount + 1
+                                    correctCount = newCorrect
+
+                                    if (currentIndex < shuffledCards.size - 1) {
+                                        currentIndex++
+                                        isFlipped = false
+                                    } else {
+                                        isFinished = true
+                                        onSessionComplete(newCorrect, shuffledCards.size)
+                                    }
+                                },
+                                onIncorrect = {
+                                    reviewCount++
+
+                                    if (currentIndex < shuffledCards.size - 1) {
+                                        currentIndex++
+                                        isFlipped = false
+                                    } else {
+                                        isFinished = true
+                                        onSessionComplete(correctCount, shuffledCards.size)
+                                    }
                                 }
-                            },
-                            onIncorrect = {
-                                if (currentIndex < cards.size - 1) {
-                                    currentIndex++
-                                    isFlipped = false
-                                } else {
-                                    isFinished = true
-                                    onSessionComplete(correctCount, cards.size)
-                                }
-                            }
-                        )
+                            )
+                        }
                     } else {
                         Text(
-                            text = "Tap card to reveal answer",
-                            style = MaterialTheme.typography.bodySmall,
+                            text = "Tap the card to reveal the answer",
+                            style = MaterialTheme.typography.bodyMedium,
                             color = Color.Gray
                         )
                     }
@@ -223,17 +249,20 @@ fun StudyControls(onCorrect: () -> Unit, onIncorrect: () -> Unit) {
 
 @Composable
 fun StudyFinishedView(
+    correct: Int,
+    total: Int,
     onRestart: () -> Unit,
     onBack: () -> Unit,
     isEmpty: Boolean = false
 ) {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         if (!isEmpty) {
-            val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
             val imageRes = if (isDark) {
                 R.drawable.session_dark
             } else {
@@ -252,7 +281,33 @@ fun StudyFinishedView(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(32.dp))
+
+            val percentage = if (total == 0) 0 else (correct * 100 / total)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "$correct / $total Correct",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = when {
+                    percentage == 100 -> "Perfect! 🎉"
+                    percentage >= 80 -> "Great job! Keep it up 💪"
+                    percentage >= 60 -> "Nice work! Review a few more cards 📚"
+                    else -> "Keep practicing—you've got this! 🌱"
+                },
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Button(
                 onClick = onRestart,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -261,10 +316,31 @@ fun StudyFinishedView(
                 Text("Restart Session")
             }
         } else {
+            Image(
+                painter = painterResource(
+                    if (isDark)
+                        R.drawable.flashcard_dark
+                    else
+                        R.drawable.flashcard
+                ),
+                contentDescription = null,
+                modifier = Modifier.size(150.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             Text(
-                text = "No cards to study!",
-                style = MaterialTheme.typography.titleLarge,
+                text = "Your deck is empty",
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Create a few flashcards before starting your study session.",
+                textAlign = TextAlign.Center,
+                color = Color.Gray
             )
         }
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {

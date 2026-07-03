@@ -147,7 +147,7 @@ fun FlashcardContent(
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 StatItem(count = "${flashcards.size}", label = "Total\ncards", Color(0xFFE3F2FD), Modifier.weight(1f))
-                StatItem(count = "${flashcards.size}", label = "To\nreview", Color(0xFFFCE4EC), Modifier.weight(1f))
+                StatItem(count = "✓", label = "Random\nShuffle", Color(0xFFFCE4EC), Modifier.weight(1f))
                 StatItem(count = if (examId != null) "1" else "All", label = "Exam\nsubjects", Color(0xFFE8F5E9), Modifier.weight(1f))
             }
 
@@ -185,8 +185,20 @@ fun FlashcardItem(card: Flashcard, onEdit: () -> Unit, onDelete: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = card.question, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                Text(text = card.answer, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text(
+                    text = card.question,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "Answer hidden",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
             }
             Row {
                 IconButton(onClick = onEdit) {
