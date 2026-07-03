@@ -41,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.text.style.TextAlign
 
 /**
  * Main screen for displaying and managing exams.
@@ -217,7 +218,7 @@ fun ExamContent(
                         Text(
                             text = if (searchQuery.isEmpty()) "No upcoming exams. Stay prepared!" else "No exams match your search.",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }
@@ -396,56 +397,33 @@ fun ExamCard(
                 }
             }
 
-            if (completion > 0f) {
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                val blocks = buildString {
-                    val filled = (completion * 10).toInt()
-                    val clampedFilled = filled.coerceIn(0, 10)
-                    repeat(clampedFilled) { append("█") }
-                    repeat(10 - clampedFilled) { append("░") }
-                }
+            Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "$blocks ${(completion * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isMastered) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = if (isMastered) "Mastered" else "In Progress",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            Text(
+                if (isMastered) "Mastered" else "In Progress",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isMastered) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.End
+            )
 
-                Spacer(modifier = Modifier.height(6.dp))
+            Spacer(Modifier.height(6.dp))
 
-                LinearProgressIndicator(
-                    progress = { completion },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(CircleShape),
-                    color =
-                        if (isMastered)
-                            Color(0xFF4CAF50)
-                        else
-                            MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                )
-            }
+            LinearProgressIndicator(
+                progress = { completion },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(CircleShape),
+                color =
+                    if (isMastered)
+                        Color(0xFF4CAF50)
+                    else
+                        MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+            )
 
             if (!isPast) {
-                Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant
-                )
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
@@ -455,13 +433,11 @@ fun ExamCard(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onNotes, modifier = Modifier.size(24.dp)) {
-
                             Icon(painter = painterResource(id = R.drawable.notes), contentDescription = "Notes", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         IconButton(onClick = onFlashcards, modifier = Modifier.size(24.dp)) {
                             Icon(painter = painterResource(id = R.drawable.baseline_file_copy_24), contentDescription = "Flashcards", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
-
                         }
                     }
 

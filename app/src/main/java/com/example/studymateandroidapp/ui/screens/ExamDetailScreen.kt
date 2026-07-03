@@ -14,11 +14,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.studymateandroidapp.data.model.Flashcard
 import com.example.studymateandroidapp.data.model.Note
+import com.example.studymateandroidapp.data.model.StudyProgress
 import com.example.studymateandroidapp.data.model.relations.ExamWithDetails
 import com.example.studymateandroidapp.ui.components.StudyMateTopBar
 import com.example.studymateandroidapp.viewmodel.ExamViewmodel
@@ -36,6 +38,9 @@ fun ExamDetailScreen(
     val examWithDetails by remember(examId) { 
         viewModel.getExamWithDetails(examId) 
     }.collectAsState(initial = null)
+
+    val examProgressMap by viewModel.examProgress.collectAsState()
+    val progress = examProgressMap[examId]
 
     Scaffold(
         topBar = {
@@ -55,8 +60,8 @@ fun ExamDetailScreen(
                     onClick = { onStartStudy(examId) },
                     icon = { Icon(Icons.Default.Timer, contentDescription = null) },
                     text = { Text("Start Study Session") },
-                    containerColor = Color.Black,
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -71,6 +76,7 @@ fun ExamDetailScreen(
             if (details != null) {
                 ExamDetailContent(
                     details = details,
+                    progress = progress,
                     paddingValues = padding,
                     onAddNote = { onNavigateToNotes(examId) },
                     onAddFlashcard = { onNavigateToFlashcards(examId) }
@@ -82,7 +88,7 @@ fun ExamDetailScreen(
                         .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color.Black)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
@@ -92,6 +98,7 @@ fun ExamDetailScreen(
 @Composable
 fun ExamDetailContent(
     details: ExamWithDetails,
+    progress: StudyProgress?,
     paddingValues: PaddingValues,
     onAddNote: () -> Unit,
     onAddFlashcard: () -> Unit
@@ -121,18 +128,94 @@ fun ExamDetailContent(
             Spacer(Modifier.height(8.dp))
             
             // Header Info
-            Text(text = details.exam.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text(text = details.exam.subject, style = MaterialTheme.typography.titleMedium, color = Color.Gray)
+            Text(
+                text = details.exam.title,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = details.exam.subject,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             
             Spacer(Modifier.height(16.dp))
             
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+                Icon(
+                    Icons.Default.CalendarMonth,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
                 Spacer(Modifier.width(8.dp))
-                Text(text = dateStr, style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = dateStr,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 if (timeStr != null) {
-                    Text(text = " • ", style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
-                    Text(text = timeStr, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = " • ",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = timeStr,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+
+        // Exam Progress Section
+        item {
+            val totalStudyTimeMs = progress?.totalStudyTime ?: 0L
+            val targetStudyTimeMs = 10 * 3600 * 1000L // 10 hours in ms
+            val progressFraction = (totalStudyTimeMs.toFloat() / targetStudyTimeMs).coerceIn(0f, 1f)
+            val percentage = (progressFraction * 100).toInt()
+            
+            val totalSeconds = totalStudyTimeMs / 1000
+            val hours = totalSeconds / 3600
+            val minutes = (totalSeconds % 3600) / 60
+            val timeStudiedStr = "${hours}h ${minutes}m / 10h studied"
+            
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Exam Progress",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                LinearProgressIndicator(
+                    progress = { progressFraction },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "$percentage%",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    Text(
+                        timeStudiedStr,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
@@ -150,7 +233,7 @@ fun ExamDetailContent(
             SectionHeaderWithAction("Notes", onAddNote)
         }
         if (details.notes.isEmpty()) {
-            item { Text("No notes linked to this exam.", color = Color.Gray) }
+            item { Text("No notes linked to this exam.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
         } else {
             items(details.notes.take(3), key = { "note_${it.id}" }) { note ->
                 NotePreviewItem(note)
@@ -162,7 +245,7 @@ fun ExamDetailContent(
             SectionHeaderWithAction("Flashcards", onAddFlashcard)
         }
         if (details.flashcards.isEmpty()) {
-            item { Text("No flashcards linked to this exam.", color = Color.Gray) }
+            item { Text("No flashcards linked to this exam.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
         } else {
             items(details.flashcards.take(3), key = { "flashcard_${it.id}" }) { card ->
                 FlashcardPreviewItem(card)
@@ -178,7 +261,7 @@ fun SectionHeaderWithAction(title: String, onAction: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
         TextButton(onClick = onAction) {
             Text("View All")
             Icon(Icons.Default.ChevronRight, contentDescription = null)
@@ -190,14 +273,14 @@ fun SectionHeaderWithAction(title: String, onAction: () -> Unit) {
 fun DetailStatCard(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        color = Color(0xFFF5F5F5),
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
-            Icon(icon, contentDescription = null, tint = Color.Black)
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(8.dp))
-            Text(text = value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text(text = label, style = MaterialTheme.typography.labelMedium, color = Color.Gray)
+            Text(text = value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text(text = label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -206,15 +289,25 @@ fun DetailStatCard(label: String, value: String, icon: androidx.compose.ui.graph
 fun NotePreviewItem(note: Note) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Text(
-            text = note.content,
-            modifier = Modifier.padding(16.dp),
-            maxLines = 2,
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = note.title,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = note.content,
+                maxLines = 3,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -222,12 +315,22 @@ fun NotePreviewItem(note: Note) {
 fun FlashcardPreviewItem(card: Flashcard) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text(text = "Q: ${card.question}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
-            Text(text = "A: ${card.answer}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            Text(
+                text = "Q: ${card.question}",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "A: ${card.answer}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

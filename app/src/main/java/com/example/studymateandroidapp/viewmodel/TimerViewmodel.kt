@@ -230,6 +230,9 @@ class TimerViewmodel(
     fun deleteSession(session: StudySession) {
         viewModelScope.launch {
             sessionRepository.delete(session)
+            session.examId?.let { examId ->
+                studyProgressRepository.refreshProgress(examId)
+            }
         }
     }
 
@@ -285,6 +288,9 @@ class TimerViewmodel(
             }
             sessionRepository.insert(session)
             motivationRepository.recordStudyActivity()
+            session.examId?.let { examId ->
+                studyProgressRepository.refreshProgress(examId)
+            }
         }
     }
 

@@ -43,7 +43,7 @@ fun DashboardScreen(
     viewModel: DashboardViewModel,
     onNavigateToTasks: () -> Unit,
     onNavigateToTimer: () -> Unit,
-    onNavigateToExams: () -> Unit,
+    onNavigateToExamDetails: (Long) -> Unit,
     onNavigateToGoals: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToStats: () -> Unit,
@@ -75,7 +75,7 @@ fun DashboardScreen(
         onTaskToggle = { id, completed -> viewModel.onTaskCompletionToggled(id, completed) },
         onNavigateToTasks = onNavigateToTasks,
         onNavigateToTimer = onNavigateToTimer,
-        onNavigateToExams = onNavigateToExams,
+        onNavigateToExamDetails = onNavigateToExamDetails,
         onNavigateToGoals = onNavigateToGoals,
         onNavigateToSettings = onNavigateToSettings,
         onNavigateToStats = onNavigateToStats,
@@ -108,7 +108,7 @@ private fun DashboardContent(
     onTaskToggle: (Long, Boolean) -> Unit,
     onNavigateToTasks: () -> Unit,
     onNavigateToTimer: () -> Unit,
-    onNavigateToExams: () -> Unit,
+    onNavigateToExamDetails: (Long) -> Unit,
     onNavigateToGoals: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToStats: () -> Unit,
@@ -272,7 +272,12 @@ private fun DashboardContent(
                         contentPadding = PaddingValues(bottom = 24.dp)
                     ) {
                         items(upcomingExams) { countdown ->
-                            ExamCountdownCard(countdown = countdown, onClick = onNavigateToExams)
+                            ExamCountdownCard(
+                                countdown = countdown,
+                                onClick = {
+                                    onNavigateToExamDetails(countdown.id)
+                                }
+                            )
                         }
                     }
                 }
@@ -593,7 +598,7 @@ private fun DashboardPreview() {
             onTaskToggle = { _, _ -> },
             onNavigateToTasks = {},
             onNavigateToTimer = {},
-            onNavigateToExams = {},
+            onNavigateToExamDetails = {},
             onNavigateToGoals = {},
             onNavigateToSettings = {},
             onNavigateToStats = {},

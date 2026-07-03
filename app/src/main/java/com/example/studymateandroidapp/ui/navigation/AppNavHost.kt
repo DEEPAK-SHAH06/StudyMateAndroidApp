@@ -59,12 +59,8 @@ fun AppNavHost(
                         restoreState = false
                     }
                 },
-                onNavigateToExams = {
-                    navController.navigate("exams") {
-                        popUpTo(Screen.Dashboard.route) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                onNavigateToExamDetails = { examId ->
+                    navController.navigate(Screen.ExamDetail.createRoute(examId))
                 },
                 onNavigateToGoals = { navController.navigate(Screen.Goals.route) },
                 onNavigateToSettings = {

@@ -32,11 +32,10 @@ class StudyProgressRepository(private val studyProgressDao: StudyProgressDao) {
         
         val mastery = if (total > 0) correct.toFloat() / total else 0f
         
-        // Simple logic for completion: 50% based on study time (goal: 5 hours), 50% based on flashcard mastery
-        val timeTargetMs = 5 * 3600 * 1000L 
-        val timeProgress = (totalTimeMs.toFloat() / timeTargetMs).coerceIn(0f, 1f)
-        
-        val completion = (timeProgress * 0.5f) + (mastery * 0.5f)
+        // Progress is calculated from total study time recorded for that exam.
+        // Reaching the target study time (10 hours) = 100%.
+        val timeTargetMs = 10 * 3600 * 1000L 
+        val completion = (totalTimeMs.toFloat() / timeTargetMs).coerceIn(0f, 1f)
         
         val existingProgress = studyProgressDao.getProgressByExamIdSync(examId)
         if (existingProgress != null) {
